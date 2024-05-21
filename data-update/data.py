@@ -26,7 +26,7 @@ def get_index() -> dict[str, str]:
 
 def get_warframes(index: dict[str, str], warframes: list) -> None:
     req = requests.get(
-        f"http://content.warframe.com/PublicExport/Manifest/{index["Warframes"]}")
+        f"http://content.warframe.com/PublicExport/Manifest/{index['Warframes']}")
     parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     for warframe in parsed["ExportWarframes"]:
@@ -157,7 +157,7 @@ def parse_kdrive(kdrive: dict, kdrives: list) -> None:
 
 def get_weapons(index: dict[str, str], warframes: list, weapons: list, companions: list) -> None:
     req = requests.get(
-        f"http://content.warframe.com/PublicExport/Manifest/{index["Weapons"]}")
+        f"http://content.warframe.com/PublicExport/Manifest/{index['Weapons']}")
     parsed: dict = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     for item in parsed["ExportWeapons"]:
@@ -233,7 +233,7 @@ def get_weapons(index: dict[str, str], warframes: list, weapons: list, companion
 
 def get_sentinels(index: dict[str, str], companions: list) -> None:
     req = requests.get(
-        f"http://content.warframe.com/PublicExport/Manifest/{index["Sentinels"]}")
+        f"http://content.warframe.com/PublicExport/Manifest/{index['Sentinels']}")
     parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     for companion in parsed["ExportSentinels"]:
