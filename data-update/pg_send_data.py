@@ -1,5 +1,6 @@
 import psycopg2
 from pg_config import load_config
+from data import *
 
 
 def connect(config) -> psycopg2.extensions.connection:
@@ -19,8 +20,21 @@ def main():
     connection = connect(config)
     cursor = connection.cursor()
 
-    cursor.execute("select * from clan;")
-    print(cursor.fetchall())
+    warframes = []
+    weapons = []
+    companions = []
+
+    index = get_index()
+    get_weapons(index, warframes, weapons, companions)
+    get_warframes(index, warframes)
+    get_sentinels(index, companions)
+
+    test_warframe = warframes[0]
+
+    cursor.execute(f"INSERT INTO item (name, type) VALUES ({test_warframe["name"]}, {test_warframe["type"]});")
+    cursor.execute(f"INSERT INTO warframe (name, class) VALUES ({test_warframe["name"], test_warframe["class"]})")
+
+    connection.commit()
 
 
 if __name__ == '__main__':
