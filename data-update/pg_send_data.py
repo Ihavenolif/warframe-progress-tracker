@@ -15,11 +15,6 @@ def connect(config) -> psycopg2.extensions.connection:
 
 
 def main():
-    config = load_config()
-
-    connection = connect(config)
-    cursor = connection.cursor()
-
     warframes = []
     weapons = []
     companions = []
@@ -29,10 +24,22 @@ def main():
     get_warframes(index, warframes)
     get_sentinels(index, companions)
 
-    test_warframe = warframes[0]
+    config = load_config()
 
-    cursor.execute(f"INSERT INTO item (name, type) VALUES ({test_warframe["name"]}, {test_warframe["type"]});")
-    cursor.execute(f"INSERT INTO warframe (name, class) VALUES ({test_warframe["name"], test_warframe["class"]})")
+    connection = connect(config)
+    cursor = connection.cursor()
+
+    for warframe in warframes:
+        cursor.execute(f"INSERT INTO item (name, type) VALUES ('{warframe['name']}', '{warframe['type']}');")
+        cursor.execute(f"INSERT INTO warframe (name, class) VALUES ('{warframe['name']}', '{warframe['class']}')")
+
+    for weapon in weapons:
+        cursor.execute(f"INSERT INTO item (name, type) VALUES ('{weapon['name']}', '{weapon['type']}');")
+        cursor.execute(f"INSERT INTO weapon (name, class) VALUES ('{weapon['name']}', '{weapon['class']}')")
+
+    for companion in companions:
+        cursor.execute(f"INSERT INTO item (name, type) VALUES ('{companion['name']}', '{companion['type']}');")
+        cursor.execute(f"INSERT INTO companion (name, class) VALUES ('{companion['name']}', '{companion['class']}')")
 
     connection.commit()
 

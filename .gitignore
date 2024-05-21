@@ -1,4 +1,5 @@
 data-update/venv
 data-update/database.ini
+data-update/__pycache__
 .vscode
 .vscode/*

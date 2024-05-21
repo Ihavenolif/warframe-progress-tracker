@@ -2,8 +2,7 @@ import lzma
 import requests
 import json
 
-ZAWS_REGISTERED: list[str] = []
-KITGUNS_REGISTERED: list[str] = []
+REGISTERED: list[str] = []
 
 
 def decompress(string: str) -> str:
@@ -45,6 +44,7 @@ def get_warframes(index: dict[str, str], warframes: list) -> None:
         else:
             _type = "Normal"
 
+        REGISTERED.append(name)
         warframes.append({
             "name": name,
             "class": _class,
@@ -61,6 +61,7 @@ def parse_amp(amp: dict, weapons: list) -> None:
     _class: str = "Amp"
     _type: str = "Normal"
 
+    REGISTERED.append(name)
     weapons.append({
         "name": name,
         "class": _class,
@@ -71,13 +72,13 @@ def parse_amp(amp: dict, weapons: list) -> None:
 def parse_zaw(zaw: dict, weapons: list) -> None:
     name: str = zaw["name"]
 
-    if "Tip" not in zaw["uniqueName"] or name in ZAWS_REGISTERED:
+    if "Tip" not in zaw["uniqueName"] or name in REGISTERED:
         return
 
     _class: str = "Zaw"
     _type: str = "Normal"
 
-    ZAWS_REGISTERED.append(name)
+    REGISTERED.append(name)
     weapons.append({
         "name": name,
         "class": _class,
@@ -88,13 +89,13 @@ def parse_zaw(zaw: dict, weapons: list) -> None:
 def parse_kitgun(kitgun: dict, weapons: list) -> None:
     name: str = kitgun["name"]
 
-    if "Barrel" not in kitgun["uniqueName"] or name in KITGUNS_REGISTERED:
+    if "Barrel" not in kitgun["uniqueName"] or name in REGISTERED:
         return
 
     _class: str = "Kitgun"
     _type: str = "Normal"
 
-    KITGUNS_REGISTERED.append(name)
+    REGISTERED.append(name)
     weapons.append({
         "name": name,
         "class": _class,
@@ -111,6 +112,7 @@ def parse_hound(hound: dict, companions: list) -> None:
     _class: str = "Hound"
     _type: str = "Normal"
 
+    REGISTERED.append(name)
     companions.append({
         "name": name,
         "class": _class,
@@ -127,6 +129,7 @@ def parse_moa(moa: dict, companions: list) -> None:
     _class: str = "Moa"
     _type: str = "Normal"
 
+    REGISTERED.append(name)
     companions.append({
         "name": name,
         "class": _class,
@@ -144,6 +147,7 @@ def parse_kdrive(kdrive: dict, kdrives: list) -> None:
     _class: str = "Kdrive"
     _type: str = "Normal"
 
+    REGISTERED.append(name)
     kdrives.append({
         "name": name,
         "class": _class,
@@ -157,6 +161,9 @@ def get_weapons(index: dict[str, str], warframes: list, weapons: list, companion
     parsed: dict = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     for item in parsed["ExportWeapons"]:
+        if item["name"] in REGISTERED:
+            continue
+
         if "SpecialItems" == item["productCategory"]:
             continue
         if "ANTIGEN" in item["name"] or "MUTAGEN" in item["name"]:
@@ -208,12 +215,14 @@ def get_weapons(index: dict[str, str], warframes: list, weapons: list, companion
             _type = "Normal"
 
         if _class == "SentinelWeapons":
+            REGISTERED.append(name)
             companions.append({
                 "name": name,
                 "class": _class,
                 "type": _type
             })
         else:
+            REGISTERED.append(name)
             weapons.append({
                 "name": name,
                 "class": _class,
@@ -256,6 +265,7 @@ def get_sentinels(index: dict[str, str], companions: list) -> None:
         else:
             _type = "Normal"
 
+        REGISTERED.append(name)
         companions.append({
             "name": name,
             "class": _class,
