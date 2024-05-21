@@ -1,6 +1,7 @@
 import lzma
 import requests
 import json
+import subprocess
 
 REGISTERED: list[str] = []
 
@@ -10,12 +11,23 @@ def decompress(string: str) -> str:
 
 
 def get_index() -> dict[str, str]:
-    req = requests.get(
-        "https://origin.warframe.com/PublicExport/index_en.txt.lzma")
-    decompressed = decompress(req.text)
+    # fucking lzma is broken on ubuntu and i have to use this fucking shit
+    # req = requests.get(
+    #    "https://origin.warframe.com/PublicExport/index_en.txt.lzma")
+    # decompressed = decompress(req.text)
+    # fuckthis
+    # TODO: once lzma is unfucked delete this shit
+    subprocess.run(["rm", "index_en.txt.lzma", "index_en.txt"])
+    subprocess.run(["wget", "https://origin.warframe.com/PublicExport/index_en.txt.lzma"])
+    subprocess.run(["node", "main.js"], stdout=open("index_en.txt", "w"))
+
+    with open("index_en.txt", "r") as fuckingfile:
+        decompressed = fuckingfile.read()
+        fuckingfile.close()
+
     ret = {}
 
-    lines = decompressed.split("\r\n")
+    lines = decompressed.split("\n")
     for line in lines:
         # this is some python magic right fucking there
         key = line.split("_")[0][6::]
