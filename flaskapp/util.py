@@ -1,4 +1,5 @@
 from flask import render_template
+from flask_login import current_user
 import random
 import string
 
@@ -23,4 +24,8 @@ def generate_random_password(length):
 
 
 def render(url: str, *args, **kwargs):
-    return render_template("shared/base.html", content=render_template(url, **kwargs), **kwargs)
+    try:
+        username = getattr(current_user, "username")
+    except:
+        username = ""
+    return render_template("shared/base.html", content=render_template(url, **kwargs), username=username, page=url, **kwargs)

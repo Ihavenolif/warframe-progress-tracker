@@ -13,7 +13,7 @@
 <body>
 
     <div class="topnav" id="myTopnav">
-        <a class="active" href="/">Home</a>
+        <a class='{% if page == "index.html" %}active{% endif %}' href="/">Home</a>
         <div class="dropdown">
             <button class="dropbtn">Blog
                 <i class="fa fa-caret-down"></i>
@@ -23,7 +23,7 @@
             </div>
         </div>
 
-        {% if username == "Not logged in" %}
+        {% if username == "" %}
 
         {% include 'shared/userNotLoggedIn.html' %}
 

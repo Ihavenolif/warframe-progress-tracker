@@ -19,17 +19,17 @@ body {
 }
 
 .active {
-    background-color: #007bff;
+    background-color: var(--accent);
     color: white;
 }
 
 .active-inverted {
-    background-color: #007bff;
+    background-color: var(--accent);
     color: white !important;
 }
 
 .active-inverted:hover {
-    background-color: #61aeff !important;
+    background-color: var(--accent-light) !important;
     color: black !important;
 }
 

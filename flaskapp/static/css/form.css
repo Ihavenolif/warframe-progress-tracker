@@ -12,7 +12,7 @@ input[type=password] {
 /* Set a style for all buttons */
 .form-button {
     font-family: Arial;
-    background-color: #007bff;
+    background-color: var(--accent);
     color: white;
     padding: 14px 20px;
     margin: 8px 0;

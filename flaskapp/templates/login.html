@@ -1,14 +1,12 @@
 <link rel="stylesheet" href="/static/css/form.css">
 
 <div style="width: 50%; margin-top: 10%; margin-left: 25%; margin-right: 25%;">
-    <form method="post" action="/register">
+    <form method="post" action="/login">
         {{form.hidden_tag()}}
         {{ form.username.label(class_='form-label') }}
         {{ form.username(class_='form-control') }}
         {{ form.password.label(class_='form-label') }}
         {{ form.password(class_='form-control') }}
-        {{ form.password_repeat.label(class_='form-label') }}
-        {{ form.password_repeat(class_='form-control') }}
-        <button class="form-button" type="submit">Register</button>
+        <button class="form-button" type="submit">Login</button>
     </form>
 </div>
