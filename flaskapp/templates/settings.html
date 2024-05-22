@@ -1,0 +1,44 @@
+<link rel="stylesheet" href="/static/css/vertical-menu.css">
+
+<h2>
+    Account settings
+    <span style="font-weight: normal;"> - {{ username|safe }}</span>
+</h2>
+
+<br>
+
+
+
+<div class="vertical-menu">
+    <a href="/change_password">Change password</a>
+</div>
+
+<br>
+<hr>
+
+<h4>Warframe account link status:</h4>
+
+
+{% if warframe_name == "" %}
+
+<i>Not linked</i>
+
+{% else %}
+
+Linked - {{warframe_name}}
+
+{% endif %}
+
+<br><br>
+
+<div class="vertical-menu">
+    <a href="javascript:unlink()">Unlink account</a>
+</div>
+
+<script>
+    function unlink() {
+        if (confirm("Are you sure you want to unlink your account? All of your progress will be lost!")) {
+            window.location = "/unline_account"
+        }
+    }
+</script>

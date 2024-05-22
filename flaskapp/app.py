@@ -44,6 +44,12 @@ class Registered_user(db.Model, UserMixin):
     salt = db.Column(db.String(256))
 
 
+class Player(db.Model, UserMixin):
+    username = db.Column(db.String(256), primary_key=True)
+    id = db.Column(db.Integer)
+    mastery_rank = db.Column(db.Integer)
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return Registered_user.query.get(int(user_id))
@@ -113,7 +119,25 @@ def register():
 def logout():
     logout_user()
     flash("Successfully logged out.", "info")
-    return render("index.html")
+    return redirect("/")
+
+
+@login_required
+@app.route("/clans")
+def clans():
+    pass
+
+
+@login_required
+@app.route("/settings")
+def settings():
+    player = Player.query.filter_by(id=getattr(current_user, "id")).first()
+    if player:
+        warframe_name = player.username
+    else:
+        warframe_name = ""
+    return render("settings.html", warframe_name=warframe_name)
+    pass
 
 
 if __name__ == "__main__":

@@ -28,4 +28,4 @@ def render(url: str, *args, **kwargs):
         username = getattr(current_user, "username")
     except:
         username = ""
-    return render_template("shared/base.html", content=render_template(url, **kwargs), username=username, page=url, **kwargs)
+    return render_template("shared/base.html", content=render_template(url, **kwargs, username=username), username=username, page=url, **kwargs)
