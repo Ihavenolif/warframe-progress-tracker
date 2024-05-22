@@ -46,14 +46,15 @@ CREATE TABLE player (
     mastery_rank INTEGER NOT NULL
 );
 ALTER TABLE player ADD CONSTRAINT pk_player PRIMARY KEY (id);
+ALTER TABLE player ADD CONSTRAINT uc_player_username UNIQUE (username);
 ALTER TABLE player ADD CONSTRAINT u_fk_player_registered_user UNIQUE (registered_user_id);
 
--- Warning: Missing primary key. It is recommended to explicitly define a primary key.
 CREATE TABLE player_items (
-    id INTEGER,
-    name VARCHAR(256),
+    player_id INTEGER NOT NULL,
+    item_name VARCHAR(256) NOT NULL,
     mastered BOOLEAN NOT NULL
 );
+ALTER TABLE player_items ADD CONSTRAINT pk_player_items PRIMARY KEY (player_id, item_name);
 
 CREATE TABLE registered_user (
     id SERIAL NOT NULL,
@@ -62,6 +63,7 @@ CREATE TABLE registered_user (
     salt VARCHAR(256) NOT NULL
 );
 ALTER TABLE registered_user ADD CONSTRAINT pk_registered_user PRIMARY KEY (id);
+ALTER TABLE registered_user ADD CONSTRAINT uc_registered_user_username UNIQUE (username);
 
 CREATE TABLE warframe (
     name VARCHAR(256) NOT NULL,
@@ -109,8 +111,8 @@ ALTER TABLE companion ADD CONSTRAINT fk_companion_item FOREIGN KEY (name) REFERE
 
 ALTER TABLE player ADD CONSTRAINT fk_player_registered_user FOREIGN KEY (registered_user_id) REFERENCES registered_user (id) ON DELETE CASCADE;
 
-ALTER TABLE player_items ADD CONSTRAINT fk_player_items_player FOREIGN KEY (id) REFERENCES player (id) ON DELETE CASCADE;
-ALTER TABLE player_items ADD CONSTRAINT fk_player_items_item FOREIGN KEY (name) REFERENCES item (name) ON DELETE CASCADE;
+ALTER TABLE player_items ADD CONSTRAINT fk_player_items_player FOREIGN KEY (player_id) REFERENCES player (id) ON DELETE CASCADE;
+ALTER TABLE player_items ADD CONSTRAINT fk_player_items_item FOREIGN KEY (item_name) REFERENCES item (name) ON DELETE CASCADE;
 
 ALTER TABLE warframe ADD CONSTRAINT fk_warframe_item FOREIGN KEY (name) REFERENCES item (name) ON DELETE CASCADE;
 
