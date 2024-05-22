@@ -4,3 +4,4 @@ data-update/__pycache__
 data-update/node_modules
 .vscode
 .vscode/*
+database.ini
