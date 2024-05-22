@@ -1,5 +1,4 @@
 data-update/venv
-data-update/database.ini
 data-update/__pycache__
 data-update/node_modules
 .vscode
