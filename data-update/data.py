@@ -60,7 +60,8 @@ def get_warframes(index: dict[str, str], warframes: list) -> None:
         warframes.append({
             "name": name,
             "class": _class,
-            "type": _type
+            "type": _type,
+            "nameraw": warframe["uniqueName"]
         })
 
 
@@ -77,7 +78,8 @@ def parse_amp(amp: dict, weapons: list) -> None:
     weapons.append({
         "name": name,
         "class": _class,
-        "type": _type
+        "type": _type,
+        "nameraw": amp["uniqueName"]
     })
 
 
@@ -94,7 +96,8 @@ def parse_zaw(zaw: dict, weapons: list) -> None:
     weapons.append({
         "name": name,
         "class": _class,
-        "type": _type
+        "type": _type,
+        "nameraw": zaw["uniqueName"]
     })
 
 
@@ -111,7 +114,8 @@ def parse_kitgun(kitgun: dict, weapons: list) -> None:
     weapons.append({
         "name": name,
         "class": _class,
-        "type": _type
+        "type": _type,
+        "nameraw": kitgun["uniqueName"]
     })
 
 
@@ -128,7 +132,8 @@ def parse_hound(hound: dict, companions: list) -> None:
     companions.append({
         "name": name,
         "class": _class,
-        "type": _type
+        "type": _type,
+        "nameraw": hound["uniqueName"]
     })
 
 
@@ -145,7 +150,8 @@ def parse_moa(moa: dict, companions: list) -> None:
     companions.append({
         "name": name,
         "class": _class,
-        "type": _type
+        "type": _type,
+        "nameraw": moa["uniqueName"]
     })
 
 
@@ -163,7 +169,8 @@ def parse_kdrive(kdrive: dict, kdrives: list) -> None:
     kdrives.append({
         "name": name,
         "class": _class,
-        "type": _type
+        "type": _type,
+        "nameraw": kdrive["uniqueName"]
     })
 
 
@@ -231,14 +238,16 @@ def get_weapons(index: dict[str, str], warframes: list, weapons: list, companion
             companions.append({
                 "name": name,
                 "class": _class,
-                "type": _type
+                "type": _type,
+                "nameraw": item["uniqueName"]
             })
         else:
             REGISTERED.append(name)
             weapons.append({
                 "name": name,
                 "class": _class,
-                "type": _type
+                "type": _type,
+                "nameraw": item["uniqueName"]
             })
     pass
 
@@ -281,7 +290,8 @@ def get_sentinels(index: dict[str, str], companions: list) -> None:
         companions.append({
             "name": name,
             "class": _class,
-            "type": _type
+            "type": _type,
+            "nameraw": companion["uniqueName"]
         })
 
 
