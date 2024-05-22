@@ -1,0 +1,22 @@
+<link rel="stylesheet" href="/static/css/flash.css">
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+
+<div id="flash-div" class="flash-{{ category }}">
+
+    <span class="flash">{{ message }}</span>
+    <span class="flash" id="flash-cross"><i class="fa-solid fa-x"></i></span>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<!--<div id="flash-div" class="flash-info">
+
+    <span class="flash">Login successful.</span>
+    <span class="flash" id="flash-cross"><i class="fa-solid fa-x"></i></span>
+</div>-->
+
+<script src="/static/js/flash.js"></script>

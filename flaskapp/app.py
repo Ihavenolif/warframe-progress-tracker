@@ -1,7 +1,7 @@
 from wtforms.validators import DataRequired, EqualTo
 from wtforms import SubmitField, StringField, PasswordField
 from flask_wtf import FlaskForm
-from flask import Flask, render_template, render_template_string, redirect, url_for
+from flask import Flask, redirect, flash
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column
@@ -67,6 +67,7 @@ def login():
 
     if not user:
         # user not found
+        flash("No user with that username exists.", "error")
         return render("login.html", form=form)
 
     password_hash = hashlib.sha256((password+user.salt).encode("utf-8")).hexdigest()
@@ -74,7 +75,9 @@ def login():
         login_user(user)
     else:
         # incorrect password
+        flash("Incorrect password.", "error")
         return render("login.html", form=form)
+    flash("Successfully logged in.", "info")
     return redirect("/")
 
 
@@ -89,7 +92,8 @@ def register():
     username: str = form.username.data
 
     if Registered_user.query.filter_by(username=username).first():
-        return "User already exists"
+        flash("That username is already taken.", "error")
+        return render("register.html", form=form)
 
     password: str = form.password.data
     salt = generate_random_password(32)
@@ -100,14 +104,16 @@ def register():
     db.session.commit()
     logout_user()
     login_user(user)
-    return "Registered with username " + username
+    flash("Registered with username " + username + ".", "info")
+    return redirect("/")
 
 
 @login_required
 @app.route("/logout")
 def logout():
     logout_user()
-    return render("logout.html")
+    flash("Successfully logged out.", "info")
+    return render("index.html")
 
 
 if __name__ == "__main__":

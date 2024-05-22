@@ -1,0 +1,49 @@
+#flash-div {
+    display: block;
+    position: fixed;
+    max-width: 500px;
+    width: 90vw;
+    /*border: 1px solid #333;*/
+    margin-left: calc(min(5vw, 20px) - 1px);
+    margin-top: 60px;
+    padding: 15px;
+    right: calc(min(5vw, 20px) + 1px);
+    color: white;
+}
+
+#flash-cross {
+    position: absolute;
+    right: inherit;
+    cursor: pointer;
+}
+
+.flash-error {
+    background-color: #f00;
+}
+
+.flash-info {
+    background-color: #32a852;
+}
+
+span.flash {
+    font-size: 120%;
+}
+
+@keyframes flash-hide {
+    0% {
+        opacity: 100%;
+    }
+
+    20% {
+        opacity: 0%;
+    }
+
+    100% {
+        opacity: 0%;
+    }
+}
+
+.flash-faded {
+    animation-name: flash-hide;
+    animation-duration: 1500ms;
+}
