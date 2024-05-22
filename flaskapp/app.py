@@ -55,8 +55,9 @@ class Registered_user(db.Model, UserMixin):
 
 
 class Player(db.Model, UserMixin):
-    username = db.Column(db.String(256), primary_key=True)
-    id = db.Column(db.Integer)
+    username = db.Column(db.String(256))
+    id = db.Column(db.Integer, primary_key=True)
+    registered_user_id = db.Column(db.Integer)
     mastery_rank = db.Column(db.Integer)
 
 
@@ -146,7 +147,7 @@ def clans():
 @login_required
 @app.route("/settings")
 def settings():
-    player = Player.query.filter_by(id=getattr(current_user, "id")).first()
+    player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
     if player:
         warframe_name = player.username
     else:
@@ -192,7 +193,7 @@ def link_account():
     form: LinkAccountForm = LinkAccountForm()
 
     player_id = getattr(current_user, "id")
-    potentially_linked_account = Player.query.filter_by(id=player_id).first()
+    potentially_linked_account = Player.query.filter_by(registered_user_id=player_id).first()
     if potentially_linked_account:
         flash("A Warframe account is already linked.", "error")
         return redirect("/settings")
@@ -207,7 +208,7 @@ def link_account():
         return render("link_account.html", form=form)
 
     warframe_name: str = form.warframe_name.data
-    player = Player(username=warframe_name, id=player_id, mastery_rank=0)
+    player = Player(username=warframe_name, registered_user_id=player_id, mastery_rank=0)
     db.session.add(player)
     db.session.commit()
     flash("Account successfully linked.", "info")
@@ -218,7 +219,7 @@ def link_account():
 @app.route("/unlink_account")
 def unlink_account():
     player_id = getattr(current_user, "id")
-    player = Player.query.filter_by(id=player_id)
+    player = Player.query.filter_by(registered_user_id=player_id)
 
     if not player:
         flash("No account is currently linked.", "error")
@@ -229,6 +230,14 @@ def unlink_account():
     db.session.commit()
     flash("Account unlinked successfully.", "info")
     return redirect("/settings")
+
+
+@login_required
+@app.route("/progress")
+def progress():
+
+    return render("progress.html")
+    pass
 
 
 if __name__ == "__main__":
