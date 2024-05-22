@@ -43,6 +43,10 @@ class LoginForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
 
 
+class LinkAccountForm(FlaskForm):
+    warframe_name = StringField("Account name", validators=[DataRequired()])
+
+
 class Registered_user(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(256), unique=True)
@@ -179,6 +183,51 @@ def change_password():
     current_user.password_hash = new_password_hash
     db.session.commit()
     flash("Password changed successfully.", "info")
+    return redirect("/settings")
+
+
+@login_required
+@app.route("/link_account", methods=["GET", "POST"])
+def link_account():
+    form: LinkAccountForm = LinkAccountForm()
+
+    player_id = getattr(current_user, "id")
+    potentially_linked_account = Player.query.filter_by(id=player_id).first()
+    if potentially_linked_account:
+        flash("A Warframe account is already linked.", "error")
+        return redirect("/settings")
+
+    if not form.validate_on_submit():
+        # return render_template("shared/base.html", form=form, content=render_template("register.html", form=form))
+        try:
+            error = form.errors["password"][0]
+            flash(error, "error")
+        except:
+            pass
+        return render("link_account.html", form=form)
+
+    warframe_name: str = form.warframe_name.data
+    player = Player(username=warframe_name, id=player_id, mastery_rank=0)
+    db.session.add(player)
+    db.session.commit()
+    flash("Account successfully linked.", "info")
+    return redirect("/settings")
+
+
+@login_required
+@app.route("/unlink_account")
+def unlink_account():
+    player_id = getattr(current_user, "id")
+    player = Player.query.filter_by(id=player_id)
+
+    if not player:
+        flash("No account is currently linked.", "error")
+        return redirect("/settings")
+
+    player.delete()
+
+    db.session.commit()
+    flash("Account unlinked successfully.", "info")
     return redirect("/settings")
 
 

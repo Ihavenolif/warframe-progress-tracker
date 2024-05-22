@@ -3,7 +3,8 @@
         <i class="fa fa-caret-down"></i>
     </button>
     <div class="dropdown-content right-aligned">
-        <a href="/files">Files</a>
-        <a href="/logout">Log out</a>
+        <a class='{% if page == "clans.html" %}active-inverted{% endif %}' href="/clans">Clans</a>
+        <a class='{% if page == "settings.html" %}active-inverted{% endif %}' href="/settings">Settings</a>
+        <a class='{% if page == "logout.html" %}active-inverted{% endif %}' href="/logout">Log out</a>
     </div>
 </div>
