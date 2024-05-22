@@ -22,7 +22,7 @@ CREATE TABLE clan (
 ALTER TABLE clan ADD CONSTRAINT pk_clan PRIMARY KEY (id);
 
 CREATE TABLE companion (
-    name INTEGER NOT NULL,
+    name VARCHAR(256) NOT NULL,
     class VARCHAR(256) NOT NULL
 );
 ALTER TABLE companion ADD CONSTRAINT pk_companion PRIMARY KEY (name);
@@ -33,7 +33,7 @@ CREATE TABLE component (
 ALTER TABLE component ADD CONSTRAINT pk_component PRIMARY KEY (name);
 
 CREATE TABLE item (
-    name SERIAL NOT NULL,
+    name VARCHAR(256) NOT NULL,
     type VARCHAR(256) NOT NULL
 );
 ALTER TABLE item ADD CONSTRAINT pk_item PRIMARY KEY (name);
@@ -46,12 +46,12 @@ CREATE TABLE player (
 ALTER TABLE player ADD CONSTRAINT pk_player PRIMARY KEY (username);
 ALTER TABLE player ADD CONSTRAINT u_fk_player_registered_user UNIQUE (id);
 
--- Warning: Missing primary key. It is recommended to explicitly define a primary key.
 CREATE TABLE player_items (
-    username VARCHAR(256),
-    name INTEGER,
-    mastered VARCHAR(256) NOT NULL
+    username VARCHAR(256) NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    mastered BOOLEAN NOT NULL
 );
+ALTER TABLE player_items ADD CONSTRAINT pk_player_items PRIMARY KEY (username, name);
 
 CREATE TABLE registered_user (
     id SERIAL NOT NULL,
@@ -63,19 +63,20 @@ ALTER TABLE registered_user ADD CONSTRAINT pk_registered_user PRIMARY KEY (id);
 ALTER TABLE registered_user ADD CONSTRAINT uc_registered_user_username UNIQUE (username);
 
 CREATE TABLE warframe (
-    name INTEGER NOT NULL
+    name VARCHAR(256) NOT NULL,
+    class VARCHAR(256) NOT NULL
 );
 ALTER TABLE warframe ADD CONSTRAINT pk_warframe PRIMARY KEY (name);
 
 CREATE TABLE weapon (
-    name INTEGER NOT NULL,
+    name VARCHAR(256) NOT NULL,
     class VARCHAR(256) NOT NULL
 );
 ALTER TABLE weapon ADD CONSTRAINT pk_weapon PRIMARY KEY (name);
 
 CREATE TABLE component_companion (
     component_name VARCHAR(256) NOT NULL,
-    companion_name INTEGER NOT NULL
+    companion_name VARCHAR(256) NOT NULL
 );
 ALTER TABLE component_companion ADD CONSTRAINT pk_component_companion PRIMARY KEY (component_name, companion_name);
 
@@ -92,13 +93,13 @@ CREATE TABLE player_component (
 ALTER TABLE player_component ADD CONSTRAINT pk_player_component PRIMARY KEY (username, name);
 
 CREATE TABLE warframe_component (
-    warframe_name INTEGER NOT NULL,
+    warframe_name VARCHAR(256) NOT NULL,
     component_name VARCHAR(256) NOT NULL
 );
 ALTER TABLE warframe_component ADD CONSTRAINT pk_warframe_component PRIMARY KEY (warframe_name, component_name);
 
 CREATE TABLE weapon_component (
-    weapon_name INTEGER NOT NULL,
+    weapon_name VARCHAR(256) NOT NULL,
     component_name VARCHAR(256) NOT NULL
 );
 ALTER TABLE weapon_component ADD CONSTRAINT pk_weapon_component PRIMARY KEY (weapon_name, component_name);
@@ -128,4 +129,3 @@ ALTER TABLE warframe_component ADD CONSTRAINT fk_warframe_component_component FO
 
 ALTER TABLE weapon_component ADD CONSTRAINT fk_weapon_component_weapon FOREIGN KEY (weapon_name) REFERENCES weapon (name) ON DELETE CASCADE;
 ALTER TABLE weapon_component ADD CONSTRAINT fk_weapon_component_component FOREIGN KEY (component_name) REFERENCES component (name) ON DELETE CASCADE;
-
