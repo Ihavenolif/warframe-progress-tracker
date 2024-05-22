@@ -1,6 +1,6 @@
-data-update/venv
-data-update/__pycache__
-data-update/node_modules
+node_modules
+__pycache__
+venv
 .vscode
 .vscode/*
 database.ini

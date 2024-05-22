@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warframe Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/responsive-nav-bar.css">
+    <link rel="stylesheet" href="/static/css/column-layout.css">
+</head>
+
+<body>
+
+    <div class="topnav" id="myTopnav">
+        <a class="active" href="/">Home</a>
+        <div class="dropdown">
+            <button class="dropbtn">Blog
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="/blog/erasmus">Erasmus+</a>
+            </div>
+        </div>
+
+        {% if username == "Not logged in" %}
+
+        {% include 'shared/userNotLoggedIn.html' %}
+
+        {% else %}
+
+        {% include 'shared/userLoggedIn.html' %}
+
+        {% endif %}
+        <a href="javascript:void(0);" style="font-size:15px;" class="icon" onclick="responsiveNavbar()">&#9776;</a>
+    </div>
+
+    </div>
+
+    <div class="row">
+        <div class="column left">
+        </div>
+        <div class="column middle">
+            {{content|safe}}
+
+        </div>
+        <div class="column right">
+
+        </div>
+    </div>
+
+    <script src="/static/js/responsive-nav-bar.js"></script>
+
+</body>
+
+</html>
