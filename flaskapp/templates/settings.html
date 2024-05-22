@@ -23,17 +23,27 @@
 
 <i>Not linked</i>
 
+<br><br>
+
+<div class="vertical-menu">
+    <a href="/link_account">Link account</a>
+</div>
+
 {% else %}
 
 Linked - {{warframe_name}}
-
-{% endif %}
 
 <br><br>
 
 <div class="vertical-menu">
     <a href="javascript:unlink()">Unlink account</a>
 </div>
+
+{% endif %}
+
+
+
+
 
 <script>
     function unlink() {

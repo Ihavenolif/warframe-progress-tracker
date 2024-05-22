@@ -32,6 +32,12 @@ class RegisterForm(FlaskForm):
     password_repeat = PasswordField("Repeat password", validators=[DataRequired()])
 
 
+class ChangePasswordForm(FlaskForm):
+    old_password = PasswordField("Old password", validators=[DataRequired()])
+    new_password = PasswordField("New password", validators=[DataRequired(), EqualTo("password_repeat", message="Passwords must match")])
+    password_repeat = PasswordField("Repeat password", validators=[DataRequired()])
+
+
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
@@ -92,6 +98,11 @@ def register():
     form: RegisterForm = RegisterForm()
 
     if not form.validate_on_submit():
+        try:
+            error = form.errors["password"][0]
+            flash(error, "error")
+        except:
+            pass
         # return render_template("shared/base.html", form=form, content=render_template("register.html", form=form))
         return render("register.html", form=form)
 
@@ -138,6 +149,37 @@ def settings():
         warframe_name = ""
     return render("settings.html", warframe_name=warframe_name)
     pass
+
+
+@login_required
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    form: ChangePasswordForm = ChangePasswordForm()
+
+    if not form.validate_on_submit():
+        # return render_template("shared/base.html", form=form, content=render_template("register.html", form=form))
+        try:
+            error = form.errors["password"][0]
+            flash(error, "error")
+        except:
+            pass
+        return render("change_password.html", form=form)
+
+    old_password: str = form.old_password.data
+    salt = getattr(current_user, "salt")
+    old_password_hash = hashlib.sha256((old_password+salt).encode("utf-8")).hexdigest()
+
+    if old_password_hash != getattr(current_user, "password_hash"):
+        flash("Old password is wrong.", "error")
+        return render("change_password.html", form=form)
+
+    new_password: str = form.new_password.data
+    new_password_hash = hashlib.sha256((new_password+salt).encode("utf-8")).hexdigest()
+
+    current_user.password_hash = new_password_hash
+    db.session.commit()
+    flash("Password changed successfully.", "info")
+    return redirect("/settings")
 
 
 if __name__ == "__main__":
