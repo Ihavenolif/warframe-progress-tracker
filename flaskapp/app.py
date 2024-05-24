@@ -1,14 +1,16 @@
 from wtforms.validators import DataRequired, EqualTo
 from wtforms import SubmitField, StringField, PasswordField
 from flask_wtf import FlaskForm
-from flask import Flask, redirect, flash
+from flask import Flask, redirect, flash, request, render_template
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, aliased
+from sqlalchemy import desc, text, select
 
 import flask_sqlalchemy.model
 import flask_sqlalchemy.extension
 import hashlib
+import json
 
 from config import load_config
 from util import render, generate_random_password, ITEM_CLASSES
@@ -260,22 +262,51 @@ def unlink_account():
 
 
 @login_required
-@app.route("/progress")
+@app.route("/progress", methods=["GET", "POST"])
 def progress():
+    if request.content_type == "application/json":
+        sort_type_dictionary = {
+            "mastered": PlayerItems.mastered,
+            "name": Item.name,
+            "class": Weapon.item_class
+        }
+        sortJson = request.json
+        sortOrder: list = []
+
+        for sort in sortJson:
+            if sort["ascending"]:
+                sortOrder.append(sort_type_dictionary[sort["type"]])
+            else:
+                sortOrder.append(desc(sort_type_dictionary[sort["type"]]))
+
+        print(request.json)
+    else:
+        sortOrder: list = [
+            PlayerItems.mastered,
+            Weapon.item_class,
+            Item.name
+        ]
     player: Player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
     weaponQuery = db.session.query(PlayerItems, Item, Weapon)\
-        .outerjoin(PlayerItems, PlayerItems.item_name == Item.name)\
-        .join(Weapon, Weapon.name == Item.name)
+        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
+        .join(Weapon, Weapon.name == Item.name)\
+        # .order_by("item_class")
     warframeQuery = db.session.query(PlayerItems, Item, Warframe)\
-        .outerjoin(PlayerItems, PlayerItems.item_name == Item.name)\
+        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
         .join(Warframe, Warframe.name == Item.name)
     companionQuery = db.session.query(PlayerItems, Item, Companion)\
-        .outerjoin(PlayerItems, PlayerItems.item_name == Item.name)\
+        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
         .join(Companion, Companion.name == Item.name)
     # query = db.session.query(PlayerItems, joinedItems).outerjoin(PlayerItems, PlayerItems.item_name == Item.name)
 
     # : list[PlayerItems] #= Item.query.join(PlayerItems.query.filter_by(player_id=player.id), Item.name == PlayerItems.item_name, isouter=True).all()  # .join(Item, isouter=True)
-    items: list[tuple[PlayerItems, Item, Weapon]] = weaponQuery.all() + warframeQuery.all() + companionQuery.all()
+    united = weaponQuery.union(warframeQuery, companionQuery)
+    items: list[tuple[PlayerItems, Item, Weapon]] = united\
+        .order_by(sortOrder[0])\
+        .order_by(sortOrder[1])\
+        .order_by(sortOrder[2])\
+        .all()
+    # weaponQuery.all() + warframeQuery.all() + companionQuery.all()
 
     items_send = []
 
@@ -294,8 +325,10 @@ def progress():
             "mastered": mastered
         })
 
-    return render("progress.html", itemList=items_send)
-    pass
+    if request.method == "GET":
+        return render("progress.html", itemList=items_send)
+    else:
+        return render_template("progress_table_raw.html", itemList=items_send)
 
 
 if __name__ == "__main__":

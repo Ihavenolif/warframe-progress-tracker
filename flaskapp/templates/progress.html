@@ -3,10 +3,9 @@
 <table>
     <thead>
         <tr>
-            <th id="itemNameHead" onclick="sortList('itemName')">Item name</th>
-            <th id="classHead" onclick="sortList('class')">Item Class</th>
-            <th id="ownedHead" onclick="sortList('owned')">Owned</th>
-            <th id="masteredHead" onclick="sortList('mastered')">Mastered</th>
+            <th id="itemNameHead" onclick="sortBy('name')">Item name</th>
+            <th id="classHead" onclick="sortBy('class')">Item Class</th>
+            <th id="masteredHead" onclick="sortBy('mastered')">Mastered</th>
         </tr>
     </thead>
     <tbody id="tableBody">
@@ -15,7 +14,6 @@
         <tr>
             <td>{{ item["name"] }}</td>
             <td>{{ item["class"] }}</td>
-            <td>{{ item["owned"] }}</td>
             <td>{{ item["mastered"] }}</td>
         </tr>
 
