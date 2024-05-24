@@ -9,9 +9,30 @@ input[type=password] {
     box-sizing: border-box;
 }
 
+label {
+    margin-top: 8px;
+    line-height: 20%;
+}
+
+select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+option {
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: 1px solid #f00;
+}
+
 /* Set a style for all buttons */
 .form-button {
     font-family: Arial;
+    font-size: 105%;
     background-color: var(--accent);
     color: white;
     padding: 14px 20px;

@@ -5,7 +5,7 @@ from flask import Flask, redirect, flash, request, render_template
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column, aliased
-from sqlalchemy import desc, text, select
+from sqlalchemy import desc, text, select, func
 
 import flask_sqlalchemy.model
 import flask_sqlalchemy.extension
@@ -270,7 +270,7 @@ def progress():
             "name": Item.name,
             "class": Weapon.item_class
         }
-        sortJson = request.json
+        sortJson = request.json["sorting"]
         sortOrder: list = []
 
         for sort in sortJson:
@@ -279,6 +279,8 @@ def progress():
             else:
                 sortOrder.append(desc(sort_type_dictionary[sort["type"]]))
 
+        filters = request.json["filters"]
+
         print(request.json)
     else:
         sortOrder: list = [
@@ -286,27 +288,44 @@ def progress():
             Weapon.item_class,
             Item.name
         ]
+
+        filters = {
+            "mastered": True,
+            "unmastered": True,
+            "type": "",
+            "name": ""
+        }
     player: Player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
     weaponQuery = db.session.query(PlayerItems, Item, Weapon)\
         .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
-        .join(Weapon, Weapon.name == Item.name)\
-        # .order_by("item_class")
+        .join(Weapon, Weapon.name == Item.name)
     warframeQuery = db.session.query(PlayerItems, Item, Warframe)\
         .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
         .join(Warframe, Warframe.name == Item.name)
     companionQuery = db.session.query(PlayerItems, Item, Companion)\
         .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
         .join(Companion, Companion.name == Item.name)
-    # query = db.session.query(PlayerItems, joinedItems).outerjoin(PlayerItems, PlayerItems.item_name == Item.name)
 
-    # : list[PlayerItems] #= Item.query.join(PlayerItems.query.filter_by(player_id=player.id), Item.name == PlayerItems.item_name, isouter=True).all()  # .join(Item, isouter=True)
-    united = weaponQuery.union(warframeQuery, companionQuery)
+    united = weaponQuery.union(warframeQuery, companionQuery)\
+        .filter(Item.name.ilike(f"%{filters["name"]}%"))
+
+    if filters["type"] != "":
+        united = united.filter(Weapon.item_class == filters["type"])
+
+    print(filters)
+
+    if filters["mastered"] and not filters["unmastered"]:
+        united = united.filter(PlayerItems.mastered == "t")
+    elif not filters["mastered"] and filters["unmastered"]:
+        united = united.filter((PlayerItems.mastered == "f") | (PlayerItems.mastered == None))
+    elif not filters["mastered"] and not filters["unmastered"]:
+        united = united.filter(False)
+
     items: list[tuple[PlayerItems, Item, Weapon]] = united\
         .order_by(sortOrder[0])\
         .order_by(sortOrder[1])\
         .order_by(sortOrder[2])\
         .all()
-    # weaponQuery.all() + warframeQuery.all() + companionQuery.all()
 
     items_send = []
 

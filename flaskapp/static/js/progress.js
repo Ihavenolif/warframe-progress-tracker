@@ -1,4 +1,15 @@
 const tableBody = document.getElementById("tableBody")
+const masteredCheckbox = document.getElementById("show-mastered")
+const unmasteredCheckbox = document.getElementById("show-unmastered")
+/**
+ * @type {HTMLSelectElement}
+ */
+const searchField = document.getElementById("search-field")
+const classFilter = document.getElementById("class-filter")
+/**
+ * @type {HTMLFormElement}
+ */
+const filterForm = document.getElementById("filter-form")
 
 class SortType {
     /**
@@ -29,6 +40,12 @@ const sortOrder = [
     new SortType("class", true),
     new SortType("name", true)
 ]
+const filters = {
+    "mastered": true,
+    "unmastered": true,
+    "type": "",
+    "name": ""
+}
 
 /**
  * 
@@ -44,7 +61,10 @@ function updateTable() {
     };
     xhttp.open("POST", "/progress", true);
     xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send(JSON.stringify(sortOrder));
+    xhttp.send(JSON.stringify({
+        "sorting": sortOrder,
+        "filters": filters
+    }));
 }
 
 /**
@@ -89,7 +109,22 @@ function sortBy(type) {
             }
         })
         bringToFront(sortOrder, sortElem)
+        sortOrder[0].ascending = true;
     }
     console.table(sortOrder)
     updateTable()
+}
+
+function updateFilters() {
+    filters["mastered"] = masteredCheckbox.checked
+    filters["unmastered"] = unmasteredCheckbox.checked
+    filters["type"] = classFilter.value
+    filters["name"] = searchField.value;
+    updateTable()
+}
+
+filterForm.onsubmit = (e) => {
+    e.preventDefault()
+
+    updateFilters()
 }

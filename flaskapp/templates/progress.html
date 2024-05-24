@@ -1,4 +1,43 @@
 <link rel="stylesheet" href="/static/css/table.css">
+<link rel="stylesheet" href="/static/css/collapsible.css">
+<link rel="stylesheet" href="/static/css/form.css">
+
+<button type="button" class="collapsible"><strong>Filters</strong></button>
+<div class="collapsible-content">
+    <form id="filter-form">
+        <label for="show-mastered">Show mastered</label>
+        <input type="checkbox" name="show-mastered" id="show-mastered" checked="true" onchange="updateFilters()">
+        <label for="show-unmastered">Show unmastered</label>
+        <input type="checkbox" name="show-unmastered" id="show-unmastered" checked="true" onchange="updateFilters()">
+        <br>
+        <br>
+        <label for="class-filter">Type:</label>
+        <select name="class-filter" id="class-filter" onchange="updateFilters()">
+            <option value="">Any</option>
+            <option value="Amp">Amp</option>
+            <option value="Hound">Hound</option>
+            <option value="Kdrive">K-Drive</option>
+            <option value="Kitgun">Kitgun</option>
+            <option value="KubrowPets">Pet</option>
+            <option value="LongGuns">Primary</option>
+            <option value="MechSuits">Necramech</option>
+            <option value="Melee">Melee</option>
+            <option value="Moa">Moa</option>
+            <option value="Pistols">Secondary</option>
+            <option value="Sentinels">Sentinel</option>
+            <option value="SentinelWeapons">Sentinel Weapon</option>
+            <option value="SpaceGuns">Archgun</option>
+            <option value="SpaceMelee">Archmelee</option>
+            <option value="SpaceSuits">Archwing</option>
+            <option value="Suits">Warframe</option>
+            <option value="Zaw">Zaw</option>
+        </select>
+        <input type="text" class="form-control" name="search-field" placeholder="Search" id="search-field">
+        <button class="form-button">Filter</button>
+    </form>
+</div>
+
+<br><br>
 
 <table>
     <thead>
@@ -22,6 +61,7 @@
     </tbody>
 </table>
 
+<script src="/static/js/collapsible.js"></script>
 <script src="/static/js/progress.js"></script>
 <script>
     let list = JSON.parse('{{  itemList|tojson }}')
