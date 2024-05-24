@@ -296,6 +296,11 @@ def progress():
             "name": ""
         }
     player: Player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
+
+    if not player:
+        flash("You need to link your warframe account first.", "error")
+        return redirect("/settings")
+
     weaponQuery = db.session.query(PlayerItems, Item, Weapon)\
         .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
         .join(Weapon, Weapon.name == Item.name)
