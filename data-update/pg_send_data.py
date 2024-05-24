@@ -31,15 +31,15 @@ def main():
 
     for warframe in warframes:
         cursor.execute(f"INSERT INTO item (name, nameraw, type) VALUES ('{warframe['name']}', '{warframe['nameraw']}', '{warframe['type']}');")
-        cursor.execute(f"INSERT INTO warframe (name, class) VALUES ('{warframe['name']}', '{warframe['class']}')")
+        cursor.execute(f"INSERT INTO warframe (name, item_class) VALUES ('{warframe['name']}', '{warframe['class']}')")
 
     for weapon in weapons:
         cursor.execute(f"INSERT INTO item (name, nameraw, type) VALUES ('{weapon['name']}', '{weapon['nameraw']}', '{weapon['type']}');")
-        cursor.execute(f"INSERT INTO weapon (name, class) VALUES ('{weapon['name']}', '{weapon['class']}')")
+        cursor.execute(f"INSERT INTO weapon (name, item_class) VALUES ('{weapon['name']}', '{weapon['class']}')")
 
     for companion in companions:
         cursor.execute(f"INSERT INTO item (name, nameraw,type) VALUES ('{companion['name']}', '{companion['nameraw']}', '{companion['type']}');")
-        cursor.execute(f"INSERT INTO companion (name, class) VALUES ('{companion['name']}', '{companion['class']}')")
+        cursor.execute(f"INSERT INTO companion (name, item_class) VALUES ('{companion['name']}', '{companion['class']}')")
 
     connection.commit()
 

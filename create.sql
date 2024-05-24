@@ -23,7 +23,7 @@ ALTER TABLE clan ADD CONSTRAINT pk_clan PRIMARY KEY (id);
 
 CREATE TABLE companion (
     name VARCHAR(256) NOT NULL,
-    class VARCHAR(256) NOT NULL
+    item_class VARCHAR(256) NOT NULL
 );
 ALTER TABLE companion ADD CONSTRAINT pk_companion PRIMARY KEY (name);
 
@@ -67,13 +67,13 @@ ALTER TABLE registered_user ADD CONSTRAINT uc_registered_user_username UNIQUE (u
 
 CREATE TABLE warframe (
     name VARCHAR(256) NOT NULL,
-    class VARCHAR(256) NOT NULL
+    item_class VARCHAR(256) NOT NULL
 );
 ALTER TABLE warframe ADD CONSTRAINT pk_warframe PRIMARY KEY (name);
 
 CREATE TABLE weapon (
     name VARCHAR(256) NOT NULL,
-    class VARCHAR(256) NOT NULL
+    item_class VARCHAR(256) NOT NULL
 );
 ALTER TABLE weapon ADD CONSTRAINT pk_weapon PRIMARY KEY (name);
 

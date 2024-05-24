@@ -11,7 +11,7 @@ import flask_sqlalchemy.extension
 import hashlib
 
 from config import load_config
-from util import render, generate_random_password
+from util import render, generate_random_password, ITEM_CLASSES
 
 DB_CONFIG = load_config()
 
@@ -54,11 +54,38 @@ class Registered_user(db.Model, UserMixin):
     salt = db.Column(db.String(256))
 
 
-class Player(db.Model, UserMixin):
+class Player(db.Model):
     username = db.Column(db.String(256))
     id = db.Column(db.Integer, primary_key=True)
     registered_user_id = db.Column(db.Integer)
     mastery_rank = db.Column(db.Integer)
+
+
+class Item(db.Model):
+    name = db.Column(db.String(256), primary_key=True)
+    nameraw = db.Column(db.String(256))
+    type = db.Column(db.String(256))
+
+
+class PlayerItems(db.Model):
+    player_id = db.Column(db.Integer, primary_key=True)
+    item_name = db.Column(db.String(256), primary_key=True)
+    mastered = db.Column(db.Boolean)
+
+
+class Warframe(db.Model):
+    name = db.Column(db.String(256), primary_key=True)
+    item_class = db.Column(db.String(256))
+
+
+class Weapon(db.Model):
+    name = db.Column(db.String(256), primary_key=True)
+    item_class = db.Column(db.String(256))
+
+
+class Companion(db.Model):
+    name = db.Column(db.String(256), primary_key=True)
+    item_class = db.Column(db.String(256))
 
 
 @login_manager.user_loader
@@ -235,8 +262,39 @@ def unlink_account():
 @login_required
 @app.route("/progress")
 def progress():
+    player: Player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
+    weaponQuery = db.session.query(PlayerItems, Item, Weapon)\
+        .outerjoin(PlayerItems, PlayerItems.item_name == Item.name)\
+        .join(Weapon, Weapon.name == Item.name)
+    warframeQuery = db.session.query(PlayerItems, Item, Warframe)\
+        .outerjoin(PlayerItems, PlayerItems.item_name == Item.name)\
+        .join(Warframe, Warframe.name == Item.name)
+    companionQuery = db.session.query(PlayerItems, Item, Companion)\
+        .outerjoin(PlayerItems, PlayerItems.item_name == Item.name)\
+        .join(Companion, Companion.name == Item.name)
+    # query = db.session.query(PlayerItems, joinedItems).outerjoin(PlayerItems, PlayerItems.item_name == Item.name)
 
-    return render("progress.html")
+    # : list[PlayerItems] #= Item.query.join(PlayerItems.query.filter_by(player_id=player.id), Item.name == PlayerItems.item_name, isouter=True).all()  # .join(Item, isouter=True)
+    items: list[tuple[PlayerItems, Item, Weapon]] = weaponQuery.all() + warframeQuery.all() + companionQuery.all()
+
+    items_send = []
+
+    for item in items:
+        owned: bool = False
+        mastered: bool = False
+
+        if item[0]:
+            owned = True
+            mastered = item[0].mastered
+
+        items_send.append({
+            "name": item[1].name,
+            "class": ITEM_CLASSES[item[2].item_class],
+            "owned": owned,
+            "mastered": mastered
+        })
+
+    return render("progress.html", itemList=items_send)
     pass
 
 

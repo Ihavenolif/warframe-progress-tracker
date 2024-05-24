@@ -5,6 +5,27 @@ import string
 
 characters = list(string.ascii_letters + string.digits + "!@#$%^&*()")
 
+ITEM_CLASSES = {
+    "LongGuns": "Primary",
+    "Pistols": "Secondary",
+    "Melee": "Melee",
+    "Suits": "Warframe",
+    "Kdrive": "K-Drive",
+    "MechSuits": "Necramech",
+    "SpaceSuits": "Archwing",
+    "Amp": "Amp",
+    "Kitgun": "Kitgun",
+    "OperatorAmps": "Amp",
+    "Zaw": "Zaw",
+    "SpaceMelee": "Archmelee",
+    "Hound": "Hound",
+    "KubrowPets": "Pet",
+    "Moa": "Moa",
+    "Sentinels": "Sentinel",
+    "SentinelWeapons": "Sentinel Weapon",
+    "SpaceGuns": "Archgun"
+}
+
 
 def generate_random_password(length):
     # shuffling the characters
