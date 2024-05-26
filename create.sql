@@ -52,7 +52,7 @@ ALTER TABLE player ADD CONSTRAINT u_fk_player_registered_user UNIQUE (registered
 CREATE TABLE player_items (
     player_id INTEGER NOT NULL,
     item_name VARCHAR(256) NOT NULL,
-    mastered BOOLEAN NOT NULL
+    state INTEGER NOT NULL
 );
 ALTER TABLE player_items ADD CONSTRAINT pk_player_items PRIMARY KEY (player_id, item_name);
 

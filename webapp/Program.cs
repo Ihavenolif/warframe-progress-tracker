@@ -22,4 +22,8 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 
+app.MapControllerRoute(
+    name: "login",
+    pattern: "{controller=LoginController}/{action=Index}");
+
 app.Run();

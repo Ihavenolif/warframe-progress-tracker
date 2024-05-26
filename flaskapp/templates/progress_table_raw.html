@@ -3,7 +3,21 @@
 <tr>
     <td>{{ item["name"] }}</td>
     <td>{{ item["class"] }}</td>
-    <td>{{ item["mastered"] }}</td>
+    <td class='mastery-state-{{ item["state"] }}'>
+        {% if item["state"] == 0 %}
+
+        Mastered
+
+        {% elif item["state"] == 1 %}
+
+        Owned
+
+        {% elif item["state"] == 2 %}
+
+        Unmastered
+
+        {% endif %}
+    </td>
 </tr>
 
 {% endfor %}

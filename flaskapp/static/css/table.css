@@ -18,7 +18,35 @@ th {
 
 tr:nth-child(even) {
     background-color: #f2f2f2;
+
+    td:nth-child(3).mastery-state-0 {
+        background-color: rgb(92, 233, 92);
+    }
+
+    td:nth-child(3).mastery-state-1 {
+        background-color: rgb(238, 238, 119);
+    }
+
+    td:nth-child(3).mastery-state-2 {
+        background-color: rgb(235, 130, 130);
+    }
 }
+
+tr:nth-child(odd) {
+
+    td:nth-child(3).mastery-state-0 {
+        background-color: lightgreen;
+    }
+
+    td:nth-child(3).mastery-state-1 {
+        background-color: rgb(242, 242, 178);
+    }
+
+    td:nth-child(3).mastery-state-2 {
+        background-color: rgb(239, 164, 164);
+    }
+}
+
 
 @media screen and (max-width: 600px) {
 

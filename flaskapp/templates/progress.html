@@ -5,10 +5,15 @@
 <button type="button" class="collapsible"><strong>Filters</strong></button>
 <div class="collapsible-content">
     <form id="filter-form">
-        <label for="show-mastered">Show mastered</label>
-        <input type="checkbox" name="show-mastered" id="show-mastered" checked="true" onchange="updateFilters()">
-        <label for="show-unmastered">Show unmastered</label>
-        <input type="checkbox" name="show-unmastered" id="show-unmastered" checked="true" onchange="updateFilters()">
+        <label for="mastery-filter-default">Show all</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-default" value="all" onchange="updateFilters()"
+            checked="true">
+        <label for="mastery-filter-mastered">Show mastered</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-mastered" value="0" onchange="updateFilters()">
+        <label for="mastery-filter-owned">Show owned</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-owned" value="1" onchange="updateFilters()">
+        <label for="mastery-filter-unmastered">Show unmastered</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-unmastered" value="2" onchange="updateFilters()">
         <br>
         <br>
         <label for="class-filter">Type:</label>
@@ -44,19 +49,12 @@
         <tr>
             <th id="itemNameHead" onclick="sortBy('name')">Item name</th>
             <th id="classHead" onclick="sortBy('class')">Item Class</th>
-            <th id="masteredHead" onclick="sortBy('mastered')">Mastered</th>
+            <th id="masteredHead" onclick="sortBy('state')">Mastered</th>
         </tr>
     </thead>
     <tbody id="tableBody">
-        {% for item in itemList %}
 
-        <tr>
-            <td>{{ item["name"] }}</td>
-            <td>{{ item["class"] }}</td>
-            <td>{{ item["mastered"] }}</td>
-        </tr>
-
-        {% endfor %}
+        {% include 'progress_table_raw.html' %}
 
     </tbody>
 </table>

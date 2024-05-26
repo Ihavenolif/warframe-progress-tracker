@@ -1,6 +1,5 @@
 const tableBody = document.getElementById("tableBody")
-const masteredCheckbox = document.getElementById("show-mastered")
-const unmasteredCheckbox = document.getElementById("show-unmastered")
+const radios = document.getElementsByName('mastery-filter');
 /**
  * @type {HTMLSelectElement}
  */
@@ -36,13 +35,12 @@ class SortType {
  * @type {SortType[]}
  */
 const sortOrder = [
-    new SortType("mastered", true),
+    new SortType("state", true),
     new SortType("class", true),
     new SortType("name", true)
 ]
 const filters = {
-    "mastered": true,
-    "unmastered": true,
+    "state": "all",
     "type": "",
     "name": ""
 }
@@ -115,9 +113,19 @@ function sortBy(type) {
     updateTable()
 }
 
+function getSelectedRadioValue() {
+    let selectedValue;
+    for (const radio of radios) {
+        if (radio.checked) {
+            selectedValue = radio.value;
+            break;
+        }
+    }
+    return selectedValue;
+}
+
 function updateFilters() {
-    filters["mastered"] = masteredCheckbox.checked
-    filters["unmastered"] = unmasteredCheckbox.checked
+    filters["state"] = getSelectedRadioValue()
     filters["type"] = classFilter.value
     filters["name"] = searchField.value;
     updateTable()

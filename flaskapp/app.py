@@ -72,7 +72,7 @@ class Item(db.Model):
 class PlayerItems(db.Model):
     player_id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(256), primary_key=True)
-    mastered = db.Column(db.Boolean)
+    state = db.Column(db.Integer)
 
 
 class Warframe(db.Model):
@@ -266,7 +266,7 @@ def unlink_account():
 def progress():
     if request.content_type == "application/json":
         sort_type_dictionary = {
-            "mastered": PlayerItems.mastered,
+            "state": PlayerItems.state,
             "name": Item.name,
             "class": Weapon.item_class
         }
@@ -284,14 +284,13 @@ def progress():
         print(request.json)
     else:
         sortOrder: list = [
-            PlayerItems.mastered,
+            PlayerItems.state,
             Weapon.item_class,
             Item.name
         ]
 
         filters = {
-            "mastered": True,
-            "unmastered": True,
+            "state": "all",
             "type": "",
             "name": ""
         }
@@ -319,12 +318,18 @@ def progress():
 
     print(filters)
 
-    if filters["mastered"] and not filters["unmastered"]:
-        united = united.filter(PlayerItems.mastered == "t")
-    elif not filters["mastered"] and filters["unmastered"]:
-        united = united.filter((PlayerItems.mastered == "f") | (PlayerItems.mastered == None))
-    elif not filters["mastered"] and not filters["unmastered"]:
-        united = united.filter(False)
+    if filters["state"] != "all":
+        if filters["state"] == "2":
+            united = united.filter(PlayerItems.state == None)
+        else:
+            united = united.filter(PlayerItems.state == filters["state"])
+
+    # if filters["mastered"] and not filters["unmastered"]:
+    #    united = united.filter(PlayerItems.mastered == "t")
+    # elif not filters["mastered"] and filters["unmastered"]:
+    #    united = united.filter((PlayerItems.mastered == "f") | (PlayerItems.mastered == None))
+    # elif not filters["mastered"] and not filters["unmastered"]:
+    #    united = united.filter(False)
 
     items: list[tuple[PlayerItems, Item, Weapon]] = united\
         .order_by(sortOrder[0])\
@@ -335,18 +340,15 @@ def progress():
     items_send = []
 
     for item in items:
-        owned: bool = False
-        mastered: bool = False
+        state: int = 2
 
         if item[0]:
-            owned = True
-            mastered = item[0].mastered
+            state = item[0].state
 
         items_send.append({
             "name": item[1].name,
             "class": ITEM_CLASSES[item[2].item_class],
-            "owned": owned,
-            "mastered": mastered
+            "state": state
         })
 
     if request.method == "GET":
