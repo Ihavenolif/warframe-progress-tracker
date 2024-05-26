@@ -5,6 +5,27 @@ import subprocess
 
 REGISTERED: list[str] = []
 
+ITEM_CLASSES = {
+    "LongGuns": "Primary",
+    "Pistols": "Secondary",
+    "Melee": "Melee",
+    "Suits": "Warframe",
+    "Kdrive": "K-Drive",
+    "MechSuits": "Necramech",
+    "SpaceSuits": "Archwing",
+    "Amp": "Amp",
+    "Kitgun": "Kitgun",
+    "OperatorAmps": "Amp",
+    "Zaw": "Zaw",
+    "SpaceMelee": "Archmelee",
+    "Hound": "Hound",
+    "KubrowPets": "Pet",
+    "Moa": "Moa",
+    "Sentinels": "Sentinel",
+    "SentinelWeapons": "Sentinel Weapon",
+    "SpaceGuns": "Archgun"
+}
+
 
 def decompress(string: str) -> str:
     return lzma.decompress(bytes(string, "latin1")).decode("utf-8")
@@ -43,7 +64,7 @@ def get_warframes(index: dict[str, str], warframes: list) -> None:
 
     for warframe in parsed["ExportWarframes"]:
         name: str = warframe["name"]
-        _class: str = warframe["productCategory"]
+        _class: str = ITEM_CLASSES[warframe["productCategory"]]
         _type: str = ""
 
         if "<ARCHWING> " in name:
@@ -86,7 +107,7 @@ def parse_amp(amp: dict, weapons: list) -> None:
 def parse_zaw(zaw: dict, weapons: list) -> None:
     name: str = zaw["name"]
 
-    if "Tip" not in zaw["uniqueName"] or name in REGISTERED:
+    if "Tip" not in zaw["uniqueName"] or name in REGISTERED or "PvP" in zaw["uniqueName"]:
         return
 
     _class: str = "Zaw"
@@ -210,7 +231,7 @@ def get_weapons(index: dict[str, str], warframes: list, weapons: list, companion
             continue
 
         name: str = item["name"]
-        _class: str = item["productCategory"]
+        _class: str = ITEM_CLASSES[item["productCategory"]]
         _type: str = ""
 
         if "<ARCHWING> " in name:
@@ -233,7 +254,7 @@ def get_weapons(index: dict[str, str], warframes: list, weapons: list, companion
         else:
             _type = "Normal"
 
-        if _class == "SentinelWeapons":
+        if item["productCategory"] == "SentinelWeapons":
             REGISTERED.append(name)
             companions.append({
                 "name": name,
@@ -260,10 +281,10 @@ def get_sentinels(index: dict[str, str], companions: list) -> None:
     for companion in parsed["ExportSentinels"]:
 
         name: str = companion["name"]
-        _class: str = companion["productCategory"]
+
         _type: str = ""
 
-        if _class == "SpecialItems":
+        if "SpecialItems" == companion["productCategory"]:
             continue
 
         if "<ARCHWING> " in name:
@@ -285,6 +306,8 @@ def get_sentinels(index: dict[str, str], companions: list) -> None:
             _type = "Vandal"
         else:
             _type = "Normal"
+
+        _class: str = ITEM_CLASSES[companion["productCategory"]]
 
         REGISTERED.append(name)
         companions.append({

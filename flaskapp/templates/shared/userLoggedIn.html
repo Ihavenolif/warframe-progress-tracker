@@ -2,10 +2,19 @@
     <button class="dropbtn">{{username}}
         <i class="fa fa-caret-down"></i>
     </button>
+
     <div class="dropdown-content right-aligned">
         <a class='{% if page == "clans.html" %}active-inverted{% endif %}' href="/clans">Clans</a>
-        <a class='{% if page == "progress.html" %}active-inverted{% endif %}' href="/progress">Progress</a>
+        <a class='{% if page == "progress/progress.html" %}active-inverted{% endif %}' href="/progress">Progress</a>
         <a class='{% if page == "settings.html" %}active-inverted{% endif %}' href="/settings">Settings</a>
         <a class='{% if page == "logout.html" %}active-inverted{% endif %}' href="/logout">Log out</a>
     </div>
 </div>
+
+{% if page == "progress/progress.html" or page == "progress/import.html" %}
+
+<div class="right-aligned">
+    <a class='{% if page == "progress/import.html" %}active{% endif %}' href="/progress/import">Import</a>
+</div>
+
+{% endif %}

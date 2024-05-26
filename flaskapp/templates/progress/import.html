@@ -1,0 +1,21 @@
+<link rel="stylesheet" href="/static/css/form.css">
+
+<h2>Import progress</h2>
+
+<div style="width: 50%; margin-top: 10%; margin-left: 25%; margin-right: 25%;">
+    <form method="post" action="/progress/import" enctype="multipart/form-data">
+        {{form.hidden_tag()}}
+        <label class="form-label custom-file-upload" for="file"><span id="filename">No file
+                selected</span></label>
+        <br>
+        {{ form.file(class_='form-control', onchange='updateFilename()') }}
+        <button class="form-button" type="submit">Upload</button>
+    </form>
+</div>
+
+<script>
+    function updateFilename() {
+        const filename = document.getElementById("file").files[0].name
+        document.getElementById("filename").innerHTML = filename
+    }
+</script>

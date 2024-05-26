@@ -1,16 +1,21 @@
 from wtforms.validators import DataRequired, EqualTo
 from wtforms import SubmitField, StringField, PasswordField
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired, FileStorage
 from flask import Flask, redirect, flash, request, render_template
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Row, Tuple
 from sqlalchemy.orm import Mapped, mapped_column, aliased
 from sqlalchemy import desc, text, select, func
+from werkzeug.utils import secure_filename
 
 import flask_sqlalchemy.model
 import flask_sqlalchemy.extension
 import hashlib
 import json
+import time
+import os
 
 from config import load_config
 from util import render, generate_random_password, ITEM_CLASSES
@@ -20,6 +25,7 @@ DB_CONFIG = load_config()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "KOKOT"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_CONFIG["user"]}:{DB_CONFIG["password"]}@{DB_CONFIG["host"]}:5432/{DB_CONFIG["database"]}"
+app.config["UPLOAD_FOLDER"] = "temp"
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -47,6 +53,11 @@ class LoginForm(FlaskForm):
 
 class LinkAccountForm(FlaskForm):
     warframe_name = StringField("Account name", validators=[DataRequired()])
+
+
+class UploadFileForm(FlaskForm):
+    file = FileField("File")
+    submit = SubmitField("Upload File")
 
 
 class Registered_user(db.Model, UserMixin):
@@ -347,14 +358,133 @@ def progress():
 
         items_send.append({
             "name": item[1].name,
-            "class": ITEM_CLASSES[item[2].item_class],
+            "class": item[2].item_class,
             "state": state
         })
 
     if request.method == "GET":
-        return render("progress.html", itemList=items_send)
+        return render("progress/progress.html", itemList=items_send)
     else:
-        return render_template("progress_table_raw.html", itemList=items_send)
+        return render_template("progress/progress_table_raw.html", itemList=items_send)
+
+
+@login_required
+@app.route("/progress/import", methods=["GET", "POST"])
+def import_progress():
+    form: UploadFileForm = UploadFileForm()
+
+    player: Player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
+
+    if not player:
+        flash("You need to link your warframe account first.", "error")
+        return redirect("/settings")
+
+    if not form.validate_on_submit():
+        return render("progress/import.html", form=form)
+
+    file: FileStorage = form.file.data
+
+    # if "file" not in request.files:
+    #    flash("No file uploaded.", "error")
+    #    return redirect(request.url)
+
+    # file = request.files["file"]
+
+    if not file:
+        flash("No file uploaded.", "error")
+        return redirect(request.url)
+
+    if file.filename == "":
+        flash("No file uploaded.", "error")
+        return redirect(request.url)
+
+    if not file.filename.endswith(".json"):
+        flash("Invalid file format (expected .json).", "error")
+        return redirect(request.url)
+
+    filename = f"import_{time.time()}_{getattr(current_user, "username")}.json"
+    file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as tempfile:
+        try:
+            json_raw = tempfile.read()
+        except:
+            tempfile.close()
+            flash("Couldn't read file.", "error")
+            return redirect("/progress/import")
+        tempfile.close()
+        os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+    try:
+        parsed = json.loads(json_raw)
+    except:
+        flash("Invalid JSON file.", "error")
+        return redirect("/progress/import")
+
+    weaponQuery = db.session.query(PlayerItems, Item, Weapon)\
+        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
+        .join(Weapon, Weapon.name == Item.name)
+    warframeQuery = db.session.query(PlayerItems, Item, Warframe)\
+        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
+        .join(Warframe, Warframe.name == Item.name)
+    companionQuery = db.session.query(PlayerItems, Item, Companion)\
+        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
+        .join(Companion, Companion.name == Item.name)
+
+    all_items_query = weaponQuery.union(warframeQuery, companionQuery)
+
+    try:
+        for json_item in parsed["XPInfo"]:
+            db_item: tuple[PlayerItems, Item, Weapon] = all_items_query.filter(Item.nameraw == json_item["ItemType"]).first()
+            if not db_item:
+                continue
+            if db_item[2].item_class == "Necramech":
+                xp_required = 1600000
+            elif "Kuva" in db_item[1].name or "Tenet" in db_item[1].name or db_item == "Paracesis":
+                xp_required = 800000
+            elif db_item[2].item_class in [
+                "Amp",
+                "Archgun",
+                "Archmelee",
+                "Kitgun",
+                "Melee",
+                "Primary",
+                "Secondary",
+                "Sentinel Weapon",
+                "Zaw"
+            ]:
+                xp_required = 450000
+            elif db_item[2].item_class in [
+                "Archwing",
+                "Hound",
+                "Kdrive",
+                "Moa",
+                "Pet",
+                "Sentinel",
+                "Warframe"
+            ]:
+                xp_required = 900000
+            else:
+                raise Exception("nejaka picovina mi utekla")
+
+            if json_item["XP"] >= xp_required:
+                state = 0
+            else:
+                state = 1
+
+            if db_item[0]:
+                db_item[0].state = state
+            else:
+                new_item = PlayerItems(player_id=player.id, item_name=db_item[1].name, state=state)
+                db.session.add(new_item)
+    except:
+        flash("Invalid JSON file.", "error")
+        return redirect("/progress/import")
+
+    db.session.commit()
+
+    flash("Imported successfully", "info")
+    return redirect("/progress")
 
 
 if __name__ == "__main__":

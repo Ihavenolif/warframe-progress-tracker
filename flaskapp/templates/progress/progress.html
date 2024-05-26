@@ -20,21 +20,21 @@
         <select name="class-filter" id="class-filter" onchange="updateFilters()">
             <option value="">Any</option>
             <option value="Amp">Amp</option>
+            <option value="Archgun">Archgun</option>
+            <option value="Archmelee">Archmelee</option>
+            <option value="Archwing">Archwing</option>
             <option value="Hound">Hound</option>
-            <option value="Kdrive">K-Drive</option>
+            <option value="Kdrive">Kdrive</option>
             <option value="Kitgun">Kitgun</option>
-            <option value="KubrowPets">Pet</option>
-            <option value="LongGuns">Primary</option>
-            <option value="MechSuits">Necramech</option>
             <option value="Melee">Melee</option>
+            <option value="Necramech">Necramech</option>
             <option value="Moa">Moa</option>
-            <option value="Pistols">Secondary</option>
-            <option value="Sentinels">Sentinel</option>
-            <option value="SentinelWeapons">Sentinel Weapon</option>
-            <option value="SpaceGuns">Archgun</option>
-            <option value="SpaceMelee">Archmelee</option>
-            <option value="SpaceSuits">Archwing</option>
-            <option value="Suits">Warframe</option>
+            <option value="Pet">Pet</option>
+            <option value="Primary">Primary</option>
+            <option value="Secondary">Secondary</option>
+            <option value="Sentinel">Sentinel</option>
+            <option value="Sentinel Weapon">Sentinel Weapon</option>
+            <option value="Warframe">Warframe</option>
             <option value="Zaw">Zaw</option>
         </select>
         <input type="text" class="form-control" name="search-field" placeholder="Search" id="search-field">
@@ -54,7 +54,7 @@
     </thead>
     <tbody id="tableBody">
 
-        {% include 'progress_table_raw.html' %}
+        {% include 'progress/progress_table_raw.html' %}
 
     </tbody>
 </table>

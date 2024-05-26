@@ -4,3 +4,5 @@ venv
 .vscode
 .vscode/*
 database.ini
+temp
+out.json
