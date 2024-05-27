@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="/static/css/table.css">
+<link rel="stylesheet" href="/static/css/form.css">
+<link rel="stylesheet" href="/static/css/collapsible.css">
+
+<button type="button" class="collapsible"><strong>Filters</strong></button>
+<div class="collapsible-content">
+    <form id="filter-form">
+        <!--<label for="mastery-filter-default">Show all</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-default" value="all" onchange="updateFilters()"
+            checked="true">
+        <label for="mastery-filter-mastered">Show mastered</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-mastered" value="0" onchange="updateFilters()">
+        <label for="mastery-filter-owned">Show owned</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-owned" value="1" onchange="updateFilters()">
+        <label for="mastery-filter-unmastered">Show unmastered</label>
+        <input type="radio" name="mastery-filter" id="mastery-filter-unmastered" value="2" onchange="updateFilters()">
+        <br>
+        <br>-->
+        <label for="class-filter">Type:</label>
+        <select name="class-filter" id="class-filter" onchange="updateFilters()">
+            <option value="">Any</option>
+            <option value="Amp">Amp</option>
+            <option value="Archgun">Archgun</option>
+            <option value="Archmelee">Archmelee</option>
+            <option value="Archwing">Archwing</option>
+            <option value="Hound">Hound</option>
+            <option value="Kdrive">Kdrive</option>
+            <option value="Kitgun">Kitgun</option>
+            <option value="Melee">Melee</option>
+            <option value="Necramech">Necramech</option>
+            <option value="Moa">Moa</option>
+            <option value="Pet">Pet</option>
+            <option value="Primary">Primary</option>
+            <option value="Secondary">Secondary</option>
+            <option value="Sentinel">Sentinel</option>
+            <option value="Sentinel Weapon">Sentinel Weapon</option>
+            <option value="Warframe">Warframe</option>
+            <option value="Zaw">Zaw</option>
+        </select>
+        <input type="text" class="form-control" name="search-field" placeholder="Search" id="search-field">
+        <button class="form-button">Filter</button>
+    </form>
+</div>
+
+<br><br>
+
+<table>
+    {% include 'clans/clan_progress_thead.html' %}
+
+    <tbody id="tableBody">
+
+        {% include 'clans/clan_progress_body.html' %}
+
+    </tbody>
+</table>
+
+<script src="/static/js/collapsible.js"></script>
+<script src="/static/js/clan-progress.js"></script>

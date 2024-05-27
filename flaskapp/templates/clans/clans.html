@@ -1,0 +1,17 @@
+<link rel="stylesheet" href="/static/css/clan-menu.css">
+
+{% for clan in clan_list %}
+
+<div class="clan-container">
+    <div class="left">
+        <p>{{ clan["name"] }}</p>
+        {{ clan["members"] }} members
+    </div>
+
+
+    <div class="button-right">
+        <a href='/clans/{{clan["name"]}}/progress'>View</a>
+    </div>
+</div>
+
+{% endfor %}

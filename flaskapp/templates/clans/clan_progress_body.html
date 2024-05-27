@@ -1,0 +1,25 @@
+{% for item in itemList %}
+
+<tr>
+    <td>{{ item["name"] }}</td>
+    <td>{{ item["class"] }}</td>
+    {% for player in item["players"] %}
+    <td class='mastery-state-{{ player }}'>
+        {% if player == 0 %}
+
+        Mastered
+
+        {% elif player == 1 %}
+
+        Owned
+
+        {% elif player == 2 %}
+
+        Unmastered
+
+        {% endif %}
+    </td>
+    {% endfor %}
+</tr>
+
+{% endfor %}

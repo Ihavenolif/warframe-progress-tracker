@@ -1,0 +1,12 @@
+<thead>
+    <tr>
+        <th id="itemNameHead" onclick="sortBy('name')">Item name <i class="fa fa-caret-down table-head-caret"
+                style="display: none;" id="name-caret"></i></th>
+        <th id="classHead" onclick="sortBy('class')">Item Class <i class="fa fa-caret-down table-head-caret"
+                style="display: inline-block;" id="class-caret"></i></th>
+        {% for player in playernames %}
+        <th id="{{ player }}-masteredHead" onclick="sortBy('{{ player }}-state')">{{ player }} <i
+                class="fa fa-caret-down table-head-caret" style="display: none;" id="{{ player }}-state-caret"></i></th>
+        {% endfor %}
+    </tr>
+</thead>

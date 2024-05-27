@@ -2,6 +2,7 @@
 DROP TABLE IF EXISTS clan CASCADE;
 DROP TABLE IF EXISTS companion CASCADE;
 DROP TABLE IF EXISTS component CASCADE;
+DROP TABLE IF EXISTS invitation CASCADE;
 DROP TABLE IF EXISTS item CASCADE;
 DROP TABLE IF EXISTS player CASCADE;
 DROP TABLE IF EXISTS player_items CASCADE;
@@ -17,9 +18,11 @@ DROP TABLE IF EXISTS weapon_component CASCADE;
 
 CREATE TABLE clan (
     id SERIAL NOT NULL,
-    name VARCHAR(256) NOT NULL
+    name VARCHAR(256) NOT NULL,
+    leader_id INTEGER NOT NULL
 );
 ALTER TABLE clan ADD CONSTRAINT pk_clan PRIMARY KEY (id);
+ALTER TABLE clan ADD CONSTRAINT uc_clan_name UNIQUE (name);
 
 CREATE TABLE companion (
     name VARCHAR(256) NOT NULL,
@@ -31,6 +34,13 @@ CREATE TABLE component (
     name VARCHAR(256) NOT NULL
 );
 ALTER TABLE component ADD CONSTRAINT pk_component PRIMARY KEY (name);
+
+CREATE TABLE invitation (
+    id SERIAL NOT NULL,
+    clan_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL
+);
+ALTER TABLE invitation ADD CONSTRAINT pk_invitation PRIMARY KEY (id);
 
 CREATE TABLE item (
     name VARCHAR(256) NOT NULL,
@@ -109,6 +119,9 @@ ALTER TABLE weapon_component ADD CONSTRAINT pk_weapon_component PRIMARY KEY (wea
 
 ALTER TABLE companion ADD CONSTRAINT fk_companion_item FOREIGN KEY (name) REFERENCES item (name) ON DELETE CASCADE;
 
+ALTER TABLE invitation ADD CONSTRAINT fk_invitation_clan FOREIGN KEY (clan_id) REFERENCES clan (id) ON DELETE CASCADE;
+ALTER TABLE invitation ADD CONSTRAINT fk_invitation_player FOREIGN KEY (player_id) REFERENCES player (id) ON DELETE CASCADE;
+
 ALTER TABLE player ADD CONSTRAINT fk_player_registered_user FOREIGN KEY (registered_user_id) REFERENCES registered_user (id) ON DELETE CASCADE;
 
 ALTER TABLE player_items ADD CONSTRAINT fk_player_items_player FOREIGN KEY (player_id) REFERENCES player (id) ON DELETE CASCADE;
@@ -133,3 +146,4 @@ ALTER TABLE warframe_component ADD CONSTRAINT fk_warframe_component_component FO
 ALTER TABLE weapon_component ADD CONSTRAINT fk_weapon_component_weapon FOREIGN KEY (weapon_name) REFERENCES weapon (name) ON DELETE CASCADE;
 ALTER TABLE weapon_component ADD CONSTRAINT fk_weapon_component_component FOREIGN KEY (component_name) REFERENCES component (name) ON DELETE CASCADE;
 
+ALTER TABLE clan ADD CONSTRAINT fk_clan_leader_id FOREIGN KEY (leader_id) REFERENCES registered_user (id) ON DELETE CASCADE;

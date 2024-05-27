@@ -1,0 +1,42 @@
+div.clan-container {
+    padding: 20px;
+    border: #ccc 1px solid;
+    border-bottom: none;
+    background-color: #f2f2f2;
+    height: calc(40px + 40px);
+    min-height: 20px;
+    display: block;
+
+    div.left {
+        float: left;
+        display: block;
+        width: fit-content;
+    }
+
+    p {
+        font-weight: bold;
+        margin: 0;
+        width: fit-content;
+    }
+
+    button,
+    a {
+        display: block;
+        float: right;
+        top: 10px;
+        padding: 10px;
+        border: #ccc 1px solid;
+        cursor: pointer;
+        text-decoration: none;
+        color: black;
+    }
+
+    div.button-right {
+        display: block;
+        float: right;
+    }
+}
+
+div.clan-container:last-child {
+    border-bottom: 1px solid #ccc;
+}
