@@ -2,7 +2,7 @@ from wtforms.validators import DataRequired, EqualTo
 from wtforms import SubmitField, StringField, PasswordField
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileStorage
-from flask import Flask, redirect, flash, request, render_template
+from flask import Flask, redirect, flash, request, render_template, send_file
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Row, Tuple
