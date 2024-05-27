@@ -93,6 +93,16 @@ function bringToFront(array, element) {
  * @param {string} type 
  */
 function sortBy(type) {
+    const carets = document.getElementsByClassName("table-head-caret")
+    for (let i = 0; i < carets.length; i++) {
+        const element = carets.item(i);
+
+        element.style.display = "none"
+        element.classList.remove("fa-caret-down")
+        element.classList.remove("fa-caret-up")
+    }
+
+
     if (sortOrder[0].type == type) {
         sortOrder[0].ascending = !sortOrder[0].ascending
     }
@@ -110,6 +120,9 @@ function sortBy(type) {
         sortOrder[0].ascending = true;
     }
     console.table(sortOrder)
+    const caretElem = document.getElementById(type + "-caret")
+    caretElem.style.display = "inline-block"
+    caretElem.classList.add(sortOrder[0].ascending ? "fa-caret-down" : "fa-caret-up")
     updateTable()
 }
 

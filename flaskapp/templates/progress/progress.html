@@ -47,9 +47,12 @@
 <table>
     <thead>
         <tr>
-            <th id="itemNameHead" onclick="sortBy('name')">Item name</th>
-            <th id="classHead" onclick="sortBy('class')">Item Class</th>
-            <th id="masteredHead" onclick="sortBy('state')">Mastered</th>
+            <th id="itemNameHead" onclick="sortBy('name')">Item name <i class="fa fa-caret-down table-head-caret"
+                    style="display: none;" id="name-caret"></i></th>
+            <th id="classHead" onclick="sortBy('class')">Item Class <i class="fa fa-caret-down table-head-caret"
+                    style="display: none;" id="class-caret"></i></th>
+            <th id="masteredHead" onclick="sortBy('state')">Mastered <i class="fa fa-caret-down table-head-caret"
+                    style="display: inline-block;" id="state-caret"></i></th>
         </tr>
     </thead>
     <tbody id="tableBody">
