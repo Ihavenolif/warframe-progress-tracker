@@ -6,3 +6,6 @@ venv
 database.ini
 temp
 out.json
+dist
+build
+app.spec

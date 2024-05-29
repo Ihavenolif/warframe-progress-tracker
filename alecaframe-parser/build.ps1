@@ -1,0 +1,1 @@
+pyinstaller --clean --onefile --windowed --add-data "transparent.ico;." --icon=.\transparent.ico app.py
