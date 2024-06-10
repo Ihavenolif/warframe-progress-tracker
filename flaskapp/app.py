@@ -78,27 +78,13 @@ class Item(db.Model):
     name = db.Column(db.String(256), primary_key=True)
     nameraw = db.Column(db.String(256))
     type = db.Column(db.String(256))
+    item_class = db.Column(db.String(256))
 
 
 class PlayerItems(db.Model):
     player_id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(256), primary_key=True)
     state = db.Column(db.Integer)
-
-
-class Warframe(db.Model):
-    name = db.Column(db.String(256), primary_key=True)
-    item_class = db.Column(db.String(256))
-
-
-class Weapon(db.Model):
-    name = db.Column(db.String(256), primary_key=True)
-    item_class = db.Column(db.String(256))
-
-
-class Companion(db.Model):
-    name = db.Column(db.String(256), primary_key=True)
-    item_class = db.Column(db.String(256))
 
 
 class Clan(db.Model):
@@ -181,16 +167,16 @@ def register():
     return redirect("/")
 
 
-@login_required
 @app.route("/logout")
+@login_required
 def logout():
     logout_user()
     flash("Successfully logged out.", "info")
     return redirect("/")
 
 
-@login_required
 @app.route("/clans")
+@login_required
 def clans():
     player: Player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
 
@@ -213,16 +199,15 @@ def clans():
     return render("clans/clans.html", clan_list=clan_list)
 
 
-@login_required
 @app.route("/clans/<name>/progress", methods=["GET", "POST"])
+@login_required
 def clan_progress(name):
-    class_column = func.concat(Weapon.item_class, Warframe.item_class, Companion.item_class)
 
     if request.content_type == "application/json":
         sort_type_dictionary = {
             "state": PlayerItems.state,
             "name": Item.name,
-            "class": class_column
+            "class": Item.item_class
         }
         sortJson = request.json["sorting"]
         sortOrder: list = []
@@ -243,7 +228,7 @@ def clan_progress(name):
         print(request.json)
     else:
         sortOrder: list = [
-            class_column,
+            Item.item_class,
             Item.name
         ]
 
@@ -267,7 +252,7 @@ def clan_progress(name):
         flash("You are not a member of this clan.", "error")
         return redirect("/")
 
-    newquery = db.session.query(Item.name)\
+    newquery = db.session.query(Item)\
         .filter(Item.name.ilike(f"%{filters["name"]}%"))
 
     aliases: dict[str, PlayerItems] = {}
@@ -284,21 +269,19 @@ def clan_progress(name):
         newquery = newquery.outerjoin(alias, (Item.name == alias.item_name) & (alias.player_id == clan_player.id))
         newquery = newquery.add_columns(alias.state.label(clan_player.username))
 
-    newquery = newquery\
-        .outerjoin(Weapon, Item.name == Weapon.name)\
-        .outerjoin(Warframe, Item.name == Warframe.name)\
-        .outerjoin(Companion, Item.name == Companion.name)\
-        .add_columns(class_column)
+    # newquery = newquery\
+    #    .outerjoin(Weapon, Item.name == Weapon.name)\
+    #    .outerjoin(Warframe, Item.name == Warframe.name)\
+    #    .outerjoin(Companion, Item.name == Companion.name)\
+    #    .add_columns(class_column)
 
     if filters["class"] != "":
-        newquery = newquery.filter(class_column == filters["class"])
+        newquery = newquery.filter(Item.item_class == filters["class"])
 
     for sort in sortOrder:
         newquery = newquery.order_by(sort)
 
     all_items = newquery.all()
-
-    # TODO: Filters, sorting
 
     send_item_list = []
 
@@ -314,8 +297,8 @@ def clan_progress(name):
                 players.append(2)
 
         send_item_list.append({
-            "name": item[0],
-            "class": item[-1],
+            "name": item[0].name,
+            "class": item[0].item_class,
             "players": players
         })
 
@@ -325,8 +308,8 @@ def clan_progress(name):
     return render("clans/clan_progress.html", itemList=send_item_list, playernames=player_name_list)
 
 
-@login_required
 @app.route("/settings")
+@login_required
 def settings():
     player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
     if player:
@@ -337,8 +320,8 @@ def settings():
     pass
 
 
-@login_required
 @app.route("/change_password", methods=["GET", "POST"])
+@login_required
 def change_password():
     form: ChangePasswordForm = ChangePasswordForm()
 
@@ -368,8 +351,8 @@ def change_password():
     return redirect("/settings")
 
 
-@login_required
 @app.route("/link_account", methods=["GET", "POST"])
+@login_required
 def link_account():
     form: LinkAccountForm = LinkAccountForm()
 
@@ -396,8 +379,8 @@ def link_account():
     return redirect("/settings")
 
 
-@login_required
 @app.route("/unlink_account")
+@login_required
 def unlink_account():
     player_id = getattr(current_user, "id")
     player = Player.query.filter_by(registered_user_id=player_id)
@@ -413,14 +396,14 @@ def unlink_account():
     return redirect("/settings")
 
 
-@login_required
 @app.route("/progress", methods=["GET", "POST"])
+@login_required
 def progress():
     if request.content_type == "application/json":
         sort_type_dictionary = {
             "state": PlayerItems.state,
             "name": Item.name,
-            "class": Weapon.item_class
+            "class": Item.item_class
         }
         sortJson = request.json["sorting"]
         sortOrder: list = []
@@ -437,7 +420,7 @@ def progress():
     else:
         sortOrder: list = [
             PlayerItems.state,
-            Weapon.item_class,
+            Item.item_class,
             Item.name
         ]
 
@@ -452,29 +435,20 @@ def progress():
         flash("You need to link your warframe account first.", "error")
         return redirect("/settings")
 
-    weaponQuery = db.session.query(PlayerItems, Item, Weapon)\
-        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
-        .join(Weapon, Weapon.name == Item.name)
-    warframeQuery = db.session.query(PlayerItems, Item, Warframe)\
-        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
-        .join(Warframe, Warframe.name == Item.name)
-    companionQuery = db.session.query(PlayerItems, Item, Companion)\
-        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
-        .join(Companion, Companion.name == Item.name)
-
-    united = weaponQuery.union(warframeQuery, companionQuery)\
+    query = db.session.query(Item, PlayerItems)\
         .filter(Item.name.ilike(f"%{filters["name"]}%"))
 
     if filters["type"] != "":
-        united = united.filter(Weapon.item_class == filters["type"])
+        query = query.filter(Item.item_class == filters["type"])
 
-    print(filters)
+    query = query\
+        .outerjoin(PlayerItems, (Item.name == PlayerItems.item_name) & (PlayerItems.player_id == player.id))
 
     if filters["state"] != "all":
         if filters["state"] == "2":
-            united = united.filter(PlayerItems.state == None)
+            query = query.filter(PlayerItems.state == None)
         else:
-            united = united.filter(PlayerItems.state == filters["state"])
+            query = query.filter(PlayerItems.state == filters["state"])
 
     # if filters["mastered"] and not filters["unmastered"]:
     #    united = united.filter(PlayerItems.mastered == "t")
@@ -483,7 +457,7 @@ def progress():
     # elif not filters["mastered"] and not filters["unmastered"]:
     #    united = united.filter(False)
 
-    items: list[tuple[PlayerItems, Item, Weapon]] = united\
+    items: list[tuple[PlayerItems, Item]] = query\
         .order_by(sortOrder[0])\
         .order_by(sortOrder[1])\
         .order_by(sortOrder[2])\
@@ -494,12 +468,12 @@ def progress():
     for item in items:
         state: int = 2
 
-        if item[0]:
-            state = item[0].state
+        if item[1]:
+            state = item[1].state
 
         items_send.append({
-            "name": item[1].name,
-            "class": item[2].item_class,
+            "name": item[0].name,
+            "class": item[0].item_class,
             "state": state
         })
 
@@ -509,8 +483,8 @@ def progress():
         return render_template("progress/progress_table_raw.html", itemList=items_send)
 
 
-@login_required
 @app.route("/progress/import", methods=["GET", "POST"])
+@login_required
 def import_progress():
     form: UploadFileForm = UploadFileForm()
 
@@ -562,28 +536,19 @@ def import_progress():
         flash("Invalid JSON file.", "error")
         return redirect("/progress/import")
 
-    weaponQuery = db.session.query(PlayerItems, Item, Weapon)\
-        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
-        .join(Weapon, Weapon.name == Item.name)
-    warframeQuery = db.session.query(PlayerItems, Item, Warframe)\
-        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
-        .join(Warframe, Warframe.name == Item.name)
-    companionQuery = db.session.query(PlayerItems, Item, Companion)\
-        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))\
-        .join(Companion, Companion.name == Item.name)
-
-    all_items_query = weaponQuery.union(warframeQuery, companionQuery)
+    query = db.session.query(PlayerItems, Item)\
+        .outerjoin(PlayerItems, (PlayerItems.item_name == Item.name) & (PlayerItems.player_id == player.id))
 
     try:
         for json_item in parsed["XPInfo"]:
-            db_item: tuple[PlayerItems, Item, Weapon] = all_items_query.filter(Item.nameraw == json_item["ItemType"]).first()
+            db_item: tuple[PlayerItems, Item] = query.filter(Item.nameraw == json_item["ItemType"]).first()
             if not db_item:
                 continue
-            if db_item[2].item_class == "Necramech":
+            if db_item[1].item_class == "Necramech":
                 xp_required = 1600000
             elif "Kuva" in db_item[1].name or "Tenet" in db_item[1].name or db_item == "Paracesis":
                 xp_required = 800000
-            elif db_item[2].item_class in [
+            elif db_item[1].item_class in [
                 "Amp",
                 "Archgun",
                 "Archmelee",
@@ -595,7 +560,7 @@ def import_progress():
                 "Zaw"
             ]:
                 xp_required = 450000
-            elif db_item[2].item_class in [
+            elif db_item[1].item_class in [
                 "Archwing",
                 "Hound",
                 "Kdrive",
