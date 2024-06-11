@@ -8,14 +8,27 @@
 
     <div class="clan-container">
         <div class="left">
-            <p>{{ clan["name"] }}</p>
-            {{ clan["members"] }} members
+            <strong>{{ clan["name"] }}</strong> ({{ clan["members"] }} members)
+            <br>
+            <strong>Leader: </strong>{{ clan["leader"] }}
         </div>
+
+
 
 
         <div class="button-right">
             <a href='/clans/{{clan["name"]}}/progress'>View</a>
         </div>
+
+        {% if clan["is_leader"] %}
+        <div class="button-right">
+            <a href='/clans/{{clan["name"]}}/manage'>Manage</a>
+        </div>
+        {% else %}
+        <div class="button-right">
+            <a href='javascript:leave("{{clan["name"]}}")'>Leave</a>
+        </div>
+        {% endif %}
     </div>
 
     {% endfor %}
@@ -27,3 +40,5 @@
 <div class="vertical-menu">
     <a href="/clans/create">Create clan</a>
 </div>
+
+<script src="/static/js/clan-manage.js"></script>

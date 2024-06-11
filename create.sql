@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS player_clan CASCADE;
 DROP TABLE IF EXISTS player_component CASCADE;
 DROP TABLE IF EXISTS warframe_component CASCADE;
 DROP TABLE IF EXISTS weapon_component CASCADE;
+DROP TABLE IF EXISTS clan_invitation CASCADE;
 -- End of removing
 
 CREATE TABLE clan (
@@ -22,6 +23,14 @@ CREATE TABLE clan (
     leader_id INTEGER NOT NULL
 );
 ALTER TABLE clan ADD CONSTRAINT pk_clan PRIMARY KEY (id);
+ALTER TABLE clan ADD CONSTRAINT uc_clan_name UNIQUE (name);
+
+CREATE TABLE clan_invitation (
+    id SERIAL NOT NULL,
+    clan_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL
+);
+ALTER TABLE clan_invitation ADD CONSTRAINT pk_clan_invitation PRIMARY KEY (id);
 
 CREATE TABLE component (
     name VARCHAR(256) NOT NULL
@@ -96,3 +105,6 @@ ALTER TABLE component_item ADD CONSTRAINT fk_component_item_component FOREIGN KE
 ALTER TABLE component_item ADD CONSTRAINT fk_component_item_item FOREIGN KEY (item_name) REFERENCES item (name) ON DELETE CASCADE;
 
 ALTER TABLE clan ADD CONSTRAINT fk_clan_player FOREIGN KEY (leader_id) REFERENCES player (id);
+
+ALTER TABLE clan_invitation ADD CONSTRAINT fk_clan_invitation_clan FOREIGN KEY (clan_id) REFERENCES clan (id);
+ALTER TABLE clan_invitation ADD CONSTRAINT fk_clan_invitation_player FOREIGN KEY (player_id) REFERENCES player (id);

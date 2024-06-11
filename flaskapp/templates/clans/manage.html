@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="/static/css/clan-menu.css">
+<link rel="stylesheet" href="/static/css/vertical-menu.css">
+
+<h2>{{ clan_name }}</h2>
+
+<h3>Members</h3>
+
+<div>
+    {% for member in clan_members %}
+
+    <div class="clan-container">
+        <div class="left">
+            <p>{{ member["name"] }}</p>
+            Mastery rank {{ member["rank"] }}
+        </div>
+
+        {% if not member["is_leader"] %}
+        <div class="button-right">
+            <a href='javascript:remove("{{ member["name"] }}", "{{clan_name}}")'>Remove</a>
+        </div>
+        <div class="button-right">
+            <a href='javascript:promote("{{ member["name"] }}", "{{clan_name}}")'>Promote to leader</a>
+        </div>
+        {% endif %}
+
+
+
+    </div>
+
+    {% endfor %}
+</div>
+
+<script src="/static/js/clan-manage.js"></script>

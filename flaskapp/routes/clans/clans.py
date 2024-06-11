@@ -1,6 +1,7 @@
 from flask import redirect, flash
 from flask_login import login_required, current_user
 
+from database import db
 from flask_app import app
 from models.clan import Clan
 from models.player import Player
@@ -25,8 +26,11 @@ def clans():
 
     clan_list = []
     for clan in player_clans:
+        leader = db.session.query(Player).filter(Player.id == clan.leader_id).first().username
         clan_list.append({
             "name": clan.name,
-            "members": PlayerClan.query.filter(clan.id == PlayerClan.clan_id).all().__len__()
+            "members": PlayerClan.query.filter(clan.id == PlayerClan.clan_id).all().__len__(),
+            "leader": leader,
+            "is_leader": leader == player.username
         })
     return render("clans/clans.html", clan_list=clan_list)
