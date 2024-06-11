@@ -1,0 +1,12 @@
+<link rel="stylesheet" href="/static/css/form.css">
+
+
+<div style="width: 50%; margin-top: 10%; margin-left: 25%; margin-right: 25%;">
+    <h2>Create a clan</h2>
+    <form method="post" action="/clans/create">
+        {{form.hidden_tag()}}
+        {{ form.clan_name.label(class_='form-label') }}
+        {{ form.clan_name(class_='form-control') }}
+        <button class="form-button" type="submit">Create</button>
+    </form>
+</div>

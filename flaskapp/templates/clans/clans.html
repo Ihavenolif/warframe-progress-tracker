@@ -1,17 +1,29 @@
 <link rel="stylesheet" href="/static/css/clan-menu.css">
+<link rel="stylesheet" href="/static/css/vertical-menu.css">
 
-{% for clan in clan_list %}
+<h2>Clan list</h2>
 
-<div class="clan-container">
-    <div class="left">
-        <p>{{ clan["name"] }}</p>
-        {{ clan["members"] }} members
+<div>
+    {% for clan in clan_list %}
+
+    <div class="clan-container">
+        <div class="left">
+            <p>{{ clan["name"] }}</p>
+            {{ clan["members"] }} members
+        </div>
+
+
+        <div class="button-right">
+            <a href='/clans/{{clan["name"]}}/progress'>View</a>
+        </div>
     </div>
 
-
-    <div class="button-right">
-        <a href='/clans/{{clan["name"]}}/progress'>View</a>
-    </div>
+    {% endfor %}
 </div>
 
-{% endfor %}
+
+<br>
+
+<div class="vertical-menu">
+    <a href="/clans/create">Create clan</a>
+</div>
