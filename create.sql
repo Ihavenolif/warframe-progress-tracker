@@ -1,4 +1,4 @@
--- Active: 1745706296328@@127.0.0.1@5432@warframe_tracker@public
+-- Active: 1746057700810@@127.0.0.1@5432@warframe_tracker
 -- Remove conflicting tables
 DROP TABLE IF EXISTS clan CASCADE;
 DROP TABLE IF EXISTS companion CASCADE;
@@ -24,8 +24,8 @@ DROP TABLE IF EXISTS recipe_ingredients CASCADE;
 -- End of removing
 
 CREATE TABLE item (
-    name VARCHAR(256) PRIMARY KEY,
-    nameraw VARCHAR(256) NOT NULL UNIQUE,
+    name VARCHAR(256),
+    unique_name VARCHAR(256) NOT NULL PRIMARY KEY,
     type VARCHAR(256) NOT NULL,
     item_class VARCHAR(256) NOT NULL,
     xp_required INTEGER
@@ -51,10 +51,10 @@ CREATE TABLE clan_invitation (
 );
 
 CREATE TABLE player_items (
-    item_name VARCHAR(256) REFERENCES item(name) ON DELETE CASCADE,
+    unique_name VARCHAR(256) REFERENCES item(unique_name) ON DELETE CASCADE,
     player_id INTEGER REFERENCES player(id) ON DELETE CASCADE,
     item_count INTEGER NOT NULL DEFAULT 1,
-    PRIMARY KEY (item_name, player_id)
+    PRIMARY KEY (unique_name, player_id)
 );
 
 CREATE TABLE registered_user (
@@ -72,21 +72,38 @@ CREATE TABLE player_clan (
 );
 
 CREATE TABLE player_items_mastery(
-    item_name VARCHAR(256) NOT NULL,
-    player_id INTEGER NOT NULL,
+    unique_name VARCHAR(256) NOT NULL REFERENCES item(unique_name) ON DELETE CASCADE,
+    player_id INTEGER NOT NULL REFERENCES player(id) ON DELETE CASCADE,
     xp_gained INTEGER NOT NULL DEFAULT 0,
-    FOREIGN KEY (item_name, player_id) REFERENCES player_items(item_name, player_id) ON DELETE CASCADE,
-    PRIMARY KEY (item_name, player_id)
+    PRIMARY KEY (unique_name, player_id)
 );
 
 CREATE TABLE recipe (
-    unique_name VARCHAR(256) PRIMARY KEY REFERENCES item(nameraw) ON DELETE CASCADE,
-    result_item VARCHAR(256) NOT NULL REFERENCES item(nameraw) ON DELETE CASCADE
+    unique_name VARCHAR(256) PRIMARY KEY REFERENCES item(unique_name) ON DELETE CASCADE,
+    result_item VARCHAR(256) NOT NULL REFERENCES item(unique_name) ON DELETE CASCADE
 );
 
 CREATE TABLE recipe_ingredients(
     recipe_name VARCHAR(256) NOT NULL REFERENCES recipe(unique_name) ON DELETE CASCADE,
-    item_ingredient VARCHAR(256) NOT NULL REFERENCES item(nameraw) ON DELETE CASCADE,
+    item_ingredient VARCHAR(256) NOT NULL REFERENCES item(unique_name) ON DELETE CASCADE,
     ingredient_count INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (recipe_name, item_ingredient)
 );
+
+CREATE OR REPLACE FUNCTION ADD_NAME_TO_BLUEPRINT_TRIGGER()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.name := (
+        SELECT name
+        FROM item
+        WHERE item.unique_name = NEW.name
+    ) || ' Blueprint';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER T_ADD_NAME_TO_BLUEPRINT
+BEFORE INSERT ON ITEM
+FOR EACH ROW
+WHEN (NEW.type = 'Recipe')
+EXECUTE FUNCTION ADD_NAME_TO_BLUEPRINT_TRIGGER();
