@@ -35,6 +35,7 @@ def main():
 
     gear_items_insert = []
     resources_insert = []
+    recipe_items_insert = []
     recipes_insert = []
     recipes_ingredients_insert = []
 
@@ -70,7 +71,7 @@ def main():
             xp_required = 900000
         else:
             raise Exception("nejaka picovina mi utekla")
-        
+
         gear_items_insert.append((item["name"], item["nameraw"], item["type"], item["class"], xp_required))
 
         # try:
@@ -80,6 +81,9 @@ def main():
 
     for resource in resources:
         resources_insert.append((resource["name"], resource["uniqueName"], "Resource", "MiscItems"))
+
+        if "Lanthorn" in resource["name"]:
+            pass
         # try:
         #     cursor.execute(f"INSERT INTO item (name, nameraw, type, item_class) VALUES ('{resource['name']}', '{resource['uniqueName']}', 'Resource', 'MiscItems');")
         # except Exception as e:
@@ -89,11 +93,23 @@ def main():
         #     exit()
 
     for recipe in recipes:
+        if recipe["uniqueName"] in CONFLICTING_ITEM_NAMES:
+            recipe["uniqueName"] = CONFLICTING_ITEM_NAMES[recipe["uniqueName"]]
+
+        if 'LowKatana' in recipe["uniqueName"] or 'LowKatana' in recipe["resultType"]:
+            pass
+        recipe_items_insert.append((recipe["resultType"], recipe["uniqueName"], "Recipe", "MiscItems"))
         recipes_insert.append((recipe["uniqueName"], recipe["resultType"]))
 
-    cursor.executemany("INSERT INTO item (name, nameraw, type, item_class, xp_required) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (name) DO NOTHING", gear_items_insert)
-    cursor.executemany("INSERT INTO item (name, nameraw, type, item_class) VALUES (%s, %s, %s, %s) ON CONFLICT (name) DO NOTHING", resources_insert)
-    cursor.executemany("INSERT INTO recipe (unique_name, result_item) VALUES (%s, %s) ON CONFLICT (unique_name)")
+        for ingredient in recipe["ingredients"]:
+            recipes_ingredients_insert.append((recipe["uniqueName"], ingredient["ItemType"], ingredient["ItemCount"]))
+
+    cursor.executemany("INSERT INTO item (name, unique_name, type, item_class, xp_required) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (unique_name) DO NOTHING", gear_items_insert)
+    cursor.executemany("INSERT INTO item (name, unique_name, type, item_class) VALUES (%s, %s, %s, %s) ON CONFLICT (unique_name) DO NOTHING", resources_insert)
+    connection.commit()
+    cursor.executemany("INSERT INTO item (name, unique_name, type, item_class) VALUES (%s, %s, %s, %s) ON CONFLICT (unique_name) DO NOTHING", recipe_items_insert)
+    cursor.executemany("INSERT INTO recipe (unique_name, result_item) VALUES (%s, %s) ON CONFLICT (unique_name) DO NOTHING", recipes_insert)
+    cursor.executemany("INSERT INTO recipe_ingredients (recipe_name, item_ingredient, ingredient_count) VALUES (%s, %s, %s) ON CONFLICT (recipe_name, item_ingredient) DO NOTHING", recipes_ingredients_insert)
 
     connection.commit()
 

@@ -26,23 +26,30 @@ ITEM_CLASSES = {
     "SpaceGuns": "Archgun"
 }
 
+CONFLICTING_ITEM_NAMES = {
+    "/Lotus/Types/Recipes/Weapons/DetronBlueprint": "/Lotus/Types/Recipes/Weapons/CorpusHandcannonBlueprint",  # Detron
+    "/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeSortieBlueprint": "/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeBlueprint",  # Sheev
+    "/Lotus/Types/Recipes/Weapons/GrineerHandcannonBlueprint": "/Lotus/Types/Recipes/Weapons/BrakkBlueprint",  # Brakk
+    "/Lotus/Types/Recipes/Weapons/LowKatanaBlueprint": "/Lotus/Types/Recipes/Weapons/ConvertKatanaBlueprint"  # Dragon nikana
+}
+
 
 def decompress(string: str) -> str:
     return lzma.decompress(bytes(string, "latin1")).decode("utf-8")
 
 
 def get_index() -> dict[str, str]:
-    #fucking lzma is broken on ubuntu and i have to use this fucking shit
+    # fucking lzma is broken on ubuntu and i have to use this fucking shit
     req = requests.get(
-       "https://origin.warframe.com/PublicExport/index_en.txt.lzma")
+        "https://origin.warframe.com/PublicExport/index_en.txt.lzma")
     decompressed = decompress(req.text)
-    #fuckthis
-    #TODO: once lzma is unfucked delete this shit
-    #subprocess.run(["rm", "index_en.txt.lzma", "index_en.txt"])
-    #subprocess.run(["wget", "https://origin.warframe.com/PublicExport/index_en.txt.lzma"])
-    #subprocess.run(["node", "main.js"], stdout=open("index_en.txt", "w"))
+    # fuckthis
+    # TODO: once lzma is unfucked delete this shit
+    # subprocess.run(["rm", "index_en.txt.lzma", "index_en.txt"])
+    # subprocess.run(["wget", "https://origin.warframe.com/PublicExport/index_en.txt.lzma"])
+    # subprocess.run(["node", "main.js"], stdout=open("index_en.txt", "w"))
 #
-    #with open("index_en.txt", "r") as fuckingfile:
+    # with open("index_en.txt", "r") as fuckingfile:
     #    decompressed = fuckingfile.read()
     #    fuckingfile.close()
 
@@ -318,6 +325,7 @@ def get_sentinels(index: dict[str, str], companions: list) -> None:
             "nameraw": companion["uniqueName"]
         })
 
+
 def get_recipes(index: dict[str, str], gear_item_names: list[str]) -> list:
     req = requests.get(
         f"http://content.warframe.com/PublicExport/Manifest/{index['Recipes']}")
@@ -326,9 +334,10 @@ def get_recipes(index: dict[str, str], gear_item_names: list[str]) -> list:
     recipes = []
 
     for recipe in parsed["ExportRecipes"]:
-        if not str(recipe["resultType"]) in gear_item_names: continue
+        if not str(recipe["resultType"]) in gear_item_names:
+            continue
         recipes.append(recipe)
-    
+
     # Now we have recipes for all of the gear items
     # We also need recipes for all of the weapon components
 
@@ -337,10 +346,12 @@ def get_recipes(index: dict[str, str], gear_item_names: list[str]) -> list:
     gear_recipe_ingredients = list(set(map(lambda x: x["ItemType"], gear_recipe_ingredients)))
 
     for recipe in parsed["ExportRecipes"]:
-        if not str(recipe["resultType"]) in gear_recipe_ingredients: continue
+        if not str(recipe["resultType"]) in gear_recipe_ingredients:
+            continue
         recipes.append(recipe)
 
     return recipes
+
 
 def get_resources(index: dict[str, str]) -> list:
     req = requests.get(
@@ -348,6 +359,7 @@ def get_resources(index: dict[str, str]) -> list:
     parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     return parsed["ExportResources"]
+
 
 def main():
     index = get_index()
