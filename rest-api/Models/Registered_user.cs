@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace rest_api.Models;
 
@@ -15,11 +16,14 @@ public partial class Registered_user
 
     public int id { get; set; }
 
+    [JsonIgnore]
     public int? player_id { get; set; }
 
     public string username { get; set; } = null!;
 
+    [JsonIgnore]
     public string password_hash { get; set; } = null!;
 
+    [JsonIgnore]
     public virtual Player? player { get; set; }
 }

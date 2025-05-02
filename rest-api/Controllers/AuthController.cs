@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -73,5 +74,14 @@ public class AuthController : ControllerBase
         return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
 
         throw new NotImplementedException();
+    }
+
+    [HttpPost("me")]
+    [Authorize]
+    public async Task<IActionResult> Me()
+    {
+        string username = User.Identity?.Name!;
+
+        return Ok(await userService.GetUserByUsernameAsync(username));
     }
 }
