@@ -5,14 +5,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using Microsoft.OpenApi.Models;
-
-Env.Load("../.env");
-
-var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)); ;
-var key = Encoding.ASCII.GetBytes(jwtKey);
-
+using rest_api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var jwtSettings = new ConfigurationService();
+
+builder.Services.AddSingleton<ConfigurationService>();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -49,6 +48,8 @@ builder.Services.AddSwaggerGen(config =>
     });
 });
 
+builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -61,7 +62,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        IssuerSigningKey = new SymmetricSecurityKey(jwtSettings.GetJwtKey())
     };
 });
 

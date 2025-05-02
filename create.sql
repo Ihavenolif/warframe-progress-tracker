@@ -61,8 +61,7 @@ CREATE TABLE registered_user (
     id SERIAL PRIMARY KEY,
     player_id INTEGER REFERENCES player(id) ON DELETE CASCADE,
     username VARCHAR(256) UNIQUE NOT NULL,
-    password_hash VARCHAR(256) NOT NULL,
-    salt VARCHAR(256) NOT NULL
+    password_hash VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE player_clan (

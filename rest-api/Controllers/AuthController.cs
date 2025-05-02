@@ -1,11 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using rest_api.Data;
 using rest_api.Models;
+using rest_api.Services;
 
 namespace rest_api.Controllers;
 
@@ -14,36 +16,62 @@ namespace rest_api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly WarframeTrackerDbContext _dbContext;
-    private readonly IConfiguration _config;
+    private readonly IUserService userService;
+    private readonly ConfigurationService _config;
 
-    public AuthController(WarframeTrackerDbContext context, IConfiguration config)
+    public AuthController(WarframeTrackerDbContext context, ConfigurationService config, IUserService userService)
     {
         _dbContext = context;
         _config = config;
+        this.userService = userService;
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromQuery] string username, [FromQuery] string password)
+    public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
     {
-        if (username == "username" && password == "password")
+        if (!await userService.VerifyUser(username, password))
         {
-            // TODO: Export into a configuration manager
-            var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? "placeholderjwtkey";
-            var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
-
-            var key = new SymmetricSecurityKey(keyBytes);
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                claims: new[] { new Claim(ClaimTypes.Name, username) },
-                expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: creds
-            );
-
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-
+            return Unauthorized("Username and password combination not found.");
         }
 
-        return Unauthorized();
+        var keyBytes = _config.GetJwtKey();
+
+        var key = new SymmetricSecurityKey(keyBytes);
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            claims: new[] { new Claim(ClaimTypes.Name, username) },
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: creds
+        );
+
+        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromQuery] string username, [FromQuery] string password)
+    {
+        if (await userService.GetUserByUsernameAsync(username) != null)
+        {
+            return Conflict("User already exists");
+        }
+
+        // TODO: Input validation
+        await userService.CreateUserAsync(username, password);
+
+        var keyBytes = _config.GetJwtKey();
+
+        var key = new SymmetricSecurityKey(keyBytes);
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            claims: new[] { new Claim(ClaimTypes.Name, username) },
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: creds
+        );
+        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+
+        throw new NotImplementedException();
     }
 }

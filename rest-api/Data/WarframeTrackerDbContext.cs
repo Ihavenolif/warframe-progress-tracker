@@ -4,32 +4,18 @@ using Microsoft.EntityFrameworkCore;
 using rest_api.Models;
 using DotNetEnv;
 using Npgsql;
+using rest_api.Services;
 
 namespace rest_api.Data;
 
 public partial class WarframeTrackerDbContext : DbContext
 {
-    public WarframeTrackerDbContext(DbContextOptions<WarframeTrackerDbContext> options)
+    private readonly ConfigurationService _config;
+
+    public WarframeTrackerDbContext(DbContextOptions<WarframeTrackerDbContext> options, ConfigurationService config)
         : base(options)
     {
-    }
-
-    public static string LoadConnectionString()
-    {
-        var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-        var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-        var dbUser = Environment.GetEnvironmentVariable("DB_USER");
-        var dbPassword = Environment.GetEnvironmentVariable("DB_PASS");
-
-        if (dbHost == null || dbName == null || dbUser == null || dbPassword == null)
-        {
-            throw new ArgumentNullException("Missing environment variables");
-        }
-
-        var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPassword}";
-
-        return connectionString;
-
+        _config = config;
     }
 
     public virtual DbSet<Clan> clans { get; set; }
@@ -201,7 +187,6 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.HasIndex(e => e.username, "registered_user_username_key").IsUnique();
 
             entity.Property(e => e.password_hash).HasMaxLength(256);
-            entity.Property(e => e.salt).HasMaxLength(256);
             entity.Property(e => e.username).HasMaxLength(256);
 
             entity.HasOne(d => d.player).WithMany(p => p.registered_users)
@@ -217,7 +202,7 @@ public partial class WarframeTrackerDbContext : DbContext
     {
         if (optionsBuilder.IsConfigured) return;
 
-        var connectionString = LoadConnectionString();
+        var connectionString = _config.GetConnectionString();
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
         dataSourceBuilder.EnableDynamicJson();
         var dataSource = dataSourceBuilder.Build();
