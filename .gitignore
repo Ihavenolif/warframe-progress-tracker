@@ -9,3 +9,5 @@ out.json
 dist
 build
 app.spec
+obj
+bin
