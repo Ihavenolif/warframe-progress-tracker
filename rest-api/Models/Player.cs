@@ -5,6 +5,12 @@ namespace rest_api.Models;
 
 public partial class Player
 {
+    public Player() { }
+    public Player(string username)
+    {
+        this.username = username;
+    }
+
     public int id { get; set; }
 
     public string username { get; set; } = null!;

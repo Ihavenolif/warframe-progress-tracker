@@ -1,5 +1,7 @@
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using rest_api.Data;
 using rest_api.Models;
 
@@ -10,6 +12,7 @@ public interface IUserService
     public Task<Registered_user?> GetUserByUsernameAsync(string username);
     public Task CreateUserAsync(string username, string password);
     public Task<bool> VerifyUser(string username, string password);
+    public Task AddPlayerToUser(Registered_user user, string username);
 }
 
 public class UserService : IUserService
@@ -19,6 +22,13 @@ public class UserService : IUserService
     public UserService(WarframeTrackerDbContext context)
     {
         _dbContext = context;
+    }
+
+    public async Task AddPlayerToUser(Registered_user user, string playerName)
+    {
+        Player player = new Player(playerName);
+        user.player = player;
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task CreateUserAsync(string username, string password)
