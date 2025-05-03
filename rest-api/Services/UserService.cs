@@ -41,7 +41,9 @@ public class UserService : IUserService
 
     public async Task<Registered_user?> GetUserByUsernameAsync(string username)
     {
-        return await _dbContext.registered_users.FirstOrDefaultAsync(u => u.username == username);
+        return await _dbContext.registered_users
+            .Include(u => u.player)
+            .FirstOrDefaultAsync(u => u.username == username);
     }
 
     public async Task<bool> VerifyUser(string username, string password)

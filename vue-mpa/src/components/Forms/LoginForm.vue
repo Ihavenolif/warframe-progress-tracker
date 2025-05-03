@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import BASE_URL from "@/util/util.js"
+import {BASE_URL} from "@/util/util.js"
 
 export default{
     data(){

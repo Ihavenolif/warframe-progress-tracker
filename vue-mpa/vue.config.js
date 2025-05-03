@@ -16,6 +16,11 @@ module.exports = defineConfig({
             entry: 'src/pages/login.js',
             template: 'public/login.html',
             filename: 'login.html'
+        },
+        progress: {
+            entry: 'src/pages/progress.js',
+            template: 'public/progress.html',
+            filename: 'progress.html'
         }
     }
 })
