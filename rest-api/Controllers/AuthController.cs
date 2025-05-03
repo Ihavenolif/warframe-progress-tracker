@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using rest_api.Data;
+using rest_api.DTO;
 using rest_api.Models;
 using rest_api.Services;
 
@@ -82,6 +83,6 @@ public class AuthController : ControllerBase
     {
         string username = User.Identity?.Name!;
 
-        return Ok(await userService.GetUserByUsernameAsync(username));
+        return Ok(new UserInfoDTO((await userService.GetUserByUsernameAsync(username))!));
     }
 }
