@@ -23,5 +23,4 @@ public class PlayerController : ControllerBase
     {
         return Ok(await _dbContext.players.ToListAsync());
     }
-
 }
