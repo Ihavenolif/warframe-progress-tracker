@@ -2,12 +2,9 @@
     <table>
         <thead>
             <tr>
-                <th id="itemNameHead" onclick="sortBy('name')">Item name <i class="fa fa-caret-down table-head-caret"
-                        style="display: none;" id="name-caret"></i></th>
-                <th id="classHead" onclick="sortBy('class')">Item Class <i class="fa fa-caret-down table-head-caret"
-                        style="display: none;" id="class-caret"></i></th>
-                <th id="masteredHead" onclick="sortBy('state')">Mastered <i class="fa fa-caret-down table-head-caret"
-                        style="display: inline-block;" id="state-caret"></i></th>
+                <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i v-if="this.sorting.key === 'itemName'"><span :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i></th>
+                <th id="classHead"  v-on:click="sortTable('itemClass')">Item Class <i v-if="this.sorting.key === 'itemClass'"><span :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i></th>
+                <th id="masteredHead"  v-on:click="sortTable('mastery')">Mastered <i v-if="this.sorting.key === 'mastery'"><span :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i></th>
             </tr>
         </thead>
 
@@ -40,7 +37,8 @@ export default{
     },
     data() {
         return{
-            itemList:[]
+            itemList:[],
+            sorting: {key: "", asc: true}
         }
     },
     methods:{
@@ -64,10 +62,36 @@ export default{
 
             const data = await res.json()
             this.itemList = data;
+        },
+        sortTable(sortKey){
+            if(this.sorting.key == sortKey) this.sorting.asc = !this.sorting.asc;
+            else {
+                this.sorting.key = sortKey;
+                this.sorting.asc = true;
+            }
+
+            if(this.sorting.key == "mastery"){
+                this.itemList.sort((a,b) => {
+                    if (a["xpGained"] >= a["xpRequired"] && b["xpGained"] >= b["xpRequired"]) return 0;
+
+                    const masteredRateA = a["xpGained"] / a["xpRequired"]
+                    const masteredRateB = b["xpGained"] / b["xpRequired"]
+                    return (masteredRateB < masteredRateA ? -1:1) * (this.sorting.asc ? 1:-1);
+                })
+            }
+            else{
+                this.itemList.sort((a,b) => {
+                    return (a[this.sorting.key] < b[this.sorting.key] ? -1:1) * (this.sorting.asc ? 1:-1);
+                })
+            }
+            
         }
     },
-    mounted(){
-        this.getMasteryItems();
+    async mounted(){
+        await this.getMasteryItems();
+        this.sortTable("itemName");
+        this.sortTable("itemClass");
+        this.sortTable("mastery");
     }
 }
 </script>
@@ -92,34 +116,20 @@ th {
 }
 
 tr:nth-child(even) {
-    background-color: #f2f2f2;
-
-    .mastery-state-0 {
-        background-color: rgb(92, 233, 92);
-    }
-
-    .mastery-state-1 {
-        background-color: rgb(238, 238, 119);
-    }
-
-    .mastery-state-2 {
-        background-color: rgb(235, 130, 130);
-    }
+    background-color: #fefefe;
+    filter: brightness(0.95);
 }
 
-tr:nth-child(odd) {
+.mastery-state-0 {
+    background-color: rgb(92, 233, 92);
+}
 
-    .mastery-state-0 {
-        background-color: lightgreen;
-    }
+.mastery-state-1 {
+    background-color: rgb(238, 238, 119);
+}
 
-    .mastery-state-1 {
-        background-color: rgb(242, 242, 178);
-    }
-
-    .mastery-state-2 {
-        background-color: rgb(239, 164, 164);
-    }
+.mastery-state-2 {
+    background-color: rgb(235, 130, 130);
 }
 
 
