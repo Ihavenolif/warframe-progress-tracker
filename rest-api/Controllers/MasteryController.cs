@@ -2,6 +2,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using rest_api.DTO;
+using rest_api.DTO.MasteryUpdate;
 using rest_api.Models;
 using rest_api.Services;
 
@@ -15,18 +16,21 @@ public class MasteryController : ControllerBase
     private readonly IMasteryService masteryService;
     private readonly IPlayerService playerService;
     private readonly IUserService userService;
+    private readonly IItemService itemService;
 
-    public MasteryController(IMasteryService masteryService, IPlayerService playerService, IUserService userService)
+    public MasteryController(IMasteryService masteryService, IPlayerService playerService, IUserService userService, IItemService itemService)
     {
         this.masteryService = masteryService;
         this.playerService = playerService;
         this.userService = userService;
+        this.itemService = itemService;
     }
 
     [HttpGet("{username}")]
     // TODO: Add verification
     public async Task<ActionResult<IEnumerable<MasteryItemDTO>>> GetMasteryInfoByPlayer([FromRoute] string username)
     {
+        // TODO: Authorization and validation
         var player = await playerService.FindPlayerByUsernameAsync(username);
         if (player == null) return NotFound("Player not found");
         var masteryData = await masteryService.GetMasteryInfoByPlayerAsync(player);
