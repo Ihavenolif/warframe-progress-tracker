@@ -15,7 +15,7 @@
     <!--{% if page == "progress/progress.html" or page == "progress/import.html" %}-->
 
     <div class="right-aligned">
-        <a class='{% if page == "progress/import.html" %}active{% endif %}' href="/progress/import">Import</a>
+        <a class='{% if page == "progress/import.html" %}active{% endif %}' href="/progress/update">Import</a>
     </div>
 
     <!--{% endif %}    -->

@@ -2,19 +2,19 @@ const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
     transpileDependencies: true,
     pages: {
-        index: {
+        "index": {
             entry: 'src/pages/main.js',
             template: 'public/index.html',
             filename: 'index.html'
         },
-        about: {
+        "about": {
             entry: 'src/pages/about.js',
             template: 'public/about.html',
             filename: 'about.html'
         },
-        login: {
+        "login": {
             entry: 'src/pages/login.js',
-            template: 'public/login.html',
+            template: 'public/index.html',
             filename: 'login.html'
         },
         progressIndex: {
