@@ -10,11 +10,13 @@ using rest_api.Data;
 using rest_api.DTO;
 using rest_api.Models;
 using rest_api.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace rest_api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly WarframeTrackerDbContext _dbContext;
@@ -31,6 +33,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [SwaggerOperation(Summary = "Logs in a user", Description = "Authenticates a user with the provided username and password.")]
+    [SwaggerResponse(200, "Login successful", typeof(TokenResponseDTO))]
+    [SwaggerResponse(401, "Username and password combination not found.", typeof(string))]
+    [SwaggerResponse(400, "Bad request", typeof(string))]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
     {
         if (!await userService.VerifyUser(username, password))
@@ -45,6 +52,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [SwaggerOperation(Summary = "Registers a new user", Description = "Creates a new user with the provided username and password.")]
+    [SwaggerResponse(200, "User registered successfully", typeof(TokenResponseDTO))]
+    [SwaggerResponse(409, "User already exists", typeof(string))]
+    [SwaggerResponse(400, "Bad request", typeof(string))]
     public async Task<IActionResult> Register([FromQuery] string username, [FromQuery] string password)
     {
         if (await userService.GetUserByUsernameAsync(username) != null)
@@ -64,6 +75,10 @@ public class AuthController : ControllerBase
 
     [HttpPost("me")]
     [Authorize]
+    [SwaggerOperation(Summary = "Gets the current user's information", Description = "Returns the information of the currently authenticated user.")]
+    [SwaggerResponse(200, "User information retrieved successfully", typeof(UserInfoDTO))]
+    [SwaggerResponse(401, "Unauthorized")]
+
     public async Task<IActionResult> Me()
     {
         string username = User.Identity?.Name!;
