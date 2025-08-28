@@ -17,10 +17,36 @@ module.exports = defineConfig({
             template: 'public/login.html',
             filename: 'login.html'
         },
-        progress: {
-            entry: 'src/pages/progress.js',
-            template: 'public/progress.html',
-            filename: 'progress.html'
+        progressIndex: {
+            entry: 'src/pages/progress/index.js',
+            template: 'public/progress/index.html',
+            filename: 'progress/index.html'
+        },
+        progressImport: {
+            entry: 'src/pages/progress/import.js',
+            template: 'public/progress/import.html',
+            filename: 'progress/import.html'
         }
+    },
+    devServer: {
+        historyApiFallback: {
+            rewrites: [
+                {
+                    from: /^\/.*$/,  // match any path
+                    to(context) {
+                        const url = context.parsedUrl.pathname;
+
+                        // If path ends with '/', serve index.html inside that folder
+                        if (url.endsWith('/')) {
+                            return url + 'index.html';
+                        }
+
+                        // Otherwise, try serving url + '.html'
+                        return url + '.html';
+                    },
+                },
+            ],
+        }
+
     }
 })
