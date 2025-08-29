@@ -58,6 +58,15 @@ public class MasteryController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+        catch (System.Text.Json.JsonException)
+        {
+            return BadRequest("Invalid JSON format");
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return StatusCode(500, "An error occurred while processing the request");
+        }
 
         return Ok();
     }

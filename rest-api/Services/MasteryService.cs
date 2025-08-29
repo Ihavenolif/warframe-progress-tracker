@@ -20,6 +20,7 @@ public interface IMasteryService
     /// <param name="player"></param>
     /// <param name="jsonData"></param>
     /// <throws cref="ArgumentException">Invalid JSON data</throws>
+    /// <throws cref="System.Text.Json.JsonReaderException">Invalid JSON format</throws>
     /// <returns></returns>
     public Task UpdatePlayerMasteryAsync(Player player, string jsonData);
 }
@@ -31,6 +32,24 @@ public class MasteryService : IMasteryService
     public MasteryService(WarframeTrackerDbContext dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    private JsonNode validateMasteryItem(JsonNode item)
+    {
+        if (item == null) throw new ArgumentException("Invalid JSON data: Invalid XPInfo entry");
+        if (item["ItemType"] == null || item["XP"] == null) throw new ArgumentException("Invalid JSON data: Invalid XPInfo entry");
+        if (item["ItemType"]!.GetValue<string>() == null) throw new ArgumentException("Invalid JSON data: Invalid XPInfo entry");
+        if (item["XP"]!.GetValue<int>() < 0) throw new ArgumentException("Invalid JSON data: Invalid XPInfo entry");
+        return item;
+    }
+
+    private JsonNode validateMiscItem(JsonNode item)
+    {
+        if (item == null) throw new ArgumentException("Invalid JSON data: Invalid MiscItems entry");
+        if (item["ItemType"] == null || item["ItemCount"] == null) throw new ArgumentException("Invalid JSON data: Invalid MiscItems entry");
+        if (item["ItemType"]!.GetValue<string>() == null) throw new ArgumentException("Invalid JSON data: Invalid MiscItems entry");
+        if (item["ItemCount"]!.GetValue<int>() < 0) throw new ArgumentException("Invalid JSON data: Invalid MiscItems entry");
+        return item;
     }
 
     public async Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player)
@@ -49,6 +68,7 @@ public class MasteryService : IMasteryService
     }
 
     // TODO: Fuckton of validation
+    // Also TODO: Write some tests
     public async Task UpdatePlayerMasteryAsync(Player player, string jsonData)
     {
         JsonNode root = JsonNode.Parse(jsonData) ?? throw new ArgumentException("Invalid JSON data");
@@ -56,33 +76,33 @@ public class MasteryService : IMasteryService
         List<string> allRecipes = await _dbContext.recipes.Select(r => r.unique_name).ToListAsync();
         List<string> allItems = await _dbContext.items.Select(i => i.unique_name).ToListAsync();
 
-        JsonArray xpInfo = root["XPInfo"]!.AsArray() ?? throw new ArgumentException("Invalid JSON data: Missing XPInfo");
-        JsonArray recipes = root["Recipes"]!.AsArray() ?? throw new ArgumentException("Invalid JSON data: Missing Recipes");
-        JsonArray miscItems = root["MiscItems"]!.AsArray() ?? throw new ArgumentException("Invalid JSON data: Missing MiscItems");
+        JsonArray xpInfo = (root["XPInfo"] ?? throw new ArgumentException("Invalid JSON data: Missing XPInfo")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid XPInfo");
+        JsonArray recipes = (root["Recipes"] ?? throw new ArgumentException("Invalid JSON data: Missing Recipes")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes");
+        JsonArray miscItems = (root["MiscItems"] ?? throw new ArgumentException("Invalid JSON data: Missing MiscItems")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid MiscItems");
 
         List<Player_items_mastery> masteryItems = [.. xpInfo
-            .Where(x => allItems.Contains((x ?? throw new ArgumentException("Invalid JSON data: Invalid XPInfo entry"))["ItemType"]!.GetValue<string>()))
+            .Where(x => allItems.Contains(validateMasteryItem(x!)["ItemType"]!.GetValue<string>()))
             .Select(x => new Player_items_mastery
             {
-                unique_name = (x ?? throw new ArgumentException("Invalid JSON data: Invalid XPInfo entry"))["ItemType"]!.GetValue<string>(),
+                unique_name = validateMasteryItem(x!)["ItemType"]!.GetValue<string>(),
                 player_id = player.id,
-                xp_gained = x["XP"]!.GetValue<int>()
+                xp_gained = x!["XP"]!.GetValue<int>()
             })];
         List<Player_item> recipeItems = [.. recipes
-            .Where(x => allRecipes.Contains((x ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes entry"))["ItemType"]!.GetValue<string>()))
+            .Where(x => allRecipes.Contains(validateMiscItem(x!)["ItemType"]!.GetValue<string>()))
             .Select(x => new Player_item
             {
-                unique_name = (x ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes entry"))["ItemType"]!.GetValue<string>(),
+                unique_name = validateMiscItem(x!)["ItemType"]!.GetValue<string>(),
                 player_id = player.id,
-                item_count = x["ItemCount"]!.GetValue<int>()
+                item_count = x!["ItemCount"]!.GetValue<int>()
             })];
         List<Player_item> miscItemEntries = [.. miscItems
-            .Where(x => allItems.Contains((x ?? throw new ArgumentException("Invalid JSON data: Invalid MiscItems entry"))["ItemType"]!.GetValue<string>()))
+            .Where(x => allItems.Contains(validateMiscItem(x!)["ItemType"]!.GetValue<string>()))
             .Select(x => new Player_item
             {
-                unique_name = (x ?? throw new ArgumentException("Invalid JSON data: Invalid MiscItems entry"))["ItemType"]!.GetValue<string>(),
+                unique_name = validateMiscItem(x!)["ItemType"]!.GetValue<string>(),
                 player_id = player.id,
-                item_count = x["ItemCount"]!.GetValue<int>()
+                item_count = x!["ItemCount"]!.GetValue<int>()
             })];
 
         using var transaction = _dbContext.Database.BeginTransaction();
