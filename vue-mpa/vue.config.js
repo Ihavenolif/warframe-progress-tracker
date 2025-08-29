@@ -29,6 +29,7 @@ module.exports = defineConfig({
         }
     },
     devServer: {
+        host: 'www.localhost.me',
         historyApiFallback: {
             rewrites: [
                 {

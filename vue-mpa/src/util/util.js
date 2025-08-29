@@ -1,4 +1,5 @@
-export const BASE_URL = "http://localhost:5224"
+//export const BASE_URL = "http://localhost:5224"
+export const BASE_URL = "http://api.localhost.me:5224"
 
 export async function getPlayerName() {
     const token = localStorage.getItem("token");
