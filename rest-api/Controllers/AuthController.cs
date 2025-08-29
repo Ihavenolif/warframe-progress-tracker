@@ -20,12 +20,14 @@ public class AuthController : ControllerBase
     private readonly WarframeTrackerDbContext _dbContext;
     private readonly IUserService userService;
     private readonly ConfigurationService _config;
+    private readonly ITokenService _tokenService;
 
-    public AuthController(WarframeTrackerDbContext context, ConfigurationService config, IUserService userService)
+    public AuthController(WarframeTrackerDbContext context, ConfigurationService config, IUserService userService, ITokenService tokenService)
     {
         _dbContext = context;
         _config = config;
         this.userService = userService;
+        this._tokenService = tokenService;
     }
 
     [HttpPost("login")]
@@ -36,16 +38,7 @@ public class AuthController : ControllerBase
             return Unauthorized("Username and password combination not found.");
         }
 
-        var keyBytes = _config.GetJwtKey();
-
-        var key = new SymmetricSecurityKey(keyBytes);
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            claims: new[] { new Claim(ClaimTypes.Name, username) },
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: creds
-        );
+        var token = _tokenService.GenerateAccessToken(username);
 
         return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
 
@@ -62,16 +55,8 @@ public class AuthController : ControllerBase
         // TODO: Input validation
         await userService.CreateUserAsync(username, password);
 
-        var keyBytes = _config.GetJwtKey();
+        var token = _tokenService.GenerateAccessToken(username);
 
-        var key = new SymmetricSecurityKey(keyBytes);
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            claims: new[] { new Claim(ClaimTypes.Name, username) },
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: creds
-        );
         return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
 
         throw new NotImplementedException();
