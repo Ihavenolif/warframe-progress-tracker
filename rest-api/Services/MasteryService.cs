@@ -56,14 +56,17 @@ public class MasteryService : IMasteryService
 
     public async Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player)
     {
+        // THIS IS ASS!!! USERNAME SHOULD BE SANITIZED - SQL INJECTION POSSIBLE!!!!!!! - maybe? does efcore sanitize? idk
         var result = _dbContext.Database
             .SqlQuery<MasteryItemDTO>(
                 @$"SELECT coalesce(p.username, {player.username}) as username, pim.xp_gained as xpGained, item.xp_required as xpRequired, item.name as itemName, item.type as itemType, item.item_class as itemClass
-                FROM player p
-                JOIN player_items_mastery pim ON p.id = pim.player_id
-                RIGHT JOIN item USING (unique_name)
-                WHERE p.id = {player.id} OR p.id IS NULL
-                AND item.xp_required IS NOT NULL");
+                from (
+                    select * from item
+                    where xp_required is not null
+                ) left join (
+                    select * from player_items_mastery
+                    where player_items_mastery.player_id = {player.id}
+                ) using (unique_name);");
 
         return await result.ToListAsync();
 
