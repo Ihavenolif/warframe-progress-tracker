@@ -5,6 +5,8 @@ using rest_api.Models;
 using DotNetEnv;
 using Npgsql;
 using rest_api.Services;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace rest_api.Data;
 
@@ -189,10 +191,46 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.Property(e => e.password_hash).HasMaxLength(256);
             entity.Property(e => e.username).HasMaxLength(256);
 
+            entity.HasMany(e => e.RefreshTokens)
+                .WithOne(e => e.User)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("refresh_token_user_id_fkey");
+
             entity.HasOne(d => d.player).WithMany(p => p.registered_users)
                 .HasForeignKey(d => d.player_id)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("registered_user_player_id_fkey");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Token).HasName("refresh_token_pkey");
+
+            entity.ToTable("refresh_token");
+
+            entity.Property(e => e.Token)
+                .HasMaxLength(256)
+                .HasColumnName("token");
+
+            entity.Property(e => e.Expires).HasColumnName("expires");
+            entity.Property(e => e.Issued)
+                .HasColumnName("issued")
+                .HasDefaultValue(DateTime.Now);
+
+            entity.Property(e => e.Revoked)
+                .HasColumnName("revoked")
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.IssuedByIp)
+                .HasMaxLength(45)
+                .HasColumnName("issued_by_ip");
+
+            entity.HasOne(e => e.User)
+                .WithMany(e => e.RefreshTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("refresh_token_user_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -64,6 +64,15 @@ CREATE TABLE registered_user (
     password_hash VARCHAR(256) NOT NULL
 );
 
+CREATE TABLE refresh_token (
+    token VARCHAR(256) PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES registered_user(id) ON DELETE CASCADE,
+    issued TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires TIMESTAMP NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    issued_by_ip VARCHAR(45) NOT NULL
+);
+
 CREATE TABLE player_clan (
     clan_id INTEGER REFERENCES clan(id) ON DELETE CASCADE,
     player_id INTEGER REFERENCES player(id) ON DELETE CASCADE,

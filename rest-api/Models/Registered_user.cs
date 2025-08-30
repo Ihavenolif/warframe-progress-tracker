@@ -25,4 +25,7 @@ public partial class Registered_user
 
     [JsonIgnore]
     public virtual Player? player { get; set; }
+
+    [JsonIgnore]
+    public virtual ICollection<RefreshToken> RefreshTokens { get; } = new List<RefreshToken>();
 }
