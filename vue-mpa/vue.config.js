@@ -17,6 +17,11 @@ module.exports = defineConfig({
             template: 'public/index.html',
             filename: 'login.html'
         },
+        "register": {
+            entry: 'src/pages/register.js',
+            template: 'public/index.html',
+            filename: 'register.html'
+        },
         progressIndex: {
             entry: 'src/pages/progress/index.js',
             template: 'public/progress/index.html',

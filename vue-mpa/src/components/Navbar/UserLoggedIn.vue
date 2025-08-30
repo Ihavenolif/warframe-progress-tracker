@@ -1,6 +1,6 @@
 <template>
     <div class="dropdown right-aligned">
-        <button class="dropbtn">{{username}}
+        <button class="dropbtn">{{ username }}
             <i class="fa fa-caret-down"></i>
         </button>
 
@@ -15,7 +15,7 @@
     <!--{% if page == "progress/progress.html" or page == "progress/import.html" %}-->
 
     <div class="right-aligned">
-        <a class='{% if page == "progress/import.html" %}active{% endif %}' href="/progress/update">Import</a>
+        <a class='{% if page == "progress/import.html" %}active{% endif %}' href="/progress/import">Import</a>
     </div>
 
     <!--{% endif %}    -->
@@ -23,7 +23,7 @@
 
 <script>
 
-export default{
+export default {
     computed: {
         username() {
             return this.$store.state.username;
