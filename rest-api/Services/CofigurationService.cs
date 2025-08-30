@@ -8,7 +8,10 @@ public class ConfigurationService
     public ConfigurationService()
     {
         Env.Load("../.env");
+        CorsPolicy = Environment.GetEnvironmentVariable("CORS_POLICY") ?? "AllowAll";
     }
+
+    public readonly string CorsPolicy;
 
     public string GetConnectionString()
     {

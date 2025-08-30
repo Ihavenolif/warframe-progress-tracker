@@ -9,7 +9,7 @@ using rest_api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var jwtSettings = new ConfigurationService();
+var config = new ConfigurationService();
 
 builder.Services.AddSingleton<ConfigurationService>();
 
@@ -61,6 +61,13 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+    options.AddPolicy("DevPolicy", policy =>
+    {
+        policy.WithOrigins("http://www.localhost.me:8080")
+              .AllowCredentials()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 builder.Services.AddAuthentication(options =>
@@ -75,7 +82,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(jwtSettings.GetJwtKey())
+        IssuerSigningKey = new SymmetricSecurityKey(config.GetJwtKey())
     };
 });
 
@@ -110,7 +117,7 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
-app.UseCors("AllowAll");
+app.UseCors(config.CorsPolicy);
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
