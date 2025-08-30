@@ -68,6 +68,8 @@ public class AuthController : ControllerBase
     {
         string username = User.Identity?.Name!;
 
-        return Ok(new UserInfoDTO((await userService.GetUserByUsernameAsync(username))!));
+        Registered_user user = (await userService.GetUserByUsernameAsync(username))!;
+
+        return Ok(new UserInfoDTO(user));
     }
 }

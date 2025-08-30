@@ -213,10 +213,13 @@ public partial class WarframeTrackerDbContext : DbContext
                 .HasMaxLength(256)
                 .HasColumnName("token");
 
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id");
+
             entity.Property(e => e.Expires).HasColumnName("expires");
             entity.Property(e => e.Issued)
                 .HasColumnName("issued")
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValue(DateTime.UtcNow);
 
             entity.Property(e => e.Revoked)
                 .HasColumnName("revoked")
