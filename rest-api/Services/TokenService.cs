@@ -79,7 +79,7 @@ class TokenService : ITokenService
                 // IF there is another error than duplicating tokens, throw
                 if (!ex.InnerException!.Message.Contains("23505"))
                 {
-                    throw ex;
+                    throw;
                 }
             }
         }

@@ -7,7 +7,6 @@ using rest_api.Data;
 using rest_api.DTO;
 using rest_api.Models;
 using System.Text.Json.Nodes;
-using EFCore.BulkExtensions;
 
 
 namespace rest_api.Services;
@@ -29,10 +28,12 @@ public interface IMasteryService
 public class MasteryService : IMasteryService
 {
     private readonly WarframeTrackerDbContext _dbContext;
+    private readonly IItemService _itemService;
 
-    public MasteryService(WarframeTrackerDbContext dbContext)
+    public MasteryService(WarframeTrackerDbContext dbContext, IItemService itemService)
     {
         _dbContext = dbContext;
+        _itemService = itemService;
     }
 
     private JsonNode validateMasteryItem(JsonNode item)
@@ -74,8 +75,8 @@ public class MasteryService : IMasteryService
     {
         JsonNode root = JsonNode.Parse(jsonData) ?? throw new ArgumentException("Invalid JSON data");
 
-        List<string> allRecipes = await _dbContext.recipes.Select(r => r.unique_name).ToListAsync();
-        List<string> allItems = await _dbContext.items.Select(i => i.unique_name).ToListAsync();
+        IEnumerable<string> allRecipes = await _itemService.GetRecipeUniqueNamesAsync();
+        IEnumerable<string> allItems = await _itemService.GetItemUniqueNamesAsync();
 
         JsonArray xpInfo = (root["XPInfo"] ?? throw new ArgumentException("Invalid JSON data: Missing XPInfo")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid XPInfo");
         JsonArray recipes = (root["Recipes"] ?? throw new ArgumentException("Invalid JSON data: Missing Recipes")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes");
