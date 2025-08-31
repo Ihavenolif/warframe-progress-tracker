@@ -54,7 +54,10 @@ export default {
     methods: {
         async getMasteryItems() {
             const playerName = await getPlayerName();
-            console.log(playerName);
+
+            if (!playerName) {
+                window.location.href = "/settings";
+            }
 
             const res = await authFetch(`/api/mastery/${playerName}`, {
                 method: "GET"
