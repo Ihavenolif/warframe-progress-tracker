@@ -2,9 +2,18 @@
     <table>
         <thead>
             <tr>
-                <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i v-if="this.sorting.key === 'itemName'"><span :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i></th>
-                <th id="classHead"  v-on:click="sortTable('itemClass')">Item Class <i v-if="this.sorting.key === 'itemClass'"><span :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i></th>
-                <th id="masteredHead"  v-on:click="sortTable('mastery')">Mastered <i v-if="this.sorting.key === 'mastery'"><span :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i></th>
+                <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i
+                        v-if="this.sorting.key === 'itemName'"><span
+                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                </th>
+                <th id="classHead" v-on:click="sortTable('itemClass')">Item Class <i
+                        v-if="this.sorting.key === 'itemClass'"><span
+                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                </th>
+                <th id="masteredHead" v-on:click="sortTable('mastery')">Mastered <i
+                        v-if="this.sorting.key === 'mastery'"><span
+                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                </th>
             </tr>
         </thead>
 
@@ -12,7 +21,8 @@
             <tr v-for="(item, index) in itemList" :key="index">
                 <td>{{ item["itemName"] }}</td>
                 <td>{{ item["itemClass"] }}</td>
-                <ProgressTableCell v-bind:xp-gained="item['xpGained']" v-bind:xp-required="item['xpRequired']"></ProgressTableCell>
+                <ProgressTableCell v-bind:xp-gained="item['xpGained']" v-bind:xp-required="item['xpRequired']">
+                </ProgressTableCell>
             </tr>
         </tbody>
     </table>
@@ -20,15 +30,15 @@
 
 <script>
 import ProgressTableCell from './ProgressTableCell.vue';
-import {BASE_URL, getPlayerName} from '@/util/util';
+import { authFetch, getPlayerName } from '@/util/util';
 
-export default{
+export default {
     name: "ProgressTable",
     computed: {
         username() {
             return this.$store.state.username;
         },
-        token(){
+        token() {
             return this.$store.state.token;
         }
     },
@@ -36,26 +46,21 @@ export default{
         ProgressTableCell
     },
     data() {
-        return{
-            itemList:[],
-            sorting: {key: "", asc: true}
+        return {
+            itemList: [],
+            sorting: { key: "", asc: true }
         }
     },
-    methods:{
-        async getMasteryItems(){
-            if(!this.username) window.location.href = "login";
-
+    methods: {
+        async getMasteryItems() {
             const playerName = await getPlayerName();
             console.log(playerName);
 
-            const res = await fetch(`${BASE_URL}/api/mastery/${playerName}`,{
-                headers:{
-                    'Authorization': `Bearer ${this.token}`
-                },
+            const res = await authFetch(`/api/mastery/${playerName}`, {
                 method: "GET"
             })
 
-            if(!res.ok) {
+            if (!res.ok) {
                 console.log(await res.text());
                 return;
             }
@@ -63,31 +68,31 @@ export default{
             const data = await res.json()
             this.itemList = data;
         },
-        sortTable(sortKey){
-            if(this.sorting.key == sortKey) this.sorting.asc = !this.sorting.asc;
+        sortTable(sortKey) {
+            if (this.sorting.key == sortKey) this.sorting.asc = !this.sorting.asc;
             else {
                 this.sorting.key = sortKey;
                 this.sorting.asc = true;
             }
 
-            if(this.sorting.key == "mastery"){
-                this.itemList.sort((a,b) => {
+            if (this.sorting.key == "mastery") {
+                this.itemList.sort((a, b) => {
                     if (a["xpGained"] >= a["xpRequired"] && b["xpGained"] >= b["xpRequired"]) return 0;
 
                     const masteredRateA = a["xpGained"] / a["xpRequired"]
                     const masteredRateB = b["xpGained"] / b["xpRequired"]
-                    return (masteredRateB < masteredRateA ? -1:1) * (this.sorting.asc ? 1:-1);
+                    return (masteredRateB < masteredRateA ? -1 : 1) * (this.sorting.asc ? 1 : -1);
                 })
             }
-            else{
-                this.itemList.sort((a,b) => {
-                    return (a[this.sorting.key] < b[this.sorting.key] ? -1:1) * (this.sorting.asc ? 1:-1);
+            else {
+                this.itemList.sort((a, b) => {
+                    return (a[this.sorting.key] < b[this.sorting.key] ? -1 : 1) * (this.sorting.asc ? 1 : -1);
                 })
             }
-            
+
         }
     },
-    async mounted(){
+    async mounted() {
         await this.getMasteryItems();
         this.sortTable("itemName");
         this.sortTable("itemClass");

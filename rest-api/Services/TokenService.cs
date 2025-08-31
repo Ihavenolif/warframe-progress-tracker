@@ -12,7 +12,9 @@ namespace rest_api.Services;
 public interface ITokenService
 {
     public JwtSecurityToken GenerateAccessToken(string username);
-    public Task<RefreshToken> GenerateRefreshToken(Registered_user user, string ip);
+    public Task<RefreshToken> GenerateRefreshToken(Registered_user user, string? ip);
+    public Task<RefreshToken?> GetRefreshTokenAsync(string token);
+    public Task InvalidateRefreshTokenAsync(RefreshToken token);
 }
 
 class TokenService : ITokenService
@@ -83,5 +85,21 @@ class TokenService : ITokenService
                 }
             }
         }
+    }
+
+    public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
+    {
+        var refreshToken = await _dbContext.refresh_tokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == token && !rt.Revoked);
+
+        return refreshToken;
+    }
+
+    public Task InvalidateRefreshTokenAsync(RefreshToken token)
+    {
+        token.Revoked = true;
+        _dbContext.Update(token);
+        return _dbContext.SaveChangesAsync();
     }
 }

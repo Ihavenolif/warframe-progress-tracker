@@ -45,7 +45,7 @@ export default {
             if (response.ok) {
                 const data = await response.json();
                 this.$store.commit('setCredentials', { username: this.form.username, token: data.token });
-                //window.location.href = "/";
+                window.location.href = "/";
             } else {
                 this.errorMessage = await response.text();
             }

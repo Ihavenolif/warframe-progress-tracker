@@ -38,6 +38,8 @@ public partial class WarframeTrackerDbContext : DbContext
 
     public virtual DbSet<Registered_user> registered_users { get; set; }
 
+    public virtual DbSet<RefreshToken> refresh_tokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Clan>(entity =>
@@ -216,10 +218,13 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.Property(e => e.UserId)
                 .HasColumnName("user_id");
 
-            entity.Property(e => e.Expires).HasColumnName("expires");
+            entity.Property(e => e.Expires)
+                .HasColumnName("expires")
+                .HasColumnType("timestamp without time zone");
             entity.Property(e => e.Issued)
                 .HasColumnName("issued")
-                .HasDefaultValue(DateTime.UtcNow);
+                .HasDefaultValue(DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified))
+                .HasColumnType("timestamp without time zone");
 
             entity.Property(e => e.Revoked)
                 .HasColumnName("revoked")

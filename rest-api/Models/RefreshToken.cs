@@ -13,9 +13,9 @@ public partial class RefreshToken
 
     public string Token { get; set; } = null!;
 
-    public DateTime Issued { get; set; } = DateTime.UtcNow;
+    public DateTime Issued { get; set; } = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
-    public DateTime Expires { get; set; } = DateTime.UtcNow.AddDays(7);
+    public DateTime Expires { get; set; } = DateTime.SpecifyKind(DateTime.Now.AddDays(7), DateTimeKind.Unspecified);
 
     public bool Revoked { get; set; } = false;
 

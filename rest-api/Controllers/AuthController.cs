@@ -86,6 +86,49 @@ public class AuthController : ControllerBase
         throw new NotImplementedException();
     }
 
+    [HttpPost("refresh")]
+    [SwaggerOperation(Summary = "Refreshes the access token", Description = "Generates a new access token using a valid refresh token. Refresh token is sent as an HttpOnly cookie.")]
+    [SwaggerResponse(200, "Token refreshed successfully", typeof(TokenResponseDTO))]
+    [SwaggerResponse(401, "Invalid or expired refresh token", typeof(string))]
+    [AllowAnonymous]
+    public async Task<IActionResult> refresh()
+    {
+        string? refreshTokenRaw = Request.Cookies["refreshToken"];
+        if (refreshTokenRaw == null)
+        {
+            return Unauthorized("No refresh token provided");
+        }
+
+        var refreshToken = await _tokenService.GetRefreshTokenAsync(refreshTokenRaw);
+        if (refreshToken == null || refreshToken.IsExpired || refreshToken.Revoked)
+        {
+            return Unauthorized("Invalid refresh token");
+        }
+
+        if (refreshToken.IssuedByIp != Request.HttpContext.Connection.RemoteIpAddress?.ToString())
+        {
+            await _tokenService.InvalidateRefreshTokenAsync(refreshToken);
+            return Unauthorized("Invalid refresh token");
+        }
+
+        var accessToken = _tokenService.GenerateAccessToken(refreshToken.User!.username);
+        var newRefreshToken = await _tokenService.GenerateRefreshToken(refreshToken.User, Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? null);
+        await _tokenService.InvalidateRefreshTokenAsync(refreshToken);
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _config.SecureCookies,
+            SameSite = SameSiteMode.None,
+            Domain = ".localhost.me",
+            MaxAge = TimeSpan.FromDays(7)
+        };
+
+        Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
+
+        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(accessToken) });
+    }
+
     [HttpPost("me")]
     [Authorize]
     [SwaggerOperation(Summary = "Gets the current user's information", Description = "Returns the information of the currently authenticated user.")]
