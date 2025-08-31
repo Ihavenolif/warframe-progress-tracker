@@ -9,9 +9,11 @@ public class ConfigurationService
     {
         Env.Load("../.env");
         CorsPolicy = Environment.GetEnvironmentVariable("CORS_POLICY") ?? "AllowAll";
+        SecureCookies = Environment.GetEnvironmentVariable("SECURE_COOKIES") == "true";
     }
 
     public readonly string CorsPolicy;
+    public readonly bool SecureCookies;
 
     public string GetConnectionString()
     {

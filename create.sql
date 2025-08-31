@@ -70,7 +70,7 @@ CREATE TABLE refresh_token (
     issued TIMESTAMP NOT NULL DEFAULT NOW(),
     expires TIMESTAMP NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
-    issued_by_ip VARCHAR(45) NOT NULL
+    issued_by_ip VARCHAR(45)
 );
 
 CREATE TABLE player_clan (

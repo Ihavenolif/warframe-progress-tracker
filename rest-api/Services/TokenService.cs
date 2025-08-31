@@ -61,7 +61,7 @@ class TokenService : ITokenService
         return stringBuilder.ToString();
     }
 
-    public async Task<RefreshToken> GenerateRefreshToken(Registered_user user, string ip)
+    public async Task<RefreshToken> GenerateRefreshToken(Registered_user user, string? ip)
     {
         while (true)
         {

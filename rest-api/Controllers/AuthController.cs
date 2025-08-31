@@ -45,10 +45,23 @@ public class AuthController : ControllerBase
             return Unauthorized("Username and password combination not found.");
         }
 
-        var token = _tokenService.GenerateAccessToken(username);
+        Registered_user user = (await userService.GetUserByUsernameAsync(username))!;
 
-        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+        var accessToken = _tokenService.GenerateAccessToken(username);
+        var refreshToken = await _tokenService.GenerateRefreshToken(user, Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
 
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _config.SecureCookies,
+            SameSite = SameSiteMode.None,
+            Domain = ".localhost.me",
+            MaxAge = TimeSpan.FromDays(7)
+        };
+
+        Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
+
+        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(accessToken) });
     }
 
     [HttpPost("register")]

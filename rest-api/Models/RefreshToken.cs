@@ -3,7 +3,7 @@ namespace rest_api.Models;
 public partial class RefreshToken
 {
     public RefreshToken() { }
-    public RefreshToken(string token, Registered_user user, string ip)
+    public RefreshToken(string token, Registered_user user, string? ip)
     {
         this.Token = token;
         this.User = user;
@@ -19,7 +19,7 @@ public partial class RefreshToken
 
     public bool Revoked { get; set; } = false;
 
-    public string IssuedByIp { get; set; } = null!;
+    public string? IssuedByIp { get; set; } = null;
 
     public bool IsExpired => DateTime.UtcNow >= Expires;
 

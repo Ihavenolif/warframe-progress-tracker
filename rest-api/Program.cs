@@ -64,7 +64,7 @@ builder.Services.AddCors(options =>
     });
     options.AddPolicy("DevPolicy", policy =>
     {
-        policy.WithOrigins("http://www.localhost.me:8080")
+        policy.WithOrigins("https://www.localhost.me:8080")
               .AllowCredentials()
               .AllowAnyMethod()
               .AllowAnyHeader();
@@ -85,6 +85,14 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(config.GetJwtKey())
     };
+});
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenLocalhost(5224, listenOptions =>
+    {
+        listenOptions.UseHttps("../https-setup/localhost-me.pfx", "");
+    });
 });
 
 var app = builder.Build();

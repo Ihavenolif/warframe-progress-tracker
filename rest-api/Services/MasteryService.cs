@@ -59,7 +59,7 @@ public class MasteryService : IMasteryService
         // THIS IS ASS!!! USERNAME SHOULD BE SANITIZED - SQL INJECTION POSSIBLE!!!!!!! - maybe? does efcore sanitize? idk
         var result = _dbContext.Database
             .SqlQuery<MasteryItemDTO>(
-                @$"SELECT coalesce(p.username, {player.username}) as username, pim.xp_gained as xpGained, item.xp_required as xpRequired, item.name as itemName, item.type as itemType, item.item_class as itemClass
+                @$"SELECT {player.username} as username, xp_gained as xpGained, xp_required as xpRequired, name as itemName, type as itemType, item_class as itemClass
                 from (
                     select * from item
                     where xp_required is not null

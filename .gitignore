@@ -12,3 +12,4 @@ app.spec
 obj
 bin
 .env
+https-setup/localhost-me.*

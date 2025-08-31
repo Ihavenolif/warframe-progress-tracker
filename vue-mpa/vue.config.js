@@ -35,6 +35,23 @@ module.exports = defineConfig({
     },
     devServer: {
         host: 'www.localhost.me',
+        port: 8080,
+        https: {
+            key: "../https-setup/localhost-me.key",
+            cert: "../https-setup/localhost-me.crt",
+        },
+        headers: {
+            'Access-Control-Allow-Origin': 'https://www.localhost.me:8080',
+            'Access-Control-Allow-Credentials': 'true'
+        },
+        proxy: {
+            '/api': {
+                target: 'https://api.localhost.me:5224',
+                changeOrigin: true,
+                secure: false,  // allow self-signed cert in dev
+                cookieDomainRewrite: 'www.localhost.me', // optional
+            },
+        },
         historyApiFallback: {
             rewrites: [
                 {

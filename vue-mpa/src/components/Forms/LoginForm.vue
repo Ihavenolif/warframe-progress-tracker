@@ -2,9 +2,11 @@
     <div style="width: 50%; margin-top: 10%; margin-left: 25%; margin-right: 25%;">
         <form @submit.prevent="submitForm">
             <label class="form-label" for="username">Username</label>
-            <input class="form-control" id="username" name="username" required="" type="text" value="" v-model="form.username">
+            <input class="form-control" id="username" name="username" required="" type="text" value=""
+                v-model="form.username">
             <label class="form-label" for="password">Password</label>
-            <input class="form-control" id="password" name="password" required="" type="password" value="" v-model="form.password">
+            <input class="form-control" id="password" name="password" required="" type="password" value=""
+                v-model="form.password">
 
             <p style="color: red">{{ errorMessage }}</p>
 
@@ -14,14 +16,14 @@
 </template>
 
 <script>
-import {BASE_URL} from "@/util/util.js"
+import { BASE_URL } from "@/util/util.js"
 
-export default{
-    data(){
-        return{
-            form:{
-                username:'',
-                password:''
+export default {
+    data() {
+        return {
+            form: {
+                username: '',
+                password: ''
             },
             errorMessage: "1234"
         };
@@ -37,13 +39,13 @@ export default{
             console.log(url);
 
             const response = await fetch(url, {
-                method: 'POST'                
+                method: 'POST'
             });
 
-            if(response.ok){
+            if (response.ok) {
                 const data = await response.json();
                 this.$store.commit('setCredentials', { username: this.form.username, token: data.token });
-                window.location.href = "/";
+                //window.location.href = "/";
             } else {
                 this.errorMessage = await response.text();
             }
