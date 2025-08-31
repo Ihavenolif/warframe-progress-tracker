@@ -91,7 +91,7 @@ public class AuthController : ControllerBase
     [SwaggerResponse(200, "Token refreshed successfully", typeof(TokenResponseDTO))]
     [SwaggerResponse(401, "Invalid or expired refresh token", typeof(string))]
     [AllowAnonymous]
-    public async Task<IActionResult> refresh()
+    public async Task<IActionResult> Refresh()
     {
         string? refreshTokenRaw = Request.Cookies["refreshToken"];
         if (refreshTokenRaw == null)
@@ -142,5 +142,36 @@ public class AuthController : ControllerBase
         Registered_user user = (await userService.GetUserByUsernameAsync(username))!;
 
         return Ok(new UserInfoDTO(user));
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    [SwaggerOperation(Summary = "Logs out the current user", Description = "Invalidates the current refresh token and removes it from the client.")]
+    [SwaggerResponse(200, "Logged out successfully", typeof(string))]
+    [SwaggerResponse(401, "Unauthorized")]
+    public async Task<IActionResult> Logout()
+    {
+        string? refreshTokenRaw = Request.Cookies["refreshToken"];
+        if (refreshTokenRaw != null)
+        {
+            var refreshToken = await _tokenService.GetRefreshTokenAsync(refreshTokenRaw);
+            if (refreshToken != null)
+            {
+                await _tokenService.InvalidateRefreshTokenAsync(refreshToken);
+            }
+        }
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _config.SecureCookies,
+            SameSite = SameSiteMode.None,
+            Domain = ".localhost.me",
+            Expires = DateTime.UtcNow.AddDays(-1) // Expire the cookie
+        };
+
+        Response.Cookies.Append("refreshToken", "", cookieOptions);
+
+        return Ok("Logged out successfully");
     }
 }

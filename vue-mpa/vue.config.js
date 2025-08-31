@@ -34,6 +34,11 @@ module.exports = defineConfig({
             entry: 'src/pages/progress/import.js',
             template: 'public/progress/import.html',
             filename: 'progress/import.html'
+        },
+        "logout": {
+            entry: 'src/pages/logout.js',
+            template: 'public/index.html',
+            filename: 'logout.html'
         }
     },
     devServer: {
