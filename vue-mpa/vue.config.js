@@ -39,6 +39,11 @@ module.exports = defineConfig({
             entry: 'src/pages/logout.js',
             template: 'public/index.html',
             filename: 'logout.html'
+        },
+        "userSettings": {
+            entry: 'src/pages/userSettings.js',
+            template: 'public/userSettings.html',
+            filename: 'settings.html'
         }
     },
     devServer: {

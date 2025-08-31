@@ -13,6 +13,7 @@ public interface IUserService
     public Task CreateUserAsync(string username, string password);
     public Task<bool> VerifyUser(string username, string password);
     public Task AddPlayerToUser(Registered_user user, string username);
+    public Task RemovePlayerFromUser(Registered_user user);
 }
 
 public class UserService : IUserService
@@ -44,6 +45,14 @@ public class UserService : IUserService
         return await _dbContext.registered_users
             .Include(u => u.player)
             .FirstOrDefaultAsync(u => u.username == username);
+    }
+
+    public async Task RemovePlayerFromUser(Registered_user user)
+    {
+        Player player = user.player!;
+        user.player = null;
+        _dbContext.players.Remove(player);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task<bool> VerifyUser(string username, string password)

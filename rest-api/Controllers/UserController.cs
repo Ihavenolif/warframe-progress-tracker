@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using rest_api.DTOs;
 using rest_api.Models;
 using rest_api.Services;
 
@@ -17,14 +18,26 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("addPlayer")]
-    public async Task<IActionResult> AddPlayerToUser([FromQuery] string playerName)
+    public async Task<IActionResult> AddPlayerToUser([FromBody] AddPlayerDTO dto)
     {
         Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
         if (user == null) return Unauthorized();
         if (user.player != null) return Conflict("You already have a player linked.");
 
-        await this.userService.AddPlayerToUser(user, playerName);
+        await this.userService.AddPlayerToUser(user, dto.PlayerName);
 
         return Created();
+    }
+
+    [HttpPost("removePlayer")]
+    public async Task<IActionResult> RemovePlayerFromUser()
+    {
+        Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+        if (user.player == null) return Conflict("You don't have a player linked.");
+
+        await this.userService.RemovePlayerFromUser(user);
+
+        return Ok();
     }
 }
