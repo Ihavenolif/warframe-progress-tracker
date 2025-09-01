@@ -17,7 +17,7 @@ with missing_items as (
     left join player_items_filtered 
     on recipe_items.recipe_item_unique_name = player_items_filtered.unique_name
 ), player_recipes_with_ingredients as (
-    select player_recipe_items.*, json_agg(
+    select player_recipe_items.unique_name, json_agg(
         json_build_object(
             'name', item_component.name,
             'uniqueName', item_component.unique_name,
@@ -32,7 +32,7 @@ with missing_items as (
     left join player_items_filtered owned_ingredient on item_component.unique_name = owned_ingredient.unique_name
     left join recipe recipe_for_ingredient on item_component.unique_name = recipe_for_ingredient.result_item
     left join player_items_filtered owned_recipe_for_ingredient on owned_recipe_for_ingredient.unique_name = recipe_for_ingredient.unique_name
-    group by player_recipe_items.name, player_recipe_items.unique_name, player_recipe_items.type, player_recipe_items.item_class, player_recipe_items.xp_required, player_recipe_items.recipe_name, player_recipe_items.recipe_item_unique_name, player_recipe_items.recipe_owned_count
+    group by player_recipe_items.unique_name
 
 )
 select * from player_recipes_with_ingredients;

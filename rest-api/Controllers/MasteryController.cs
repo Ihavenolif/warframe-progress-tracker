@@ -38,7 +38,7 @@ public class MasteryController : ControllerBase
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<IEnumerable<MasteryItemDTO>>> GetMasteryInfo()
+    public async Task<ActionResult<IEnumerable<MasteryItemWithComponentsDTO>>> GetMasteryInfo()
     {
         Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
         if (user == null) return Unauthorized();
@@ -46,8 +46,9 @@ public class MasteryController : ControllerBase
         Player? player = user.player;
         if (player == null) return NotFound("Player not found");
 
-        var masteryData = await masteryService.GetMasteryInfoByPlayerAsync(player);
-        return Ok(masteryData);
+        // var masteryData = await masteryService.GetMasteryInfoByPlayerAsync(player);
+        var test = await masteryService.GetMasteryInfoWithComponentsByPlayerAsync(player);
+        return Ok(test);
     }
 
     [HttpPost("update")]

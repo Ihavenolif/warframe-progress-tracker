@@ -248,11 +248,7 @@ public partial class WarframeTrackerDbContext : DbContext
     {
         if (optionsBuilder.IsConfigured) return;
 
-        var connectionString = _config.GetConnectionString();
-        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-        dataSourceBuilder.EnableDynamicJson();
-        var dataSource = dataSourceBuilder.Build();
-        optionsBuilder.UseNpgsql(dataSource);
+        optionsBuilder.UseNpgsql(_config.DataSource);
 
     }
 

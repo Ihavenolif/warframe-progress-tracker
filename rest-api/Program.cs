@@ -131,6 +131,8 @@ app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
 
+AppContext.SetSwitch("Npgsql.EnableSqlLogging", true);
+
 
 app.Run();
 
