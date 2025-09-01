@@ -30,7 +30,7 @@
 
 <script>
 import ProgressTableCell from './ProgressTableCell.vue';
-import { authFetch, getPlayerName } from '@/util/util';
+import { authFetch } from '@/util/util';
 
 export default {
     name: "ProgressTable",
@@ -53,15 +53,13 @@ export default {
     },
     methods: {
         async getMasteryItems() {
-            const playerName = await getPlayerName();
-
-            if (!playerName) {
-                window.location.href = "/settings";
-            }
-
-            const res = await authFetch(`/api/mastery/${playerName}`, {
+            const res = await authFetch(`/api/mastery/me`, {
                 method: "GET"
             })
+
+            if (res.status == 404) {
+                window.location.href = "/settings";
+            }
 
             if (!res.ok) {
                 console.log(await res.text());
