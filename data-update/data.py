@@ -57,12 +57,25 @@ def get_index() -> dict[str, str]:
 
     lines = decompressed.split("\r\n")
     for line in lines:
+        if "Manifest" in line:
+            key = line.split(".")[0][6::]
+            ret[key] = line
+            continue
+
         # this is some python magic right fucking there
         line.replace("\r", "")
         key = line.split("_")[0][6::]
         ret[key] = line
 
     return ret
+
+
+def get_images(index: dict[str, str]):
+    req = requests.get(
+        f"http://content.warframe.com/PublicExport/Manifest/{index['Manifest']}")
+    parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
+
+    return parsed
 
 
 def get_warframes(index: dict[str, str], warframes: list) -> None:
@@ -342,8 +355,10 @@ def get_recipes(index: dict[str, str], gear_item_names: list[str]) -> list:
     # We also need recipes for all of the weapon components
 
     gear_recipe_ingredients = list(map(lambda x: x["ingredients"], recipes))
-    gear_recipe_ingredients = list(item for sublist in gear_recipe_ingredients for item in sublist)
-    gear_recipe_ingredients = list(set(map(lambda x: x["ItemType"], gear_recipe_ingredients)))
+    gear_recipe_ingredients = list(
+        item for sublist in gear_recipe_ingredients for item in sublist)
+    gear_recipe_ingredients = list(
+        set(map(lambda x: x["ItemType"], gear_recipe_ingredients)))
 
     for recipe in parsed["ExportRecipes"]:
         if not str(recipe["resultType"]) in gear_recipe_ingredients:
