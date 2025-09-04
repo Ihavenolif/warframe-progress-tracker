@@ -2,6 +2,7 @@
     <table>
         <thead>
             <tr>
+                <th></th>
                 <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i
                         v-if="this.sorting.key === 'itemName'"><span
                             :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
@@ -19,17 +20,20 @@
 
         <tbody id="tableBody">
             <tr v-for="(item, index) in itemList" :key="index">
-                <td>{{ item["itemName"] }}</td>
+                <!--<td>
+                    <LazyImg v-bind:item-unique-name="item['uniqueName']"></LazyImg> {{ item["itemName"] }}
+                </td>
                 <td>{{ item["itemClass"] }}</td>
                 <ProgressTableCell v-bind:xp-gained="item['xpGained']" v-bind:xp-required="item['xpRequired']">
-                </ProgressTableCell>
+                </ProgressTableCell>-->
+                <ProgressTableItem v-bind:item="item" ref="progressTableItem"></ProgressTableItem>
             </tr>
         </tbody>
     </table>
 </template>
 
 <script>
-import ProgressTableCell from './ProgressTableCell.vue';
+import ProgressTableItem from './ProgressTableItem.vue';
 import { authFetch } from '@/util/util';
 
 export default {
@@ -43,7 +47,7 @@ export default {
         }
     },
     components: {
-        ProgressTableCell
+        ProgressTableItem
     },
     data() {
         return {
@@ -91,6 +95,11 @@ export default {
                 })
             }
 
+        },
+        fetchAllImages() {
+            this.$refs.progressTableItem.forEach((child) => {
+                child.fetchImage();
+            });
         }
     },
     async mounted() {
@@ -98,6 +107,7 @@ export default {
         this.sortTable("itemName");
         this.sortTable("itemClass");
         this.sortTable("mastery");
+        this.fetchAllImages();
     }
 }
 </script>
