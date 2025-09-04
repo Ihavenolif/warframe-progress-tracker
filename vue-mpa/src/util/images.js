@@ -33,10 +33,10 @@ async function updateImageDb() {
 }
 
 export async function getImage(uniqueName) {
-    const image = "https://content.warframe.com/PublicExport/" + await localforage.getItem(uniqueName);
+    const image = await localforage.getItem(uniqueName);
     if (image) {
-        return image;
+        return encodeURI("https://www.localhost.me:18443/images/http://content.warframe.com/PublicExport" + image + "@png");
     }
     await updateImageDb();
-    return "https://content.warframe.com/PublicExport/" + await localforage.getItem(uniqueName);
+    return encodeURI("https://www.localhost.me:18443/images/http://content.warframe.com/PublicExport" + await localforage.getItem(uniqueName) + "@png");
 }

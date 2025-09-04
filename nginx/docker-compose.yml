@@ -1,0 +1,21 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "18080:80"
+      - "18443:443"
+    
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf.d:/etc/nginx/conf.d
+      - ./certs:/etc/nginx/certs
+      - ./cache:/var/cache/nginx
+    networks:
+      - app-network
+
+
+networks:
+  app-network:
+    external: true
