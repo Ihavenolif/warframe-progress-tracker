@@ -46,9 +46,8 @@ public class MasteryController : ControllerBase
         Player? player = user.player;
         if (player == null) return NotFound("Player not found");
 
-        // var masteryData = await masteryService.GetMasteryInfoByPlayerAsync(player);
-        var test = await masteryService.GetMasteryInfoWithComponentsByPlayerAsync(player);
-        return Ok(test);
+        var masteryData = await masteryService.GetMasteryInfoWithComponentsByPlayerAsync(player);
+        return Ok(masteryData);
     }
 
     [HttpPost("update")]
