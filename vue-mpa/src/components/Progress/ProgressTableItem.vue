@@ -3,8 +3,9 @@
     <td>
         <span class="row-text">{{ item["itemName"] }}</span>
     </td>
-    <td><span class="row-text">{{ item["itemClass"] }}</span></td>
-    <ProgressTableCell v-bind:xp-gained="item['xpGained']" v-bind:xp-required="item['xpRequired']">
+    <td><span class="row-text">{{ item["itemClass"] }}</span>
+    </td>
+    <ProgressTableCell ref="progressTableCell" v-bind:item="item">
     </ProgressTableCell>
 </template>
 
@@ -33,6 +34,12 @@ export default {
             let imageSrc = await getImage(uniqueName);
             this.imgSrc = imageSrc;
             console.log(uniqueName, imageSrc)
+        },
+        async init() {
+            await this.fetchImage();
+            if (this.$refs.progressTableCell) {
+                await this.$refs.progressTableCell.init();
+            }
         }
     },
     /*mounted() {
@@ -41,7 +48,7 @@ export default {
     watch: {
         item: {
             handler: function () {
-                this.fetchImage();
+                this.init();
             },
             deep: true
         }

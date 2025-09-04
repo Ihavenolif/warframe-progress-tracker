@@ -94,11 +94,11 @@ export default {
                     return (a[this.sorting.key] < b[this.sorting.key] ? -1 : 1) * (this.sorting.asc ? 1 : -1);
                 })
             }
-
         },
         fetchAllImages() {
+            console.log(this.$refs.progressTableItem.length);
             this.$refs.progressTableItem.forEach((child) => {
-                child.fetchImage();
+                child.init();
             });
         }
     },
