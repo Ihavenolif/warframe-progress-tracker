@@ -194,7 +194,7 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
     width: 100%;
-    border: 1px solid #ddd;
+    border: 1px solid #777;
 }
 
 th,
@@ -214,7 +214,7 @@ tr:nth-child(even) {
 }
 
 tr {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #777777ff;
 }
 
 tr:hover {
