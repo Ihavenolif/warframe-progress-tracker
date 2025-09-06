@@ -1,4 +1,31 @@
 <template>
+    <CollapsibleContainer title="Filters">
+
+        <div style="display: flex;">
+            <div style="flex: 2; padding: 10px;">
+                <CollapsibleContainer title="Item Classes">
+                    <div class="checkbox-grid">
+                        <label v-for="itemClass in allItemClasses" :key="itemClass"
+                            :class="['checkbox-item', selectedItemClasses.includes(itemClass) ? 'checked' : '']">
+                            <input type="checkbox" :value="itemClass" v-model="selectedItemClasses"
+                                style="display: none;" />
+                            <span>{{ itemClass }}</span>
+                        </label>
+                    </div>
+                </CollapsibleContainer>
+            </div>
+
+            <div style="flex: 1; padding: 10px;">
+                <input id="itemNameFilter" type="text" v-model="itemNameFilter" v-on:input="fetchAndFilterItems"
+                    placeholder="Search">
+            </div>
+        </div>
+
+
+    </CollapsibleContainer>
+
+    <br><br>
+
     <table>
         <thead>
             <tr>
@@ -23,14 +50,10 @@
         </thead>
 
         <tbody id="tableBody">
-            <tr v-for="(item, index) in itemList" :key="index">
-                <!--<td>
-                    <LazyImg v-bind:item-unique-name="item['uniqueName']"></LazyImg> {{ item["itemName"] }}
-                </td>
-                <td>{{ item["itemClass"] }}</td>
-                <ProgressTableCell v-bind:xp-gained="item['xpGained']" v-bind:xp-required="item['xpRequired']">
-                </ProgressTableCell>-->
-                <ProgressTableItem v-bind:item="item" , v-bind:playerNames="playerNames" ref="progressTableItem">
+            <tr v-for="item in itemList" :key="item.uniqueName" :style="{
+                display: (filterItem(item)) ? '' : 'none'
+            }">
+                <ProgressTableItem v-bind:item="item" v-bind:playerNames="playerNames" ref="progressTableItem">
                 </ProgressTableItem>
             </tr>
         </tbody>
@@ -38,6 +61,7 @@
 </template>
 
 <script>
+import CollapsibleContainer from '../Collapsible.vue';
 import ProgressTableItem from './ProgressTableItem.vue';
 import { authFetch } from '@/util/util';
 
@@ -52,13 +76,35 @@ export default {
         }
     },
     components: {
-        ProgressTableItem
+        ProgressTableItem,
+        CollapsibleContainer
     },
     data() {
         return {
             playerNames: [],
             itemList: [],
-            sorting: { key: "", asc: true }
+            sorting: { key: "", asc: true },
+            allItemClasses: [
+                "Amp",
+                "Archgun",
+                "Archmelee",
+                "Archwing",
+                "Hound",
+                "Kdrive",
+                "Kitgun",
+                "Melee",
+                "Moa",
+                "Necramech",
+                "Pet",
+                "Primary",
+                "Secondary",
+                "Sentinel",
+                "Sentinel Weapon",
+                "Warframe",
+                "Zaw"
+            ],
+            selectedItemClasses: [],
+            itemNameFilter: ""
         }
     },
     methods: {
@@ -112,7 +158,13 @@ export default {
             this.$refs.progressTableItem.forEach((child) => {
                 child.init();
             });
+        },
+        filterItem(item) {
+            const validClass = this.selectedItemClasses.length === 0 || this.selectedItemClasses.includes(item.itemClass);
+            const validName = item.itemName.toLowerCase().includes(this.itemNameFilter.toLowerCase());
+            return validClass && validName;
         }
+
     },
     async mounted() {
         await this.getMasteryItems();
@@ -127,6 +179,17 @@ export default {
 </script>
 
 <style>
+html {
+    overflow-y: scroll;
+    /* Always show vertical scrollbar */
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    /* Optional: ensure body takes full height */
+}
+
 table {
     border-collapse: collapse;
     border-spacing: 0;
@@ -146,8 +209,17 @@ th {
 }
 
 tr:nth-child(even) {
+    /*background-color: #fefefe;
+    filter: brightness(0.95);*/
+}
+
+tr {
+    border-bottom: 1px solid #ddd;
+}
+
+tr:hover {
     background-color: #fefefe;
-    filter: brightness(0.95);
+    filter: brightness(0.9);
 }
 
 .mastery-state-0 {
@@ -162,6 +234,32 @@ tr:nth-child(even) {
     background-color: rgb(235, 130, 130);
 }
 
+.checkbox-item input {
+    margin-right: 4px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 12px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    user-select: none;
+    margin: 0
+}
+
+.checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    /* spacing between items */
+}
+
+label.checked {
+    background-color: #1e69fe;
+    color: #eee
+}
 
 @media screen and (max-width: 600px) {
 

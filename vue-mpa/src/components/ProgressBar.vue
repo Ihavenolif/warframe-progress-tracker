@@ -1,16 +1,18 @@
 <template>
     <div class="progress-container">
-        <div class="progress-bar" id="progressBar" :style="{width: `${progress}%`}">XP Progress: {{ Math.round(progress) }}%</div>
-        
+        <div class="progress-bar" id="progressBar" :style="{ width: `${progress}%` }">XP Progress: {{
+            Math.round(progress)
+            }}%</div>
+
     </div>
 </template>
 
 <script>
-export default{
-    props:{
+export default {
+    props: {
         progress: {
-            type:Number,
-            required:true
+            type: Number,
+            required: true
         }
     },
     name: "ProgressBarElement"
@@ -20,7 +22,8 @@ export default{
 <style>
 .progress-container {
     width: 100%;
-    background-color: rgb(238, 238, 119);;
+    background-color: rgb(238, 238, 119);
+    ;
     overflow: hidden;
     padding: 0px;
     margin: 0px;
@@ -33,7 +36,7 @@ export default{
     padding: 0px;
     padding-left: 10px;
     margin: 0px;
-    line-height: 232%;
+    line-height: 240%;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

@@ -49,8 +49,10 @@ export default {
     },*/
     watch: {
         item: {
-            handler: function () {
-                this.init();
+            handler: function (oldVal, newVal) {
+                if (!oldVal || oldVal.uniqueName !== newVal.uniqueName) {
+                    this.init();
+                }
             },
             deep: true
         }
