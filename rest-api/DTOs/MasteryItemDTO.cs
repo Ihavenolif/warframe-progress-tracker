@@ -5,36 +5,6 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace rest_api.DTO;
 
-public class MasteryItemDTO
-{
-    public string? username { get; set; }
-    public int? xpGained { get; set; }
-    public int? xpRequired { get; set; }
-
-
-    public string? itemName { get; set; }
-    public string? itemType { get; set; }
-    public string? itemClass { get; set; }
-    public string? uniqueName { get; set; }
-
-}
-
-public class MasteryItemWithComponentsDTO : MasteryItemDTO
-{
-    public MasteryItemWithComponentsDTO(MasteryItemDTO masteryItemDTO)
-    {
-        this.username = masteryItemDTO.username;
-        this.xpGained = masteryItemDTO.xpGained;
-        this.xpRequired = masteryItemDTO.xpRequired;
-        this.itemName = masteryItemDTO.itemName;
-        this.itemType = masteryItemDTO.itemType;
-        this.itemClass = masteryItemDTO.itemClass;
-        this.uniqueName = masteryItemDTO.uniqueName;
-    }
-
-    public List<ComponentItemDTO>? components { get; set; }
-}
-
 public class ComponentItemDTO
 {
     public string? name { get; set; }
@@ -57,7 +27,7 @@ public class UnownedItemDTO
             : JsonSerializer.Deserialize<List<ComponentItemDTO>>(components_json);
 }
 
-public class MasteryItemNewDTO
+public class MasteryItemDTO
 {
     public string? itemName { get; set; }
     public string? itemType { get; set; }
@@ -103,5 +73,5 @@ public class PlayerMasteryItemDTO
 public class MasteryInfoResponse
 {
     public List<string> playerNames { get; set; } = new List<string>();
-    public List<MasteryItemNewDTO> items { get; set; } = new List<MasteryItemNewDTO>();
+    public List<MasteryItemDTO> items { get; set; } = new List<MasteryItemDTO>();
 }

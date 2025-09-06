@@ -62,7 +62,7 @@ export default {
     },
     methods: {
         async getMasteryItems() {
-            const res = await authFetch(`/api/mastery/meNew`, {
+            const res = await authFetch(`/api/mastery/me`, {
                 method: "GET"
             })
 
