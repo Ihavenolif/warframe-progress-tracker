@@ -12,7 +12,8 @@
                             :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
                 </th>
                 <th v-for="(name, index) in playerNames" :key="index" v-on:click="sortTable(name)">
-                    {{ name }}
+                    {{ name }} <i v-if="this.sorting.key === name"><span
+                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
                 </th>
                 <!--<th id="masteredHead" v-on:click="sortTable('mastery')">Mastered <i
                         v-if="this.sorting.key === 'mastery'"><span
