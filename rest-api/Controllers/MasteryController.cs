@@ -1,5 +1,6 @@
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using rest_api.DTO;
 using rest_api.DTO.MasteryUpdate;
@@ -51,7 +52,7 @@ public class MasteryController : ControllerBase
     }
 
     [HttpGet("meNew")]
-    public async Task<ActionResult<IEnumerable<MasteryItemNewDTO>>> GetMasteryInfoNew()
+    public async Task<ActionResult<IEnumerable<MasteryInfoResponse>>> GetMasteryInfoNew()
     {
         Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
         if (user == null) return Unauthorized();
@@ -60,7 +61,11 @@ public class MasteryController : ControllerBase
         if (player == null) return NotFound("Player not found");
 
         var masteryData = await masteryService.GetMasteryInfoByPlayerNewAsync(player);
-        return Ok(masteryData);
+        return Ok(new MasteryInfoResponse
+        {
+            items = masteryData.ToList(),
+            playerNames = { player.username }
+        });
     }
 
     [HttpPost("update")]

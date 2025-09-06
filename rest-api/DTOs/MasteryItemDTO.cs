@@ -69,8 +69,6 @@ public class MasteryItemNewDTO
     [JsonExtensionData]
     [NotMapped]
     public Dictionary<string, PlayerMasteryItemDTO> players { get; set; } = new Dictionary<string, PlayerMasteryItemDTO>();
-    [NotMapped]
-    public List<string>? playerNames => players?.Keys.OrderBy(n => n).ToList();
 }
 
 public class PlayerMasteryItemDTO
@@ -85,4 +83,10 @@ public class PlayerMasteryItemDTO
         string.IsNullOrWhiteSpace(components_json)
             ? new List<ComponentItemDTO>()
             : JsonSerializer.Deserialize<List<ComponentItemDTO>>(components_json);
+}
+
+public class MasteryInfoResponse
+{
+    public List<string> playerNames { get; set; } = new List<string>();
+    public List<MasteryItemNewDTO> items { get; set; } = new List<MasteryItemNewDTO>();
 }
