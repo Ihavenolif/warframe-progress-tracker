@@ -7,6 +7,7 @@ using rest_api.Data;
 using rest_api.DTO;
 using rest_api.Models;
 using System.Text.Json.Nodes;
+using SQLitePCL;
 
 
 namespace rest_api.Services;
@@ -24,6 +25,7 @@ public interface IMasteryService
     /// <returns></returns>
     public Task UpdatePlayerMasteryAsync(Player player, string jsonData);
     public Task<IEnumerable<MasteryItemWithComponentsDTO>> GetMasteryInfoWithComponentsByPlayerAsync(Player player);
+    public Task<IEnumerable<MasteryItemNewDTO>> GetMasteryInfoByPlayerNewAsync(Player player);
 }
 
 public class MasteryService : IMasteryService
@@ -192,5 +194,88 @@ public class MasteryService : IMasteryService
         return items.Values;
 
         throw new NotImplementedException();
+    }
+
+    private async Task<Dictionary<string, MasteryItemNewDTO>> GetRawItems()
+    {
+        var items = await _dbContext.Database.SqlQuery<MasteryItemNewDTO>(@$"SELECT 
+            name as itemName,
+            type as itemType,
+            item_class as itemClass,
+            unique_name as uniqueName,
+            recipe_name as recipeName,
+            recipe_unique_name as recipeUniqueName,
+            xp_required as xpRequired
+            FROM xp_items_with_recipes_and_components
+            group by name, type, item_class, unique_name, recipe_name, recipe_unique_name, xp_required")
+            .ToDictionaryAsync(item => item.uniqueName!, item => item);
+
+        return items;
+    }
+
+    private class PlayerData
+    {
+        public string? unique_name { get; set; }
+        public int? xp_gained { get; set; }
+        public bool? blueprint_owned { get; set; }
+        public string? components_json { get; set; }
+    }
+
+    private async Task<List<PlayerData>> GetPlayerData(Player player)
+    {
+        var playerData = await _dbContext.Database.SqlQuery<PlayerData>(@$"
+            select 
+                xp_items_with_recipes_and_components.unique_name, 
+                player_items_mastery.xp_gained as xp_gained,
+                bp_ownership.item_count is not null and bp_ownership.item_count > 0 as blueprint_owned,
+                json_agg(
+                    json_build_object(
+                        'name', xp_items_with_recipes_and_components.component_name,
+                        'uniqueName', xp_items_with_recipes_and_components.component_unique_name,
+                        'countOwned', COALESCE(component_ownership.item_count, 0),
+                        'countRequired', xp_items_with_recipes_and_components.ingredient_count,
+                        'isCraftable', xp_items_with_recipes_and_components.component_bp_unique_name is not null,
+                        'blueprintOwned', component_bp_ownership.item_count is not null and component_bp_ownership.item_count > 0
+                    )
+                ) filter (where player_items_mastery.xp_gained is null and xp_items_with_recipes_and_components.component_unique_name is not null) as components_json 
+            from xp_items_with_recipes_and_components
+            full join (
+                select * from player_items_mastery where player_id = {player.id} --parameter player_id
+            ) player_items_mastery on xp_items_with_recipes_and_components.unique_name = player_items_mastery.unique_name
+            left join (
+                select * from player_items where player_id = {player.id} --parameter player_id
+            ) bp_ownership on xp_items_with_recipes_and_components.recipe_unique_name = bp_ownership.unique_name and player_items_mastery.xp_gained is null 
+            left join (
+                select * from player_items where player_id = {player.id} --parameter player_id
+            ) component_ownership on xp_items_with_recipes_and_components.component_unique_name = component_ownership.unique_name and player_items_mastery.xp_gained is null
+            left join (
+                select * from player_items where player_id = {player.id} --parameter player_id
+            ) component_bp_ownership on xp_items_with_recipes_and_components.component_bp_unique_name = component_bp_ownership.unique_name and player_items_mastery.xp_gained is null
+            group by xp_items_with_recipes_and_components.unique_name,
+                player_items_mastery.xp_gained,
+                bp_ownership.item_count;
+        ").ToListAsync();
+
+        return playerData;
+    }
+
+    public async Task<IEnumerable<MasteryItemNewDTO>> GetMasteryInfoByPlayerNewAsync(Player player)
+    {
+
+        var rawItems = await GetRawItems();
+        var playerData = await GetPlayerData(player);
+
+        foreach (var item in playerData)
+        {
+            rawItems[item.unique_name!].players[player.username] = new PlayerMasteryItemDTO
+            {
+                xpGained = item.xp_gained,
+                blueprintOwned = item.blueprint_owned,
+                components_json = item.components_json
+            };
+        }
+
+
+        return rawItems.Values;
     }
 }

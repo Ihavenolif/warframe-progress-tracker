@@ -50,6 +50,19 @@ public class MasteryController : ControllerBase
         return Ok(masteryData);
     }
 
+    [HttpGet("meNew")]
+    public async Task<ActionResult<IEnumerable<MasteryItemNewDTO>>> GetMasteryInfoNew()
+    {
+        Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        var masteryData = await masteryService.GetMasteryInfoByPlayerNewAsync(player);
+        return Ok(masteryData);
+    }
+
     [HttpPost("update")]
     public async Task<IActionResult> UpdatePlayerMastery(IFormFile jsonFile)
     {
