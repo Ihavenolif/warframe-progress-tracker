@@ -1,13 +1,23 @@
 <template>
     <div style="display: flex;">
-        <div v-for="(component, index) in sortedItems" :key="index" :style="{
+        <div v-if="item.recipeUniqueName !== null" :style="{
+            display: 'flex',
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '38px',
+            backgroundColor: item[this.playerName].blueprintOwned ? 'rgb(92, 233, 92)' : 'rgb(235, 130, 130)'
+        }">
+            <ProgressTableComponentItem ref="componentItemBp" v-bind:item="blueprintItem"></ProgressTableComponentItem>
+        </div>
+        <div v-for="(component, index) in sortedComponents" :key="index" :style="{
             display: 'flex',
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             height: '38px',
             backgroundColor: component['countOwned'] >= component['countRequired'] ? 'rgb(92, 233, 92)' :
-                component['recipeOwned'] ? 'rgb(238, 238, 119)' : 'rgb(235, 130, 130)'
+                component['blueprintOwned'] ? 'rgb(238, 238, 119)' : 'rgb(235, 130, 130)'
         }">
 
             <ProgressTableComponentItem ref="componentItem" v-bind:item="component"></ProgressTableComponentItem>
@@ -26,14 +36,23 @@ export default {
     props: {
         item: {
             required: true
+        },
+        playerName: {
+            required: true
         }
     },
     computed: {
-        sortedItems() {
-            if (!this.item) return [];
-            if (!this.item['components']) return [];
-            if (this.item['components'].length === 0) return [];
-            return [...this.item['components']].sort((a, b) => a['uniqueName'].localeCompare(b['uniqueName']));
+        sortedComponents() {
+            if (!this.item[this.playerName]) return [];
+            if (!this.item[this.playerName]['components']) return [];
+            if (this.item[this.playerName]['components'].length === 0) return [];
+            return [...this.item[this.playerName]['components']].sort((a, b) => a['uniqueName'].localeCompare(b['uniqueName']));
+        },
+        blueprintItem() {
+            return {
+                name: this.item.recipeName,
+                uniqueName: this.item.recipeUniqueName
+            };
         }
     },
     components: {
@@ -41,9 +60,11 @@ export default {
     },
     methods: {
         async init() {
-
+            if (this.$refs.componentItemBp) {
+                this.$refs.componentItemBp.init();
+            }
             if (this.$refs.componentItem && this.$refs.componentItem.length) {
-                this.$refs.componentItem.forEach((child) => {
+                this.$refs.componentItem.map(async (child) => {
                     child.init();
                 });
             }

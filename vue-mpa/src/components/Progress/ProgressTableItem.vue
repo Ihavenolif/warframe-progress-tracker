@@ -5,8 +5,8 @@
     </td>
     <td><span class="row-text">{{ item["itemClass"] }}</span>
     </td>
-    <ProgressTableCell ref="progressTableCell" v-bind:item="item">
-    </ProgressTableCell>
+    <ProgressTableCell v-for="(playerName, index) in playerNames" :key="index" ref="progressTableCell"
+        v-bind:item="item" v-bind:playerName="playerName"></ProgressTableCell>
 </template>
 
 <script>
@@ -21,6 +21,9 @@ export default {
     props: {
         item: {
             required: true
+        },
+        playerNames: {
+            required: true
         }
     },
     data() {
@@ -33,12 +36,11 @@ export default {
             let uniqueName = this.item['uniqueName'];
             let imageSrc = await getImage(uniqueName);
             this.imgSrc = imageSrc;
-            console.log(uniqueName, imageSrc)
         },
         async init() {
             await this.fetchImage();
             if (this.$refs.progressTableCell) {
-                await this.$refs.progressTableCell.init();
+                await Promise.all(this.$refs.progressTableCell.map(cell => cell.init()));
             }
         }
     },

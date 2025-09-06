@@ -1,6 +1,5 @@
 <template>
-    <img :src="imgSrc ?? 'https://warframedrops.com/img/clem-in-action-glyph.png.webp'" :alt="item['name']"
-        height="34px">
+    <img :src="imgSrc" :alt="item['name']" height="34px" width="34px">
 </template>
 
 <script>
@@ -21,6 +20,7 @@ export default {
     methods: {
         async fetchImage() {
             let uniqueName = this.item['uniqueName'];
+            console.log(this.item.name)
             let imageSrc = await getImage(uniqueName);
             this.imgSrc = imageSrc;
         },

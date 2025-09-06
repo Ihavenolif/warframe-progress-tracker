@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace rest_api.DTO;
 
@@ -41,7 +42,7 @@ public class ComponentItemDTO
     public int? countOwned { get; set; }
     public int? countRequired { get; set; }
     public bool? isCraftable { get; set; }
-    public bool? recipeOwned { get; set; }
+    public bool? blueprintOwned { get; set; }
 }
 
 public class UnownedItemDTO
@@ -68,7 +69,21 @@ public class MasteryItemNewDTO
 
     [JsonExtensionData]
     [NotMapped]
-    public Dictionary<string, PlayerMasteryItemDTO> players { get; set; } = new Dictionary<string, PlayerMasteryItemDTO>();
+    [SwaggerIgnore]
+    public Dictionary<string, object> players { get; set; } = new();
+
+    // cringe...
+    [NotMapped]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public PlayerMasteryItemDTO? player1 { get; set; }
+
+    [NotMapped]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public PlayerMasteryItemDTO? player2 { get; set; }
+
+    [NotMapped]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public PlayerMasteryItemDTO? player3 { get; set; }
 }
 
 public class PlayerMasteryItemDTO
