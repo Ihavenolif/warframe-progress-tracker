@@ -51,24 +51,13 @@ export default {
         blueprintItem() {
             return {
                 name: this.item.recipeName,
-                uniqueName: this.item.recipeUniqueName
+                uniqueName: this.item.recipeUniqueName,
+                imgSrc: this.item.bpImageSrc,
             };
         }
     },
     components: {
         ProgressTableComponentItem
-    },
-    methods: {
-        async init() {
-            if (this.$refs.componentItemBp) {
-                this.$refs.componentItemBp.init();
-            }
-            if (this.$refs.componentItem && this.$refs.componentItem.length) {
-                this.$refs.componentItem.map(async (child) => {
-                    child.init();
-                });
-            }
-        }
     }
 }
 </script>

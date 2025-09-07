@@ -1,5 +1,5 @@
 <template>
-    <td style="padding: 0px" width="32px"><img :src="imgSrc" alt="" height="32px"></td>
+    <td style="padding: 0px" width="32px"><img :src="item['imgSrc']" alt="" height="32px"></td>
     <td>
         <span class="row-text">{{ item["itemName"] }}</span>
     </td>
@@ -11,7 +11,6 @@
 
 <script>
 import ProgressTableCell from './ProgressTableCell.vue';
-import { getImage } from '@/util/images';
 
 export default {
     name: "ProgressTableItem",
@@ -24,37 +23,6 @@ export default {
         },
         playerNames: {
             required: true
-        }
-    },
-    data() {
-        return {
-            imgSrc: null
-        }
-    },
-    methods: {
-        async fetchImage() {
-            let uniqueName = this.item['uniqueName'];
-            let imageSrc = await getImage(uniqueName);
-            this.imgSrc = imageSrc;
-        },
-        async init() {
-            await this.fetchImage();
-            if (this.$refs.progressTableCell) {
-                await Promise.all(this.$refs.progressTableCell.map(cell => cell.init()));
-            }
-        }
-    },
-    /*mounted() {
-        this.fetchImage();
-    },*/
-    watch: {
-        item: {
-            handler: function (oldVal, newVal) {
-                if (!oldVal || oldVal.uniqueName !== newVal.uniqueName) {
-                    this.init();
-                }
-            },
-            deep: true
         }
     }
 }

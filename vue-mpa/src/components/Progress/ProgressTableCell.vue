@@ -27,13 +27,6 @@ export default {
     components: {
         ProgressBar,
         ProgressTableUnowned
-    },
-    methods: {
-        async init() {
-            if (this.$refs.progressTableUnowned) {
-                await this.$refs.progressTableUnowned.init();
-            }
-        }
     }
 }
 </script>

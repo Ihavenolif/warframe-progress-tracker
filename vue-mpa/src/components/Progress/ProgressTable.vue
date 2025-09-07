@@ -42,17 +42,11 @@
                     {{ name }} <i v-if="this.sorting.key === name"><span
                             :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
                 </th>
-                <!--<th id="masteredHead" v-on:click="sortTable('mastery')">Mastered <i
-                        v-if="this.sorting.key === 'mastery'"><span
-                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
-                </th>-->
             </tr>
         </thead>
 
         <tbody id="tableBody">
-            <tr v-for="item in itemList" :key="item.uniqueName" :style="{
-                display: (filterItem(item)) ? '' : 'none'
-            }">
+            <tr v-for="item in filteredItems" :key="item.uniqueName">
                 <ProgressTableItem v-bind:item="item" v-bind:playerNames="playerNames" ref="progressTableItem">
                 </ProgressTableItem>
             </tr>
@@ -63,7 +57,6 @@
 <script>
 import CollapsibleContainer from '../Collapsible.vue';
 import ProgressTableItem from './ProgressTableItem.vue';
-import { authFetch } from '@/util/util';
 
 export default {
     name: "ProgressTable",
@@ -73,16 +66,29 @@ export default {
         },
         token() {
             return this.$store.state.token;
+        },
+        filteredItems() {
+            return this.itemList.filter(item => this.filterItem(item));
         }
     },
     components: {
         ProgressTableItem,
         CollapsibleContainer
     },
+    props: {
+        _playerNames: {
+            type: Array,
+            required: true
+        },
+        _itemList: {
+            type: Array,
+            required: true
+        }
+    },
     data() {
         return {
-            playerNames: [],
-            itemList: [],
+            playerNames: this._playerNames,
+            itemList: this._itemList,
             sorting: { key: "", asc: true },
             allItemClasses: [
                 "Amp",
@@ -108,25 +114,6 @@ export default {
         }
     },
     methods: {
-        async getMasteryItems() {
-            const res = await authFetch(`/api/mastery/me`, {
-                method: "GET"
-            })
-
-            if (res.status == 404) {
-                window.location.href = "/settings";
-            }
-
-            if (!res.ok) {
-                console.log(await res.text());
-                return;
-            }
-
-            const data = await res.json()
-            this.itemList = data.items;
-            this.playerNames = data.playerNames;
-
-        },
         sortTable(sortKey) {
             if (this.sorting.key == sortKey) this.sorting.asc = !this.sorting.asc;
             else {
@@ -153,12 +140,6 @@ export default {
                 })
             }
         },
-        fetchAllImages() {
-            console.log(this.$refs.progressTableItem.length);
-            this.$refs.progressTableItem.forEach((child) => {
-                child.init();
-            });
-        },
         filterItem(item) {
             const validClass = this.selectedItemClasses.length === 0 || this.selectedItemClasses.includes(item.itemClass);
             const validName = item.itemName.toLowerCase().includes(this.itemNameFilter.toLowerCase());
@@ -167,13 +148,11 @@ export default {
 
     },
     async mounted() {
-        await this.getMasteryItems();
         this.sortTable("itemName");
         this.sortTable("itemClass");
         this.playerNames.forEach(name => {
             this.sortTable(name);
         });
-        this.fetchAllImages();
     }
 }
 </script>
@@ -209,17 +188,8 @@ th {
 }
 
 tr:nth-child(even) {
-    /*background-color: #fefefe;
-    filter: brightness(0.95);*/
-}
-
-tr {
-    border-bottom: 1px solid #777777ff;
-}
-
-tr:hover {
     background-color: #fefefe;
-    filter: brightness(0.9);
+    filter: brightness(0.95);
 }
 
 .mastery-state-0 {
