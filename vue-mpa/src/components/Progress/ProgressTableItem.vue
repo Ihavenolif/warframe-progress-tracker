@@ -1,5 +1,5 @@
 <template>
-    <td style="padding: 0px" width="32px"><img :src="item['imgSrc']" alt="" height="32px"></td>
+    <td style="padding: 0px" width="32px"><img :src="item['imgSrc']" alt="" height="34px"></td>
     <td>
         <span class="row-text">{{ item["itemName"] }}</span>
     </td>
