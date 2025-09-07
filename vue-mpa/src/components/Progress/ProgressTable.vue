@@ -174,6 +174,7 @@ table {
     border-spacing: 0;
     width: 100%;
     border: 1px solid #777;
+    white-space: nowrap;
 }
 
 th,
