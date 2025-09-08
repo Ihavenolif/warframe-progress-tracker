@@ -25,6 +25,26 @@
 
         <p v-if="clans && clans.length == 0">You are not part of any clan.</p>
 
+        <h2>Pending invitations</h2>
+        <div>
+            <div class="clan-container" v-for="invitation in invitations" :key="invitation.id">
+                <div class="left">
+                    <p>{{ invitation["clanName"] }}</p>
+                </div>
+
+
+                <div class="button-right">
+                    <a @click="acceptInvitation(invitation.id)">Accept</a>
+                </div>
+                <div class="button-right">
+                    <a @click="declineInvitation(invitation.id)">Decline</a>
+                </div>
+
+            </div>
+        </div>
+
+        <p v-if="invitations && invitations.length == 0">You have no pending invitations.</p>
+
         <hr>
 
         <div v-if="inputVisible">
@@ -57,6 +77,7 @@ export default {
     data() {
         return {
             clans: null,
+            invitations: null,
             inputVisible: false,
             newClanName: "",
             errorMessage: ""
@@ -70,11 +91,19 @@ export default {
             }
         })
 
-        if (res.status == 404) {
+        const res2 = await authFetch("/api/clans/invite/pending", {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+        if (res.status == 404 || res2.status == 404) {
             window.location.href = "/settings"
         }
 
         this.clans = await res.json();
+        this.invitations = await res2.json();
     },
     methods: {
         async createClan() {
@@ -102,6 +131,34 @@ export default {
                 window.location.reload();
             } else {
                 this.errorMessage = await res.text();
+            }
+        },
+        async acceptInvitation(invitationId) {
+            const res = await authFetch(`/api/clans/invite/${invitationId}/accept/`, {
+                method: "POST"
+            })
+
+            if (res.status == 404) {
+                window.location.href = "/settings"
+            }
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                console.error(await res.text());
+            }
+        },
+        async declineInvitation(invitationId) {
+            const res = await authFetch(`/api/clans/invite/${invitationId}/decline/`, {
+                method: "DELETE"
+            })
+
+            if (res.status == 404) {
+                window.location.href = "/settings"
+            }
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                console.error(await res.text());
             }
         }
     }
