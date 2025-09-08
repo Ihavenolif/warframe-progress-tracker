@@ -12,12 +12,9 @@ namespace rest_api.Data;
 
 public partial class WarframeTrackerDbContext : DbContext
 {
-    private readonly ConfigurationService _config;
-
-    public WarframeTrackerDbContext(DbContextOptions<WarframeTrackerDbContext> options, ConfigurationService config)
+    public WarframeTrackerDbContext(DbContextOptions<WarframeTrackerDbContext> options)
         : base(options)
     {
-        _config = config;
     }
 
     public virtual DbSet<Clan> clans { get; set; }
@@ -79,6 +76,13 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.ToTable("clan_invitation");
 
             entity.Property(e => e.id).ValueGeneratedOnAdd();
+
+            entity.Property(e => e.status)
+                .HasDefaultValue(InvitationStatus.PENDING)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (InvitationStatus)Enum.Parse(typeof(InvitationStatus), v))
+                .HasColumnName("status");
 
             entity.HasOne(d => d.clan).WithMany(p => p.clan_invitations)
                 .HasForeignKey(d => d.clan_id)
@@ -242,14 +246,6 @@ public partial class WarframeTrackerDbContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (optionsBuilder.IsConfigured) return;
-
-        optionsBuilder.UseNpgsql(_config.DataSource);
-
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
