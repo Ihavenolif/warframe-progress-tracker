@@ -173,8 +173,8 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
     width: 100%;
-    border: 1px solid #777;
     white-space: nowrap;
+    border-right: 1px solid #777;
 }
 
 body {
@@ -241,6 +241,9 @@ label.checked {
     display: flex;
     flex-direction: column;
     overflow: auto;
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
+    border-left: 1px solid #777;
 }
 
 
