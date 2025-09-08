@@ -49,6 +49,16 @@ module.exports = defineConfig({
             entry: 'src/pages/clans/index.js',
             template: 'public/clans/index.html',
             filename: 'clans/index.html'
+        },
+        "clans/details": {
+            entry: 'src/pages/clans/details.js',
+            template: 'public/clans/details.html',
+            filename: 'clans/details.html'
+        },
+        "clans/progress": {
+            entry: 'src/pages/clans/progress.js',
+            template: 'public/clans/progress.html',
+            filename: 'clans/progress.html'
         }
     },
     devServer: {
@@ -72,6 +82,14 @@ module.exports = defineConfig({
         },
         historyApiFallback: {
             rewrites: [
+                {
+                    from: /^\/clans\/.*/,
+                    to: "/clans/details.html"
+                },
+                {
+                    from: /^\/progress\/.*/,
+                    to: "/clans/progress.html"
+                },
                 {
                     from: /^\/.*$/,  // match any path
                     to(context) {
