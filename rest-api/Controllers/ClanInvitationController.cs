@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using rest_api.DTOs.Clans;
 using rest_api.Models;
 using rest_api.Services;
 
 namespace rest_api.Controllers;
 
 [ApiController]
-[Route("api/clan/invite")]
+[Route("api/clans/invite")]
 [Authorize]
 public class ClanInvitationController : ControllerBase
 {
@@ -19,6 +20,28 @@ public class ClanInvitationController : ControllerBase
         _clanService = clanService;
         _userService = userService;
         _playerService = playerService;
+    }
+
+    [HttpGet("pending")]
+    [ProducesResponseType(typeof(IEnumerable<ClanInvitationDTO>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPendingInvitations()
+    {
+        Registered_user? user = await _userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        var invitations = await _clanService.GetPendingInvitationsForPlayerAsync(player);
+        var invitationDTOs = invitations.Select(inv => new ClanInvitationDTO
+        {
+            Id = inv.id,
+            ClanName = inv.clan.name,
+            PlayerName = inv.player.username
+        });
+
+        return Ok(invitationDTOs);
     }
 
     [HttpPost("{invitationId}/accept")]
