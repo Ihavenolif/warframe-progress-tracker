@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using rest_api.Data;
+using rest_api.DTOs.Clans;
 using rest_api.Models;
 
 namespace rest_api.Services;
@@ -14,6 +15,7 @@ public interface IClanService
     Task<bool> AddPlayerToClanAsync(Clan clan, Player player);
     Task<bool> RemovePlayerFromClanAsync(Clan clan, Player player);
     Task<bool> ChangeLeaderAsync(Clan clan, Player newLeader);
+    Task<List<ClanDTO>> GetAllPlayerClansAsync(Player player);
 
     Task<bool> IsPlayerInClanAsync(Player player, Clan clan);
     Task<bool> IsPlayerClanLeaderAsync(Player player, Clan clan);
@@ -114,6 +116,23 @@ public class ClanService : IClanService
     {
         dbContext.clans.Remove(clan);
         return dbContext.SaveChangesAsync().ContinueWith(t => t.Result > 0);
+    }
+
+    public Task<List<ClanDTO>> GetAllPlayerClansAsync(Player player)
+    {
+        var clans = dbContext.Entry(player)
+            .Collection(p => p.clans)
+            .Query()
+            .Include(c => c.leader)
+            .Include(c => c.players);
+
+        return clans.Select(c => new ClanDTO
+        {
+            Id = c.id,
+            Name = c.name,
+            LeaderName = c.leader.username,
+            MemberCount = c.players.Count
+        }).ToListAsync();
     }
 
     public async Task<Clan?> GetClanByIdAsync(int id)

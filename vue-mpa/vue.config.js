@@ -44,6 +44,11 @@ module.exports = defineConfig({
             entry: 'src/pages/userSettings.js',
             template: 'public/userSettings.html',
             filename: 'settings.html'
+        },
+        "clans/index": {
+            entry: 'src/pages/clans/index.js',
+            template: 'public/clans/index.html',
+            filename: 'clans/index.html'
         }
     },
     devServer: {

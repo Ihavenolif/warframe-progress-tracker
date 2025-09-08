@@ -24,12 +24,29 @@ public class ClanController : ControllerBase
         _playerService = playerService;
     }
 
+    [HttpGet("myClans")]
+    [SwaggerOperation(Summary = "Get all clans the authenticated user is a member of.")]
+    [ProducesResponseType(typeof(List<ClanDTO>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<ClanDTO>>> GetMyClans()
+    {
+        Registered_user? user = await _userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        var clans = await _clanService.GetAllPlayerClansAsync(player);
+
+        return Ok(clans);
+    }
+
     [HttpPut("create")]
     [SwaggerOperation(Summary = "Create a new clan with the authenticated user as the leader.")]
     [ProducesResponseType(typeof(ClanDTO), StatusCodes.Status201Created, "application/json")]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ClanDTO>> CreateClan([FromQuery] string clanName)
+    public async Task<ActionResult<ClanDTO>> CreateClan([FromBody] CreateClanDTO createClanDTO)
     {
         Registered_user? user = await _userService.GetUserByUsernameAsync(User.Identity!.Name!);
         if (user == null) return Unauthorized();
@@ -39,8 +56,8 @@ public class ClanController : ControllerBase
 
         try
         {
-            var clan = await _clanService.CreateClanAsync(player, clanName);
-            return Created(clanName, new ClanDTO
+            var clan = await _clanService.CreateClanAsync(player, createClanDTO.Name);
+            return Created(createClanDTO.Name, new ClanDTO
             {
                 Id = clan!.id,
                 Name = clan.name,

@@ -5,4 +5,5 @@ public class ClanDTO
     public int Id { get; set; }
     public string Name { get; set; } = null!;
     public string? LeaderName { get; set; }
+    public int MemberCount { get; set; }
 }
