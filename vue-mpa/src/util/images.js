@@ -7,9 +7,26 @@ localforage.config({
 })
 
 let updateImageDbPromise = null;
+export const ManifestFetchStartedSignal = new Set();
+export const ManifestFetchFinishedSignal = new Set();
+export const ManifestParseStartedSignal = new Set();
+export const ManifestParseFinishedSignal = new Set();
+export const ManifestLoadStartedSignal = new Set();
+export const ManifestLoadFinishedSignal = new Set();
+
+export function subscribe(signal, callback) {
+    signal.add(callback);
+    return () => signal.delete(callback);
+}
+
+function emit(signal, args = null) {
+    signal.forEach(cb => cb(args));
+}
 
 async function getIndex() {
+    emit(ManifestFetchStartedSignal);
     const res = await authFetch("/api/items/index");
+    emit(ManifestFetchFinishedSignal);
     return await res.json();
 }
 
@@ -20,12 +37,16 @@ async function updateImageDb() {
     updateImageDbPromise = (async () => {
         const index = await getIndex();
 
+        emit(ManifestLoadStartedSignal);
         const res = await fetch("https://content.warframe.com/PublicExport/Manifest/" + index["Manifest"]);
         const imageLinks = (await res.json())["Manifest"]
+        emit(ManifestLoadFinishedSignal);
 
+        emit(ManifestParseStartedSignal);
         imageLinks.forEach(item => {
             localforage.setItem(item["uniqueName"], item["textureLocation"]);
         });
+        emit(ManifestParseFinishedSignal);
 
     })();
 

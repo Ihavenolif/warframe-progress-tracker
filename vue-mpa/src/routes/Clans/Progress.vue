@@ -3,8 +3,14 @@
 
     <ThreeColumnLayout>
         <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList"></ProgressTable>
-        <h2 v-else>Loading data. This may take a few seconds if this is loading for the first time, or after an
-            update.</h2>
+        <div v-else>
+            <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
+                update.</h2>
+
+            <p v-for="message in loadingMessages" v-bind:key="message">{{ message }}</p>
+            <p v-if="imagesLoading">Loading images ({{ imagesLoaded }} / {{ imagesNeedLoading }})</p>
+        </div>
+
     </ThreeColumnLayout>
 
 
@@ -16,7 +22,16 @@
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
 import ProgressTable from '@/components/Progress/ProgressTable.vue';
 import { authFetch } from '@/util/util';
-import { getImage } from '@/util/images';
+import {
+    getImage,
+    subscribe,
+    ManifestLoadStartedSignal,
+    ManifestLoadFinishedSignal,
+    ManifestParseStartedSignal,
+    ManifestParseFinishedSignal,
+    ManifestFetchStartedSignal,
+    ManifestFetchFinishedSignal
+} from '@/util/images';
 import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
 
 export default {
@@ -37,7 +52,11 @@ export default {
             playerNames: [],
             itemList: [],
             data: {},
-            dataReady: false
+            dataReady: false,
+            loadingMessages: ["Fetching mastery data..."],
+            imagesNeedLoading: 0,
+            imagesLoaded: 0,
+            imagesLoading: false
         }
     },
     methods: {
@@ -47,16 +66,24 @@ export default {
             })
 
             if (!res.ok) {
-                //window.location.href = "/clans";
+                window.location.href = "/clans";
             }
+
+            this.loadingMessages.push("Done fetching mastery data.");
 
             this.data = await res.json()
         },
         async fetchAllImages() {
+            this.loadingMessages.push("Loading images...");
+            this.imagesLoading = true;
             await Promise.all(this.itemList.map(item => this.loadItem(item)));
+            this.loadingMessages.push("Done loading images.");
+
         },
         async fetchImage(uniqueName) {
+            this.imagesNeedLoading++;
             let imageSrc = await getImage(uniqueName);
+            this.imagesLoaded++;
             return imageSrc;
         },
         async loadItem(item) {
@@ -72,9 +99,30 @@ export default {
                     }
                 }
             }
+        },
+        addLoadingEventListeners() {
+            subscribe(ManifestLoadStartedSignal, () => {
+                this.loadingMessages.push("Loading manifest from Warframe servers...");
+            });
+            subscribe(ManifestLoadFinishedSignal, () => {
+                this.loadingMessages.push("Done loading manifest from Warframe servers.");
+            });
+            subscribe(ManifestParseStartedSignal, () => {
+                this.loadingMessages.push("Parsing manifest...");
+            });
+            subscribe(ManifestParseFinishedSignal, () => {
+                this.loadingMessages.push("Done parsing manifest.");
+            });
+            subscribe(ManifestFetchStartedSignal, () => {
+                this.loadingMessages.push("Fetching manifest...");
+            });
+            subscribe(ManifestFetchFinishedSignal, () => {
+                this.loadingMessages.push("Done fetching manifest.");
+            });
         }
     },
     async mounted() {
+        this.addLoadingEventListeners();
         await this.getMasteryItems();
 
         this.itemList = this.data.items;
