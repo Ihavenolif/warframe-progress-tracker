@@ -151,9 +151,17 @@ public class ClanService : IClanService
         return dbContext.SaveChangesAsync().ContinueWith(t => t.Result > 0);
     }
 
-    public Task<Clan?> UpdateClanAsync(Clan clan)
+    public async Task<Clan?> UpdateClanAsync(Clan clan)
     {
         dbContext.clans.Update(clan);
-        return dbContext.SaveChangesAsync().ContinueWith(t => t.Result > 0 ? clan : null);
+        try
+        {
+            await dbContext.SaveChangesAsync();
+            return clan;
+        }
+        catch (DbUpdateException)
+        {
+            throw new ArgumentException("Clan with the same name already exists.");
+        }
     }
 }
