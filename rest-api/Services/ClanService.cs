@@ -45,6 +45,11 @@ public class ClanService : IClanService
 
     public Task<bool> AddPlayerToClanAsync(Clan clan, Player player)
     {
+        if (clan.players.Contains(player))
+        {
+            return Task.FromResult(false);
+        }
+
         clan.players.Add(player);
         dbContext.clans.Update(clan);
         return dbContext.SaveChangesAsync().ContinueWith(t => t.Result > 0);
@@ -114,8 +119,18 @@ public class ClanService : IClanService
             .ToListAsync();
     }
 
-    public Task<Clan_invitation> InvitePlayerToClanAsync(Clan clan, Player player)
+    public async Task<Clan_invitation> InvitePlayerToClanAsync(Clan clan, Player player)
     {
+        if (clan.players.Contains(player))
+        {
+            throw new ArgumentException("Player is already a member of the clan.");
+        }
+
+        if (dbContext.clan_invitations.Any(ci => ci.clan_id == clan.id && ci.player_id == player.id && ci.status == InvitationStatus.PENDING))
+        {
+            throw new ArgumentException("An invitation is already pending for this player.");
+        }
+
         Clan_invitation invitation = new Clan_invitation
         {
             clan_id = clan.id,
@@ -123,7 +138,8 @@ public class ClanService : IClanService
             status = InvitationStatus.PENDING
         };
         dbContext.clan_invitations.Add(invitation);
-        return dbContext.SaveChangesAsync().ContinueWith(t => invitation);
+        await dbContext.SaveChangesAsync();
+        return invitation;
     }
 
     public Task<bool> IsPlayerClanLeaderAsync(Player player, Clan clan)
@@ -141,7 +157,7 @@ public class ClanService : IClanService
 
     public Task<bool> RemovePlayerFromClanAsync(Clan clan, Player player)
     {
-        if (clan.leader_id == player.id)
+        if (!clan.players.Contains(player))
         {
             return Task.FromResult(false);
         }

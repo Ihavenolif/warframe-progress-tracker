@@ -71,7 +71,7 @@ public partial class WarframeTrackerDbContext : DbContext
 
         modelBuilder.Entity<Clan_invitation>(entity =>
         {
-            entity.HasKey(e => new { e.clan_id, e.player_id }).HasName("clan_invitation_pkey");
+            entity.HasKey(e => e.id).HasName("clan_invitation_pkey");
 
             entity.ToTable("clan_invitation");
 

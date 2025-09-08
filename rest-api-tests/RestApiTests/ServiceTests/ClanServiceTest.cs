@@ -134,4 +134,476 @@ public class ClanServiceTest
         Assert.NotNull(unchangedClan2);
         Assert.Equal(clanName2, unchangedClan2.name); // Name should remain unchanged
     }
+
+    [Fact]
+    public async Task TestDeleteClan()
+    {
+        var player = new Player
+        {
+            username = "TestPlayer5",
+            mastery_rank = 30
+        };
+
+        dbContext.players.Add(player);
+        dbContext.SaveChanges();
+
+        var clanName = "DeleteClan";
+        var clan = await clanService.CreateClanAsync(player, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(player.id, clan.leader_id);
+        Assert.True(clan.players.Contains(player));
+        Assert.Single(clan.players);
+
+        int clanId = clan.id;
+
+        var deleteResult = await clanService.DeleteClanAsync(clan);
+        Assert.True(deleteResult);
+
+        var deletedClan = await dbContext.clans.FirstOrDefaultAsync(c => c.id == clanId);
+        Assert.Null(deletedClan);
+    }
+
+    [Fact]
+    public async Task TestAddPlayerToClan()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer",
+            mastery_rank = 35
+        };
+
+        var newMember = new Player
+        {
+            username = "NewMemberPlayer",
+            mastery_rank = 5
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(newMember);
+        dbContext.SaveChanges();
+
+        var clanName = "AddMemberClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var addResult = await clanService.AddPlayerToClanAsync(clan, newMember);
+        Assert.True(addResult);
+
+        var updatedClan = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan);
+        Assert.Equal(2, updatedClan.players.Count);
+        Assert.Contains(leader, updatedClan.players);
+        Assert.Contains(newMember, updatedClan.players);
+    }
+
+    [Fact]
+    public async Task TestAddPlayerToClanConflict()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer2",
+            mastery_rank = 40
+        };
+
+        var newMember = new Player
+        {
+            username = "NewMemberPlayer2",
+            mastery_rank = 10
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(newMember);
+        dbContext.SaveChanges();
+
+        var clanName = "AddMemberClan2";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var addResult1 = await clanService.AddPlayerToClanAsync(clan, newMember);
+        Assert.True(addResult1);
+
+        var updatedClan1 = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan1);
+        Assert.Equal(2, updatedClan1.players.Count);
+        Assert.Contains(leader, updatedClan1.players);
+        Assert.Contains(newMember, updatedClan1.players);
+
+        var addResult2 = await clanService.AddPlayerToClanAsync(clan, newMember);
+        Assert.False(addResult2);
+
+        var updatedClan2 = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan2);
+        Assert.Equal(2, updatedClan2.players.Count); // Count should remain 2
+        Assert.Contains(leader, updatedClan2.players);
+        Assert.Contains(newMember, updatedClan2.players);
+    }
+
+    [Fact]
+    public async Task TestRemovePlayerFromClan()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer3",
+            mastery_rank = 45
+        };
+
+        var member = new Player
+        {
+            username = "MemberPlayer3",
+            mastery_rank = 15
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(member);
+        dbContext.SaveChanges();
+
+        var clanName = "RemoveMemberClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var addResult = await clanService.AddPlayerToClanAsync(clan, member);
+        Assert.True(addResult);
+
+        var updatedClan = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan);
+        Assert.Equal(2, updatedClan.players.Count);
+        Assert.Contains(leader, updatedClan.players);
+        Assert.Contains(member, updatedClan.players);
+
+        var removeResult = await clanService.RemovePlayerFromClanAsync(clan, member);
+        Assert.True(removeResult);
+
+        var updatedClanAfterRemoval = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClanAfterRemoval);
+        Assert.Single(updatedClanAfterRemoval.players);
+        Assert.Contains(leader, updatedClanAfterRemoval.players);
+        Assert.DoesNotContain(member, updatedClanAfterRemoval.players);
+    }
+
+    [Fact]
+    public async Task TestRemovePlayerFromClanNotPresent()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer4",
+            mastery_rank = 50
+        };
+
+        var member = new Player
+        {
+            username = "MemberPlayer4",
+            mastery_rank = 20
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(member);
+        dbContext.SaveChanges();
+
+        var clanName = "RemoveNonMemberClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var removeResult = await clanService.RemovePlayerFromClanAsync(clan, member);
+        Assert.False(removeResult);
+
+        var updatedClanAfterRemovalAttempt = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClanAfterRemovalAttempt);
+        Assert.Single(updatedClanAfterRemovalAttempt.players);
+        Assert.Contains(leader, updatedClanAfterRemovalAttempt.players);
+        Assert.DoesNotContain(member, updatedClanAfterRemovalAttempt.players);
+    }
+
+    [Fact]
+    public async Task TestInvitePlayerToClan()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer5",
+            mastery_rank = 55
+        };
+
+        var invitee = new Player
+        {
+            username = "InviteePlayer5",
+            mastery_rank = 25
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(invitee);
+        dbContext.SaveChanges();
+
+        var clanName = "InviteMemberClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var invitation = await clanService.InvitePlayerToClanAsync(clan, invitee);
+        Assert.NotNull(invitation);
+        Assert.Equal(clan.id, invitation.clan_id);
+        Assert.Equal(invitee.id, invitation.player_id);
+        Assert.Equal(InvitationStatus.PENDING, invitation.status);
+
+        var fetchedInvitation = await dbContext.clan_invitations.FirstOrDefaultAsync(ci => ci.clan_id == clan.id && ci.player_id == invitee.id);
+        Assert.NotNull(fetchedInvitation);
+        Assert.Equal(InvitationStatus.PENDING, fetchedInvitation.status);
+    }
+
+    [Fact]
+    public async Task TestInvitePlayerToClanAlreadyInClan()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer6",
+            mastery_rank = 60
+        };
+
+        var member = new Player
+        {
+            username = "MemberPlayer6",
+            mastery_rank = 30
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(member);
+        dbContext.SaveChanges();
+
+        var clanName = "InviteExistingMemberClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var addResult = await clanService.AddPlayerToClanAsync(clan, member);
+        Assert.True(addResult);
+
+        var updatedClan = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan);
+        Assert.Equal(2, updatedClan.players.Count);
+        Assert.Contains(leader, updatedClan.players);
+        Assert.Contains(member, updatedClan.players);
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            await clanService.InvitePlayerToClanAsync(clan, member);
+        });
+        Assert.Equal("Player is already a member of the clan.", exception.Message);
+
+        var invitations = await dbContext.clan_invitations.Where(ci => ci.clan_id == clan.id && ci.player_id == member.id).ToListAsync();
+        Assert.Empty(invitations); // No invitation should be created
+    }
+
+    [Fact]
+    public async Task TestInvitePlayerToClanAlreadyPending()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer7",
+            mastery_rank = 65
+        };
+
+        var invitee = new Player
+        {
+            username = "InviteePlayer7",
+            mastery_rank = 35
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(invitee);
+        dbContext.SaveChanges();
+
+        var clanName = "InvitePendingMemberClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var invitation1 = await clanService.InvitePlayerToClanAsync(clan, invitee);
+        Assert.NotNull(invitation1);
+        Assert.Equal(clan.id, invitation1.clan_id);
+        Assert.Equal(invitee.id, invitation1.player_id);
+        Assert.Equal(InvitationStatus.PENDING, invitation1.status);
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            await clanService.InvitePlayerToClanAsync(clan, invitee);
+        });
+        Assert.Equal("An invitation is already pending for this player.", exception.Message);
+
+        var invitations = await dbContext.clan_invitations.Where(ci => ci.clan_id == clan.id && ci.player_id == invitee.id).ToListAsync();
+        Assert.Single(invitations); // Only one invitation should exist
+    }
+
+    [Fact]
+    public async Task TestAcceptClanInvitation()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer8",
+            mastery_rank = 70
+        };
+
+        var invitee = new Player
+        {
+            username = "InviteePlayer8",
+            mastery_rank = 40
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(invitee);
+        dbContext.SaveChanges();
+
+        var clanName = "AcceptInvitationClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var invitation = await clanService.InvitePlayerToClanAsync(clan, invitee);
+        Assert.NotNull(invitation);
+        Assert.Equal(clan.id, invitation.clan_id);
+        Assert.Equal(invitee.id, invitation.player_id);
+        Assert.Equal(InvitationStatus.PENDING, invitation.status);
+
+        await clanService.AcceptClanInvitationAsync(invitation);
+
+        var updatedClan = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan);
+        Assert.Equal(2, updatedClan.players.Count);
+        Assert.Contains(leader, updatedClan.players);
+        Assert.Contains(invitee, updatedClan.players);
+
+        var updatedInvitation = await dbContext.clan_invitations.FirstOrDefaultAsync(ci => ci.id == invitation.id);
+        Assert.NotNull(updatedInvitation);
+        Assert.Equal(InvitationStatus.ACCEPTED, updatedInvitation.status);
+    }
+
+    [Fact]
+    public async Task TestDeclineClanInvitation()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer9",
+            mastery_rank = 75
+        };
+
+        var invitee = new Player
+        {
+            username = "InviteePlayer9",
+            mastery_rank = 45
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(invitee);
+        dbContext.SaveChanges();
+
+        var clanName = "DeclineInvitationClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var invitation = await clanService.InvitePlayerToClanAsync(clan, invitee);
+        Assert.NotNull(invitation);
+        Assert.Equal(clan.id, invitation.clan_id);
+        Assert.Equal(invitee.id, invitation.player_id);
+        Assert.Equal(InvitationStatus.PENDING, invitation.status);
+
+        await clanService.DeclineClanInvitationAsync(invitation);
+
+        var updatedClan = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan);
+        Assert.Single(updatedClan.players); // Only leader should be present
+        Assert.Contains(leader, updatedClan.players);
+        Assert.DoesNotContain(invitee, updatedClan.players);
+
+        var updatedInvitation = await dbContext.clan_invitations.FirstOrDefaultAsync(ci => ci.id == invitation.id);
+        Assert.NotNull(updatedInvitation);
+        Assert.Equal(InvitationStatus.DECLINED, updatedInvitation.status);
+    }
+
+    [Fact]
+    public async Task TestCancelPendingInvitation()
+    {
+        var leader = new Player
+        {
+            username = "LeaderPlayer10",
+            mastery_rank = 80
+        };
+
+        var invitee = new Player
+        {
+            username = "InviteePlayer10",
+            mastery_rank = 50
+        };
+
+        dbContext.players.Add(leader);
+        dbContext.players.Add(invitee);
+        dbContext.SaveChanges();
+
+        var clanName = "CancelInvitationClan";
+        var clan = await clanService.CreateClanAsync(leader, clanName);
+
+        Assert.NotNull(clan);
+        Assert.Equal(clanName, clan.name);
+        Assert.Equal(leader.id, clan.leader_id);
+        Assert.True(clan.players.Contains(leader));
+        Assert.Single(clan.players);
+
+        var invitation = await clanService.InvitePlayerToClanAsync(clan, invitee);
+        Assert.NotNull(invitation);
+        Assert.Equal(clan.id, invitation.clan_id);
+        Assert.Equal(invitee.id, invitation.player_id);
+        Assert.Equal(InvitationStatus.PENDING, invitation.status);
+
+        var cancelResult = await clanService.CancelClanInvitationAsync(invitation);
+        Assert.True(cancelResult);
+
+        var updatedInvitation = await dbContext.clan_invitations.FirstOrDefaultAsync(ci => ci.id == invitation.id);
+        Assert.NotNull(updatedInvitation);
+        Assert.Equal(InvitationStatus.CANCELED, updatedInvitation.status);
+
+        var updatedClan = await dbContext.clans.Include(c => c.players).FirstOrDefaultAsync(c => c.id == clan.id);
+        Assert.NotNull(updatedClan);
+        Assert.Single(updatedClan.players); // Only leader should be present
+        Assert.Contains(leader, updatedClan.players);
+        Assert.DoesNotContain(invitee, updatedClan.players);
+    }
 }
