@@ -83,12 +83,12 @@ module.exports = defineConfig({
         historyApiFallback: {
             rewrites: [
                 {
-                    from: /^\/clans\/.*/,
-                    to: "/clans/details.html"
+                    from: /^\/clans\/.*\/progress$/,
+                    to: "/clans/progress.html"
                 },
                 {
-                    from: /^\/progress\/.*/,
-                    to: "/clans/progress.html"
+                    from: /^\/clans\/.*$/,
+                    to: "/clans/details.html"
                 },
                 {
                     from: /^\/.*$/,  // match any path

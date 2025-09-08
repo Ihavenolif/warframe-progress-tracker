@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using rest_api.Data;
+using rest_api.DTO;
 using rest_api.DTOs.Clans;
 using rest_api.Models;
 

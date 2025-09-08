@@ -24,17 +24,20 @@ public interface IMasteryService
     /// <returns></returns>
     public Task UpdatePlayerMasteryAsync(Player player, string jsonData);
     public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player);
+    public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan);
 }
 
 public class MasteryService : IMasteryService
 {
     private readonly WarframeTrackerDbContext _dbContext;
     private readonly IItemService _itemService;
+    private readonly IClanService _clanService;
 
-    public MasteryService(WarframeTrackerDbContext dbContext, IItemService itemService)
+    public MasteryService(WarframeTrackerDbContext dbContext, IItemService itemService, IClanService clanService)
     {
         _dbContext = dbContext;
         _itemService = itemService;
+        _clanService = clanService;
     }
 
     private JsonNode validateMasteryItem(JsonNode item)
@@ -188,8 +191,8 @@ public class MasteryService : IMasteryService
     public async Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player)
     {
 
-        var rawItems = await GetRawItems();
-        var playerData = await GetPlayerData(player);
+        Dictionary<string, MasteryItemDTO> rawItems = await GetRawItems();
+        List<PlayerData> playerData = await GetPlayerData(player);
 
         foreach (var item in playerData)
         {
@@ -201,6 +204,28 @@ public class MasteryService : IMasteryService
             };
         }
 
+
+        return rawItems.Values;
+    }
+
+    public async Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan)
+    {
+        Dictionary<string, MasteryItemDTO> rawItems = await GetRawItems();
+
+        foreach (Player player in clan.players)
+        {
+            List<PlayerData> playerData = await GetPlayerData(player);
+
+            foreach (var item in playerData)
+            {
+                rawItems[item.unique_name!].players[player.username] = new PlayerMasteryItemDTO
+                {
+                    xpGained = item.xp_gained,
+                    blueprintOwned = item.blueprint_owned,
+                    components_json = item.components_json
+                };
+            }
+        }
 
         return rawItems.Values;
     }

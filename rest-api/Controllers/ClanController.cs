@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using rest_api.DTO;
 using rest_api.DTOs.Clans;
 using rest_api.Models;
 using rest_api.Services;
@@ -16,12 +17,14 @@ public class ClanController : ControllerBase
     private readonly IClanService _clanService;
     private readonly IUserService _userService;
     private readonly IPlayerService _playerService;
+    private readonly IMasteryService _masteryService;
 
-    public ClanController(IClanService clanService, IUserService userService, IPlayerService playerService)
+    public ClanController(IClanService clanService, IUserService userService, IPlayerService playerService, IMasteryService masteryService)
     {
         _clanService = clanService;
         _userService = userService;
         _playerService = playerService;
+        _masteryService = masteryService;
     }
 
     [HttpGet("myClans")]
@@ -125,6 +128,33 @@ public class ClanController : ControllerBase
             PlayerName = i.player.username
         }).ToList();
         return Ok(invitationsDTO);
+    }
+
+    [HttpGet("{clanName}/progress")]
+    [SwaggerOperation(Summary = "Return the progress of every member of the clan.")]
+    [ProducesResponseType(typeof(MasteryInfoResponse), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<MasteryInfoResponse>> GetClanMembersProgress([FromRoute] string clanName)
+    {
+        Registered_user? user = await _userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        Clan? clan = await _clanService.GetClanByNameAsync(clanName);
+        if (clan == null) return NotFound("Clan not found");
+
+        if (!clan.players.Contains(player)) return Forbid();
+
+        var masteryData = await _masteryService.GetMasteryInfoByClanAsync(clan);
+        var res = new MasteryInfoResponse
+        {
+            items = masteryData.ToList(),
+            playerNames = clan.players.Select(p => p.username).ToList()
+        };
+        return Ok(res);
     }
 
     [HttpPost("{clanName}/changeLeader")]

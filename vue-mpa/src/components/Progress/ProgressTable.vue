@@ -1,5 +1,5 @@
 <template>
-    <CollapsibleContainer title="Filters">
+    <CollapsibleContainer style="position: sticky; top: 0; z-index: 1;" title="Filters">
 
         <div style="display: flex;">
             <div style="flex: 2; padding: 10px;">
@@ -24,34 +24,37 @@
 
     </CollapsibleContainer>
 
-    <br><br>
+    <br>
+    <br>
 
-    <table>
-        <thead>
-            <tr>
-                <th></th>
-                <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i
-                        v-if="this.sorting.key === 'itemName'"><span
-                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
-                </th>
-                <th id="classHead" v-on:click="sortTable('itemClass')">Item Class <i
-                        v-if="this.sorting.key === 'itemClass'"><span
-                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
-                </th>
-                <th v-for="(name, index) in playerNames" :key="index" v-on:click="sortTable(name)">
-                    {{ name }} <i v-if="this.sorting.key === name"><span
-                            :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
-                </th>
-            </tr>
-        </thead>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i
+                            v-if="this.sorting.key === 'itemName'"><span
+                                :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                    </th>
+                    <th id="classHead" v-on:click="sortTable('itemClass')">Item Class <i
+                            v-if="this.sorting.key === 'itemClass'"><span
+                                :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                    </th>
+                    <th v-for="(name, index) in playerNames" :key="index" v-on:click="sortTable(name)">
+                        {{ name }} <i v-if="this.sorting.key === name"><span
+                                :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                    </th>
+                </tr>
+            </thead>
 
-        <tbody id="tableBody">
-            <tr v-for="item in filteredItems" :key="item.uniqueName">
-                <ProgressTableItem v-bind:item="item" v-bind:playerNames="playerNames" ref="progressTableItem">
-                </ProgressTableItem>
-            </tr>
-        </tbody>
-    </table>
+            <tbody id="tableBody">
+                <tr v-for="item in filteredItems" :key="item.uniqueName">
+                    <ProgressTableItem v-bind:item="item" v-bind:playerNames="playerNames" ref="progressTableItem">
+                    </ProgressTableItem>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </template>
 
 <script>
@@ -158,17 +161,6 @@ export default {
 </script>
 
 <style>
-html {
-    overflow-y: scroll;
-    /* Always show vertical scrollbar */
-}
-
-body {
-    margin: 0;
-    height: 100vh;
-    /* Optional: ensure body takes full height */
-}
-
 table {
     border-collapse: collapse;
     border-spacing: 0;
@@ -232,11 +224,26 @@ label.checked {
     color: #eee
 }
 
+.table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+
 @media screen and (max-width: 600px) {
 
     th,
     td {
         font-size: 70%;
     }
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
 }
 </style>
