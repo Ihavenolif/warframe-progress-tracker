@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 namespace rest_api.Models;
 
+public enum InvitationStatus
+{
+    PENDING,
+    ACCEPTED,
+    DECLINED,
+    CANCELED
+}
+
 public partial class Clan_invitation
 {
     public int id { get; set; }
@@ -14,4 +22,6 @@ public partial class Clan_invitation
     public virtual Clan clan { get; set; } = null!;
 
     public virtual Player player { get; set; } = null!;
+
+    public InvitationStatus status { get; set; }
 }
