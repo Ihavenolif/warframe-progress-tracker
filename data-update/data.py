@@ -33,6 +33,18 @@ CONFLICTING_ITEM_NAMES = {
     "/Lotus/Types/Recipes/Weapons/LowKatanaBlueprint": "/Lotus/Types/Recipes/Weapons/ConvertKatanaBlueprint"  # Dragon nikana
 }
 
+ITEMS_TO_REPLACE = {
+    "/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeSortieBlueprint": "/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeBlueprint",  # Sheev
+    "/Lotus/Types/Recipes/Weapons/DetronBlueprint": "/Lotus/Types/Recipes/Weapons/CorpusHandcannonBlueprint",  # Detron
+}
+
+ITEMS_TO_IGNORE = [
+    "/Lotus/Types/Recipes/Weapons/LowKatanaBlueprint",
+    "/Lotus/Types/Recipes/Weapons/GrineerHandcannonBlueprint",
+    "/Lotus/Types/Recipes/Weapons/CorpusHandcannonBlueprint",
+    "/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeBlueprint"
+]
+
 
 def decompress(string: str) -> str:
     return lzma.decompress(bytes(string, "latin1")).decode("utf-8")
@@ -75,7 +87,7 @@ def get_images(index: dict[str, str]):
         f"http://content.warframe.com/PublicExport/Manifest/{index['Manifest']}")
     parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
-    return parsed
+    return parsed["Manifest"]
 
 
 def get_warframes(index: dict[str, str], warframes: list) -> None:

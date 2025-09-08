@@ -1,60 +1,68 @@
 <template>
-    <CollapsibleContainer style="position: sticky; top: 0; z-index: 1;" title="Filters">
 
-        <div style="display: flex;">
-            <div style="flex: 2; padding: 10px;">
-                <CollapsibleContainer title="Item Classes">
-                    <div class="checkbox-grid">
-                        <label v-for="itemClass in allItemClasses" :key="itemClass"
-                            :class="['checkbox-item', selectedItemClasses.includes(itemClass) ? 'checked' : '']">
-                            <input type="checkbox" :value="itemClass" v-model="selectedItemClasses"
-                                style="display: none;" />
-                            <span>{{ itemClass }}</span>
-                        </label>
-                    </div>
-                </CollapsibleContainer>
+    <div class="flex-container">
+        <CollapsibleContainer title="Filters">
+
+            <div style="display: flex;">
+                <div style="flex: 2; padding: 10px;">
+                    <CollapsibleContainer title="Item Classes">
+                        <div class="checkbox-grid">
+                            <label v-for="itemClass in allItemClasses" :key="itemClass"
+                                :class="['checkbox-item', selectedItemClasses.includes(itemClass) ? 'checked' : '']">
+                                <input type="checkbox" :value="itemClass" v-model="selectedItemClasses"
+                                    style="display: none;" />
+                                <span>{{ itemClass }}</span>
+                            </label>
+                        </div>
+                    </CollapsibleContainer>
+                </div>
+
+                <div style="flex: 1; padding: 10px;">
+                    <input id="itemNameFilter" type="text" v-model="itemNameFilter" v-on:input="fetchAndFilterItems"
+                        placeholder="Search">
+                </div>
             </div>
 
-            <div style="flex: 1; padding: 10px;">
-                <input id="itemNameFilter" type="text" v-model="itemNameFilter" v-on:input="fetchAndFilterItems"
-                    placeholder="Search">
-            </div>
+
+        </CollapsibleContainer>
+
+        <br>
+        <br>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i
+                                v-if="this.sorting.key === 'itemName'"><span
+                                    :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                        </th>
+                        <th id="classHead" v-on:click="sortTable('itemClass')">Item Class <i
+                                v-if="this.sorting.key === 'itemClass'"><span
+                                    :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                        </th>
+                        <th v-for="(name, index) in playerNames" :key="index" v-on:click="sortTable(name)">
+                            {{ name }} <i v-if="this.sorting.key === name"><span
+                                    :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody">
+                    <tr v-for="item in filteredItems" :key="item.uniqueName">
+                        <ProgressTableItem v-bind:item="item" v-bind:playerNames="playerNames" ref="progressTableItem">
+                        </ProgressTableItem>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-
-
-    </CollapsibleContainer>
-
-    <br>
-    <br>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th></th>
-                    <th id="itemNameHead" v-on:click="sortTable('itemName')">Item name <i
-                            v-if="this.sorting.key === 'itemName'"><span
-                                :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
-                    </th>
-                    <th id="classHead" v-on:click="sortTable('itemClass')">Item Class <i
-                            v-if="this.sorting.key === 'itemClass'"><span
-                                :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
-                    </th>
-                    <th v-for="(name, index) in playerNames" :key="index" v-on:click="sortTable(name)">
-                        {{ name }} <i v-if="this.sorting.key === name"><span
-                                :class="['fa', 'table-head-caret', this.sorting.asc ? 'fa-caret-down' : 'fa-caret-up']"></span></i>
-                    </th>
-                </tr>
-            </thead>
-
-            <tbody id="tableBody">
-                <tr v-for="item in filteredItems" :key="item.uniqueName">
-                    <ProgressTableItem v-bind:item="item" v-bind:playerNames="playerNames" ref="progressTableItem">
-                    </ProgressTableItem>
-                </tr>
-            </tbody>
-        </table>
     </div>
+
+
+
+
+
 </template>
 
 <script>
@@ -169,6 +177,10 @@ table {
     white-space: nowrap;
 }
 
+body {
+    overflow: hidden;
+}
+
 th,
 td {
     text-align: left;
@@ -240,8 +252,8 @@ label.checked {
     }
 }
 
-body {
-    height: 100%;
+.flex-container {
+    height: calc(100vh - 20px - 48px);
     margin: 0;
     display: flex;
     flex-direction: column;
