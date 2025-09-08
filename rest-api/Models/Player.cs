@@ -27,5 +27,5 @@ public partial class Player
 
     public virtual ICollection<Registered_user> registered_users { get; set; } = new List<Registered_user>();
 
-    public virtual ICollection<Clan> clansNavigation { get; set; } = new List<Clan>();
+    public virtual ICollection<Clan> clansLeading { get; set; } = new List<Clan>();
 }

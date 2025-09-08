@@ -63,13 +63,11 @@ CREATE TABLE clan (
     leader_id INTEGER NOT NULL REFERENCES player (id) ON DELETE CASCADE
 );
 
-CREATE TYPE invitation_status AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED', 'CANCELED');
-
 CREATE TABLE clan_invitation (
     id SERIAL NOT NULL PRIMARY KEY,
     clan_id INTEGER REFERENCES clan (id) ON DELETE CASCADE,
     player_id INTEGER REFERENCES player (id) ON DELETE CASCADE,
-    status invitation_status NOT NULL DEFAULT 'PENDING'
+    invitation_status TEXT NOT NULL DEFAULT 'PENDING' CHECK (invitation_status IN ('PENDING', 'ACCEPTED', 'DECLINED', 'CANCELED'))
 );
 
 CREATE TABLE player_items (

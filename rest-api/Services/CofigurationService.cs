@@ -1,6 +1,7 @@
 using System.Text;
 using DotNetEnv;
 using Npgsql;
+using rest_api.Models;
 
 namespace rest_api.Services;
 
@@ -19,6 +20,7 @@ public class ConfigurationService
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(GetConnectionString());
         dataSourceBuilder.EnableDynamicJson();
+        dataSourceBuilder.MapEnum<InvitationStatus>("invitation_status");
         DataSource = dataSourceBuilder.Build();
     }
 

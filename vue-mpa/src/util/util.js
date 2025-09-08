@@ -60,7 +60,7 @@ export async function authFetch(url, options = {}) {
         localStorage.removeItem("token");
         localStorage.removeItem("username");
 
-        window.location.href = "login";
+        window.location.href = "/login";
         return;
     }
 

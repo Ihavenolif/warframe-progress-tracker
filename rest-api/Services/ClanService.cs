@@ -25,6 +25,7 @@ public interface IClanService
     Task<bool> AcceptClanInvitationAsync(Clan_invitation invitation);
     Task<bool> DeclineClanInvitationAsync(Clan_invitation invitation);
     Task<List<Clan_invitation>> GetPendingInvitationsForPlayerAsync(Player player);
+    Task<List<Clan_invitation>> GetPendingInvitationsForClanAsync(Clan clan);
     Task<bool> CancelClanInvitationAsync(Clan_invitation invitation);
     Task<Clan_invitation?> GetClanInvitationByIdAsync(int id);
 }
@@ -147,6 +148,8 @@ public class ClanService : IClanService
     {
         return dbContext.clans
             .Where(c => c.name == name)
+            .Include(c => c.leader)
+            .Include(c => c.players)
             .FirstOrDefaultAsync();
     }
 
@@ -166,10 +169,21 @@ public class ClanService : IClanService
             .ToListAsync();
     }
 
+    public Task<List<Clan_invitation>> GetPendingInvitationsForClanAsync(Clan clan)
+    {
+        return dbContext.clan_invitations
+            .Where(ci => ci.clan_id == clan.id && ci.status == InvitationStatus.PENDING)
+            .Include(ci => ci.player)
+            .Include(ci => ci.clan)
+            .ToListAsync();
+    }
+
     public Task<List<Clan_invitation>> GetPendingInvitationsForPlayerAsync(Player player)
     {
         return dbContext.clan_invitations
             .Where(ci => ci.player_id == player.id && ci.status == InvitationStatus.PENDING)
+            .Include(ci => ci.player)
+            .Include(ci => ci.clan)
             .ToListAsync();
     }
 

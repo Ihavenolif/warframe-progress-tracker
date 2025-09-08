@@ -7,6 +7,7 @@ using Npgsql;
 using rest_api.Services;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace rest_api.Data;
 
@@ -39,6 +40,8 @@ public partial class WarframeTrackerDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresEnum<InvitationStatus>();
+
         modelBuilder.Entity<Clan>(entity =>
         {
             entity.HasKey(e => e.id).HasName("clan_pkey");
@@ -49,11 +52,11 @@ public partial class WarframeTrackerDbContext : DbContext
 
             entity.Property(e => e.name).HasMaxLength(256);
 
-            entity.HasOne(d => d.leader).WithMany(p => p.clans)
+            entity.HasOne(d => d.leader).WithMany(p => p.clansLeading)
                 .HasForeignKey(d => d.leader_id)
                 .HasConstraintName("clan_leader_id_fkey");
 
-            entity.HasMany(d => d.players).WithMany(p => p.clansNavigation)
+            entity.HasMany(d => d.players).WithMany(p => p.clans)
                 .UsingEntity<Dictionary<string, object>>(
                     "player_clan",
                     r => r.HasOne<Player>().WithMany()
@@ -71,6 +74,8 @@ public partial class WarframeTrackerDbContext : DbContext
 
         modelBuilder.Entity<Clan_invitation>(entity =>
         {
+            var converter = new EnumToStringConverter<InvitationStatus>();
+
             entity.HasKey(e => e.id).HasName("clan_invitation_pkey");
 
             entity.ToTable("clan_invitation");
@@ -78,11 +83,10 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.Property(e => e.id).ValueGeneratedOnAdd();
 
             entity.Property(e => e.status)
+                .HasConversion(converter)
                 .HasDefaultValue(InvitationStatus.PENDING)
-                .HasConversion(
-                    v => v.ToString(),
-                    v => (InvitationStatus)Enum.Parse(typeof(InvitationStatus), v))
-                .HasColumnName("status");
+                .HasColumnName("invitation_status")
+                .HasColumnType("text");
 
             entity.HasOne(d => d.clan).WithMany(p => p.clan_invitations)
                 .HasForeignKey(d => d.clan_id)
@@ -115,6 +119,22 @@ public partial class WarframeTrackerDbContext : DbContext
 
             entity.Property(e => e.mastery_rank).HasDefaultValue(0);
             entity.Property(e => e.username).HasMaxLength(256);
+
+            entity.HasMany(d => d.clans)
+                .WithMany(p => p.players)
+                .UsingEntity<Dictionary<string, object>>(
+                    "player_clan",
+                    r => r.HasOne<Clan>().WithMany()
+                        .HasForeignKey("clan_id")
+                        .HasConstraintName("player_clan_clan_id_fkey"),
+                    l => l.HasOne<Player>().WithMany()
+                        .HasForeignKey("player_id")
+                        .HasConstraintName("player_clan_player_id_fkey"),
+                    j =>
+                    {
+                        j.HasKey("clan_id", "player_id").HasName("player_clan_pkey");
+                        j.ToTable("player_clan");
+                    });
         });
 
         modelBuilder.Entity<Player_item>(entity =>
