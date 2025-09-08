@@ -7,11 +7,13 @@ namespace rest_api.Services;
 public interface IClanService
 {
     Task<Clan?> GetClanByIdAsync(int id);
+    Task<Clan?> GetClanByNameAsync(string name);
     Task<Clan?> CreateClanAsync(Player leader, string clanName);
     Task<Clan?> UpdateClanAsync(Clan clan);
     Task<bool> DeleteClanAsync(Clan clan);
     Task<bool> AddPlayerToClanAsync(Clan clan, Player player);
     Task<bool> RemovePlayerFromClanAsync(Clan clan, Player player);
+    Task<bool> ChangeLeaderAsync(Clan clan, Player newLeader);
 
     Task<bool> IsPlayerInClanAsync(Player player, Clan clan);
     Task<bool> IsPlayerClanLeaderAsync(Player player, Clan clan);
@@ -62,6 +64,23 @@ public class ClanService : IClanService
         return dbContext.SaveChangesAsync().ContinueWith(t => t.Result > 0);
     }
 
+    public Task<bool> ChangeLeaderAsync(Clan clan, Player newLeader)
+    {
+        if (!clan.players.Contains(newLeader))
+        {
+            throw new ArgumentException("New leader must be a member of the clan.");
+        }
+
+        if (clan.leader_id == newLeader.id)
+        {
+            return Task.FromResult(false);
+        }
+
+        clan.leader_id = newLeader.id;
+        dbContext.clans.Update(clan);
+        return dbContext.SaveChangesAsync().ContinueWith(t => t.Result > 0);
+    }
+
     public async Task<Clan?> CreateClanAsync(Player leader, string clanName)
     {
         Clan newClan = new Clan
@@ -102,6 +121,13 @@ public class ClanService : IClanService
             .Where(c => c.id == id)
             .FirstOrDefaultAsync();
         return clan;
+    }
+
+    public Task<Clan?> GetClanByNameAsync(string name)
+    {
+        return dbContext.clans
+            .Where(c => c.name == name)
+            .FirstOrDefaultAsync();
     }
 
     public Task<List<Player>> GetClanMembersAsync(Clan clan)

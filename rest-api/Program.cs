@@ -55,6 +55,7 @@ builder.Services.AddScoped<IMasteryService, MasteryService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IWarframePublicExportService, WarframePublicExportService>();
+builder.Services.AddScoped<IClanService, ClanService>();
 
 builder.Services.AddCors(options =>
 {
