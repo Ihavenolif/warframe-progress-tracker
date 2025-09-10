@@ -30,7 +30,7 @@ jobs:
           context: ./rest-api
           file: ./rest-api/Dockerfile
           push: true
-          tags: ghcr.io/ihavenolif/warframe-progress-tracker/backend:latest
+          tags: ghcr.io/${{ github.repository_owner }}/warframe-progress-tracker-backend:latest
 
       - name: Build frontend image
         uses: docker/build-push-action@v5
@@ -38,4 +38,4 @@ jobs:
           context: ./vue-mpa
           file: ./vue-mpa/Dockerfile
           push: true
-          tags: ghcr.io/ihavenolif/warframe-progress-tracker/frontend:latest
+          tags: ghcr.io/${{ github.repository_owner }}/warframe-progress-tracker-frontend:latest
