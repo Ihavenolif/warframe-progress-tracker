@@ -12,6 +12,10 @@ app.spec
 obj
 bin
 .env
-https-setup/localhost-me.*
 nginx/certs/*
 rest-api/out
+*.crt
+*.key
+cache
+*.csr
+*.pfx

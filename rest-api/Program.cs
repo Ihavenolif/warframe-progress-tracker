@@ -1,9 +1,6 @@
 using rest_api.Data;
-using DotNetEnv;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography;
 using Microsoft.OpenApi.Models;
 using rest_api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +69,13 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+    options.AddPolicy("ProdPolicy", policy =>
+    {
+        policy.WithOrigins("https://" + config.OriginUrl)
+              .AllowCredentials()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 builder.Services.AddAuthentication(options =>
@@ -90,56 +94,28 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.WebHost.ConfigureKestrel(options =>
+if (config.AppEnvironment == "DEVELOPMENT")
 {
-    options.ListenLocalhost(5224, listenOptions =>
+    // Need self-signed https only for dev. For prod, nginx handles this.
+    builder.WebHost.ConfigureKestrel(options =>
     {
-        listenOptions.UseHttps("../https-setup/localhost-me.pfx", "");
+        options.ListenLocalhost(5224, listenOptions =>
+        {
+            listenOptions.UseHttps("../https-setup/localhost-me.pfx", "");
+        });
     });
-});
+}
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || true)
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-//app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors(config.CorsPolicy);
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
 
-AppContext.SetSwitch("Npgsql.EnableSqlLogging", true);
-
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

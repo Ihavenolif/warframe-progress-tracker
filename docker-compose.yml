@@ -1,20 +1,23 @@
 services:
   nginx-frontend:
-    build: ./vue-mpa
+    image: #image
     container_name: warframe-tracker-frontend
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./vue-mpa/nginx/ngnix.conf:/etc/nginx/nginx.conf
-      - ./vue-mpa/nginx/nginx.conf.d:/etc/nginx/conf.d
+      - ./vue-mpa/nginx/nginx.conf.d:/etc/nginx/nginx.templates.d
       - ./https-setup:/etc/nginx/certs
+      - ./vue-mpa/nginx/entrypoint.sh:/entrypoint.sh
+      - ./cache:/var/cache/nginx
     restart: unless-stopped
+    env_file:
+      - ./.env
+    entrypoint: ["/entrypoint.sh"]
 
   backend:
-    build:
-      context: ./rest-api
-      dockerfile: Dockerfile
+    image: #image
     container_name: warframe-tracker-backend
     ports:
       - "5224:8080"

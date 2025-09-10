@@ -1,0 +1,8 @@
+services:
+  nginx-frontend:
+    image: #image
+    build: ./vue-mpa
+
+  backend:
+    image: #image
+    build: ./rest-api

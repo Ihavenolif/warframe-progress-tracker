@@ -1,7 +1,7 @@
 services:
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:latest
-    container_name: imgproxy
+    container_name: imgproxy-dev
     restart: unless-stopped
     ports:
       - "20080:8080"

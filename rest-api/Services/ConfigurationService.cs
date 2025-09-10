@@ -18,6 +18,9 @@ public class ConfigurationService
         dbUser = Environment.GetEnvironmentVariable("POSTGRES_USER");
         dbPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
 
+        this.AppEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "DEVELOPMENT";
+        this.OriginUrl = Environment.GetEnvironmentVariable("ORIGIN_URL") ?? "";
+
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(GetConnectionString());
         dataSourceBuilder.EnableDynamicJson();
         dataSourceBuilder.MapEnum<InvitationStatus>("invitation_status");
@@ -27,6 +30,8 @@ public class ConfigurationService
     public readonly string CorsPolicy;
     public readonly bool SecureCookies;
     public readonly NpgsqlDataSource DataSource;
+    public readonly string AppEnvironment;
+    public readonly string OriginUrl;
 
     private string? dbHost;
     private string? dbName;
