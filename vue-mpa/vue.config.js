@@ -79,6 +79,11 @@ module.exports = defineConfig({
                 secure: false,  // allow self-signed cert in dev
                 cookieDomainRewrite: 'www.localhost.me', // optional
             },
+            '/images': {
+                target: 'https://www.localhost.me:18443',
+                changeOrigin: true,
+                secure: false,  // allow self-signed cert in dev
+            }
         },
         historyApiFallback: {
             rewrites: [
@@ -87,7 +92,7 @@ module.exports = defineConfig({
                     to: "/clans/progress.html"
                 },
                 {
-                    from: /^\/clans\/.*$/,
+                    from: /^\/clans\/.*\/details$/,
                     to: "/clans/details.html"
                 },
                 {

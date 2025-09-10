@@ -1,5 +1,5 @@
 //export const BASE_URL = "http://localhost:5224"
-export const BASE_URL = "https://www.localhost.me:8080"
+export const BASE_URL = window.location.origin
 
 export async function getPlayerName() {
     const res = await authFetch("/api/auth/me", {

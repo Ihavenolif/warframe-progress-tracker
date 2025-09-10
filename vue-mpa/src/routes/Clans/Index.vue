@@ -17,7 +17,7 @@
                 </div>
 
                 <div class="button-right">
-                    <a :href="`/clans/${clan['name']}`">Details</a>
+                    <a :href="`/clans/${clan['name']}/details`">Details</a>
                 </div>
 
             </div>

@@ -14,3 +14,4 @@ bin
 .env
 https-setup/localhost-me.*
 nginx/certs/*
+rest-api/out

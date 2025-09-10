@@ -1,5 +1,5 @@
 import localforage from "localforage";
-import { authFetch } from "./util";
+import { authFetch, BASE_URL } from "./util";
 
 localforage.config({
     name: 'warframe-tracker',
@@ -56,8 +56,8 @@ async function updateImageDb() {
 export async function getImage(uniqueName) {
     const image = await localforage.getItem(uniqueName);
     if (image) {
-        return encodeURI("https://www.localhost.me:18443/images/http://content.warframe.com/PublicExport" + image + "@png");
+        return encodeURI(BASE_URL + "/images/http://content.warframe.com/PublicExport" + image + "@png");
     }
     await updateImageDb();
-    return encodeURI("https://www.localhost.me:18443/images/http://content.warframe.com/PublicExport" + await localforage.getItem(uniqueName) + "@png");
+    return encodeURI(BASE_URL + "/images/http://content.warframe.com/PublicExport" + await localforage.getItem(uniqueName) + "@png");
 }

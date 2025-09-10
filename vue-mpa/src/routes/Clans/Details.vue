@@ -76,7 +76,7 @@ export default {
     computed: {
         clanName() {
             const pathParts = window.location.href.split('/');
-            return decodeURIComponent(pathParts[pathParts.length - 1]);
+            return decodeURIComponent(pathParts[pathParts.length - 2]);
         },
         leaderName() {
             if (this.userData && this.clanMembers) {

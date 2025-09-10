@@ -14,9 +14,9 @@ public class ConfigurationService
         SecureCookies = Environment.GetEnvironmentVariable("SECURE_COOKIES") == "true";
 
         dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-        dbName = Environment.GetEnvironmentVariable("DB_NAME");
-        dbUser = Environment.GetEnvironmentVariable("DB_USER");
-        dbPassword = Environment.GetEnvironmentVariable("DB_PASS");
+        dbName = Environment.GetEnvironmentVariable("POSTGRES_DB");
+        dbUser = Environment.GetEnvironmentVariable("POSTGRES_USER");
+        dbPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(GetConnectionString());
         dataSourceBuilder.EnableDynamicJson();
