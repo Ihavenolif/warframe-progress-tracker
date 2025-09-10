@@ -1,6 +1,6 @@
 services:
   nginx-frontend:
-    image: #image
+    image: ghcr.io/ihavenolif/warframe-progress-tracker-frontend:latest
     container_name: warframe-tracker-frontend
     ports:
       - "80:80"
@@ -17,7 +17,7 @@ services:
     entrypoint: ["/entrypoint.sh"]
 
   backend:
-    image: #image
+    image: ghcr.io/ihavenolif/warframe-progress-tracker-backend:latest
     container_name: warframe-tracker-backend
     ports:
       - "5224:8080"
