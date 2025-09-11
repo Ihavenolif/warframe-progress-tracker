@@ -71,6 +71,7 @@ services:
       - ./https-setup/certbot-var:/var/lib/letsencrypt
       - ./https-setup/nginx-html:/var/www/html
       - ./https-setup/certbot_entrypoint.sh:/certbot_entrypoint.sh
+      - ./https-setup:/certs
     env_file:
       - ./.env
     entrypoint: ["/certbot_entrypoint.sh"]
