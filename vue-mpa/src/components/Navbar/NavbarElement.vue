@@ -1,6 +1,6 @@
 <template>
     <div class="topnav" id="myTopnav">
-        <a :class="{active : currentPath == '/'}" href="/">Home</a>
+        <a :class="{ active: currentPath == '/' }" href="/">Home</a>
 
         <UserMenu></UserMenu>
 
@@ -11,8 +11,8 @@
 <script>
 import UserMenu from './UserMenu.vue';
 
-export default{
-    methods:{
+export default {
+    methods: {
         responsiveNavbar() {
             const x = document.getElementById("myTopnav");
             if (x.className === "topnav") {
@@ -22,7 +22,7 @@ export default{
             }
         }
     },
-    mounted(){
+    mounted() {
         this.currentPath = window.location.pathname;
     },
     data() {
@@ -30,151 +30,151 @@ export default{
             currentPath: '',
         };
     },
-    components:{
+    components: {
         UserMenu
     }
 }
 </script>
 
 <style>
-    .topnav {
-        overflow: hidden;
-        background-color: #333;
-    }
+.topnav {
+    overflow: hidden;
+    background-color: #333;
+}
 
-    .topnav a {
-        float: left;
-        display: block;
-        color: #f2f2f2;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-    }
+.topnav a {
+    float: left;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
 
-    .active {
-        background-color: var(--accent);
-        color: white;
-    }
+.active {
+    background-color: var(--accent);
+    color: white;
+}
 
-    .active-inverted {
-        background-color: var(--accent);
-        color: white !important;
-    }
+.active-inverted {
+    background-color: var(--accent);
+    color: white !important;
+}
 
-    .active-inverted:hover {
-        background-color: var(--accent-light) !important;
-        color: black !important;
-    }
+.active-inverted:hover {
+    background-color: var(--accent-light) !important;
+    color: black !important;
+}
 
-    .topnav .icon {
+.topnav .icon {
+    display: none;
+}
+
+.dropdown {
+    float: left;
+    overflow: hidden;
+}
+
+.right-aligned.dropdown-content {
+    position: absolute;
+    right: 0;
+}
+
+.right-aligned {
+    float: right;
+}
+
+.dropdown .dropbtn {
+    font-size: 17px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.topnav a:hover,
+.dropdown:hover .dropbtn {
+    background-color: #555;
+    color: white;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+@media screen and (max-width: 600px) {
+
+    .topnav a:not(:first-child),
+    .dropdown .dropbtn {
         display: none;
     }
 
-    .dropdown {
-        float: left;
-        overflow: hidden;
-    }
-
-    .right-aligned.dropdown-content {
-        position: absolute;
-        right: 0;
-    }
-
-    .right-aligned {
+    .topnav a.icon {
         float: right;
+        display: block;
     }
 
     .dropdown .dropbtn {
-        font-size: 17px;
-        border: none;
-        outline: none;
-        color: white;
-        padding: 14px 16px;
-        background-color: inherit;
-        font-family: inherit;
-        margin: 0;
+        float: left !important;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .topnav.responsive {
+        position: relative;
     }
 
-    .dropdown-content {
-        display: none;
+    .topnav.responsive .icon {
         position: absolute;
-        background-color: #f9f9f9;
-        min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-        z-index: 1;
+        right: 0;
+        top: 0;
     }
 
-    .dropdown-content a {
+    .topnav.responsive a {
         float: none;
-        color: black;
-        padding: 12px 16px;
-        text-decoration: none;
         display: block;
         text-align: left;
     }
 
-    .topnav a:hover,
-    .dropdown:hover .dropbtn {
-        background-color: #555;
-        color: white;
+    .topnav.responsive .dropdown {
+        float: none;
     }
 
-    .dropdown-content a:hover {
-        background-color: #ddd;
-        color: black;
+    .topnav.responsive .dropdown-content {
+        position: relative;
     }
 
-    .dropdown:hover .dropdown-content {
+    .topnav.responsive .dropdown .dropbtn {
         display: block;
+        width: 100%;
+        text-align: left;
     }
-
-    @media screen and (max-width: 600px) {
-
-        .topnav a:not(:first-child),
-        .dropdown .dropbtn {
-            display: none;
-        }
-
-        .topnav a.icon {
-            float: right;
-            display: block;
-        }
-
-        .dropdown .dropbtn {
-            float: left !important;
-        }
-    }
-
-    @media screen and (max-width: 600px) {
-        .topnav.responsive {
-            position: relative;
-        }
-
-        .topnav.responsive .icon {
-            position: absolute;
-            right: 0;
-            top: 0;
-        }
-
-        .topnav.responsive a {
-            float: none;
-            display: block;
-            text-align: left;
-        }
-
-        .topnav.responsive .dropdown {
-            float: none;
-        }
-
-        .topnav.responsive .dropdown-content {
-            position: relative;
-        }
-
-        .topnav.responsive .dropdown .dropbtn {
-            display: block;
-            width: 100%;
-            text-align: left;
-        }
-    }
+}
 </style>
