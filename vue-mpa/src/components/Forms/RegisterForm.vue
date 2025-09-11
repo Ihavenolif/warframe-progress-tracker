@@ -29,7 +29,7 @@ export default {
                 password: '',
                 repeatPassword: ''
             },
-            errorMessage: "1234"
+            errorMessage: ""
         }
     },
     methods: {
