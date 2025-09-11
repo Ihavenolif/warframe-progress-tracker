@@ -11,7 +11,7 @@ namespace rest_api.Services;
 
 public interface ITokenService
 {
-    public JwtSecurityToken GenerateAccessToken(string username);
+    public JwtSecurityToken GenerateAccessToken(Registered_user user);
     public Task<RefreshToken> GenerateRefreshToken(Registered_user user, string? ip);
     public Task<RefreshToken?> GetRefreshTokenAsync(string token);
     public Task InvalidateRefreshTokenAsync(RefreshToken token);
@@ -21,24 +21,36 @@ class TokenService : ITokenService
 {
     private readonly ConfigurationService _config;
     private readonly WarframeTrackerDbContext _dbContext;
+    private readonly IUserService _userService;
 
     private static readonly char[] _chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
 
-    public TokenService(ConfigurationService config, WarframeTrackerDbContext dbContext)
+    public TokenService(ConfigurationService config, WarframeTrackerDbContext dbContext, IUserService userService)
     {
         _config = config;
         this._dbContext = dbContext;
+        this._userService = userService;
     }
 
-    public JwtSecurityToken GenerateAccessToken(string username)
+    public JwtSecurityToken GenerateAccessToken(Registered_user user)
     {
         var keyBytes = _config.GetJwtKey();
 
         var key = new SymmetricSecurityKey(keyBytes);
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.username)
+        };
+
+        foreach (var role in user.Roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+        }
+
         var token = new JwtSecurityToken(
-            claims: new[] { new Claim(ClaimTypes.Name, username) },
+            claims: claims,
             expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: creds
         );

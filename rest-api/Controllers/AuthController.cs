@@ -47,7 +47,7 @@ public class AuthController : ControllerBase
 
         Registered_user user = (await userService.GetUserByUsernameAsync(username))!;
 
-        var accessToken = _tokenService.GenerateAccessToken(username);
+        var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = await _tokenService.GenerateRefreshToken(user, Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
 
         var cookieOptions = new CookieOptions
@@ -55,7 +55,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = _config.SecureCookies,
             SameSite = SameSiteMode.None,
-            Domain = ".localhost.me",
+            Domain = $".${_config.OriginUrl}",
             MaxAge = TimeSpan.FromDays(7)
         };
 
@@ -77,13 +77,11 @@ public class AuthController : ControllerBase
         }
 
         // TODO: Input validation
-        await userService.CreateUserAsync(username, password);
+        Registered_user user = await userService.CreateUserAsync(username, password);
 
-        var token = _tokenService.GenerateAccessToken(username);
+        var token = _tokenService.GenerateAccessToken(user);
 
         return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-
-        throw new NotImplementedException();
     }
 
     [HttpPost("refresh")]
@@ -111,7 +109,14 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid refresh token");
         }
 
-        var accessToken = _tokenService.GenerateAccessToken(refreshToken.User!.username);
+        var user = await userService.GetUserByUsernameAsync(refreshToken.User!.username);
+
+        if (user is null)
+        {
+            return Unauthorized("Invalid refresh token");
+        }
+
+        var accessToken = _tokenService.GenerateAccessToken(user);
         var newRefreshToken = await _tokenService.GenerateRefreshToken(refreshToken.User, Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? null);
         await _tokenService.InvalidateRefreshTokenAsync(refreshToken);
 
@@ -120,7 +125,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = _config.SecureCookies,
             SameSite = SameSiteMode.None,
-            Domain = ".localhost.me",
+            Domain = $".${_config.OriginUrl}",
             MaxAge = TimeSpan.FromDays(7)
         };
 

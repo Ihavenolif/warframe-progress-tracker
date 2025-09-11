@@ -216,6 +216,10 @@ public partial class WarframeTrackerDbContext : DbContext
 
             entity.Property(e => e.password_hash).HasMaxLength(256);
             entity.Property(e => e.username).HasMaxLength(256);
+            entity.Property(e => e.Roles)
+                .HasDefaultValue(new List<string>())
+                .HasColumnName("roles")
+                .HasColumnType("text[]");
 
             entity.HasMany(e => e.RefreshTokens)
                 .WithOne(e => e.User)

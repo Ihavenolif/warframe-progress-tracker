@@ -10,7 +10,7 @@ namespace rest_api.Services;
 public interface IUserService
 {
     public Task<Registered_user?> GetUserByUsernameAsync(string username);
-    public Task CreateUserAsync(string username, string password);
+    public Task<Registered_user> CreateUserAsync(string username, string password);
     public Task<bool> VerifyUser(string username, string password);
     public Task AddPlayerToUser(Registered_user user, string username);
     public Task RemovePlayerFromUser(Registered_user user);
@@ -32,12 +32,13 @@ public class UserService : IUserService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task CreateUserAsync(string username, string password)
+    public async Task<Registered_user> CreateUserAsync(string username, string password)
     {
         string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
         Registered_user user = new Registered_user(username, hashedPassword);
         await _dbContext.registered_users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
+        return user;
     }
 
     public async Task<Registered_user?> GetUserByUsernameAsync(string username)

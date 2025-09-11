@@ -28,4 +28,7 @@ public partial class Registered_user
 
     [JsonIgnore]
     public virtual ICollection<RefreshToken> RefreshTokens { get; } = new List<RefreshToken>();
+
+    [JsonIgnore]
+    public List<string> Roles { get; set; } = new List<string>();
 }
