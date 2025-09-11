@@ -2,7 +2,7 @@
     <div class="progress-container">
         <div class="progress-bar" id="progressBar" :style="{ width: `${progress}%` }">XP Progress: {{
             Math.round(progress)
-        }}%</div>
+            }}%</div>
 
     </div>
 </template>
@@ -36,7 +36,7 @@ export default {
     padding: 0px;
     padding-left: 10px;
     margin: 0px;
-    line-height: 232%;
+    line-height: 38px !important;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

@@ -50,7 +50,7 @@
                 </thead>
 
                 <tbody id="tableBody">
-                    <tr v-for="item in filteredItems" :key="item.uniqueName">
+                    <tr v-for="item in filteredItems" :key="item.uniqueName" style="height: 38px !important;">
                         <ProgressTableItem v-bind:item="item" v-bind:playerNames="playerNames" ref="progressTableItem">
                         </ProgressTableItem>
                     </tr>
@@ -170,6 +170,8 @@ table {
     width: 100%;
     white-space: nowrap;
     border-right: 1px solid #777;
+    box-sizing: border-box;
+    line-height: 10px !important;
 }
 
 body {
@@ -180,6 +182,13 @@ th,
 td {
     text-align: left;
     padding: 10px;
+    height: 38px !important;
+    overflow-y: hidden;
+}
+
+tr {
+    height: 38px !important;
+    overflow-y: hidden;
 }
 
 th {
