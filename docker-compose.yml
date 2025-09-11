@@ -1,0 +1,79 @@
+services:
+  nginx-frontend:
+    image: ghcr.io/ihavenolif/warframe-progress-tracker-frontend:latest
+    container_name: warframe-tracker-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./vue-mpa/nginx/ngnix.conf:/etc/nginx/nginx.conf
+      - ./vue-mpa/nginx/nginx.conf.d:/etc/nginx/nginx.templates.d
+      - ./https-setup:/etc/nginx/certs
+      - ./vue-mpa/nginx/entrypoint.sh:/entrypoint.sh
+      - ./cache:/var/cache/nginx
+      - ./https-setup/nginx-html:/var/www/html
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    entrypoint: ["/entrypoint.sh"]
+
+  backend:
+    image: ghcr.io/ihavenolif/warframe-progress-tracker-backend:latest
+    container_name: warframe-tracker-backend
+    ports:
+      - "5224:8080"
+    environment:
+      - DB_HOST=postgres
+      - DATA_UPDATE_SERVER_URL=data-update
+  
+    env_file:
+      - ./.env
+
+  postgres:
+    image: postgres:16.10-bookworm
+    container_name: warframe-tracker-postgres
+    env_file:
+      - ./.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ./create.sql:/create.sql
+    restart: unless-stopped
+
+
+  imgproxy:
+    image: ghcr.io/imgproxy/imgproxy:latest
+    container_name: imgproxy
+    restart: unless-stopped
+
+    environment:
+      - IMGPROXY_CACHE_CONTROL_PASSTHROUGH=true
+    
+    volumes:
+      - ./imgcache:/imgcache
+
+  data-update:
+    image: ghcr.io/ihavenolif/warframe-progress-tracker-data-update:latest
+    ports:
+      - "5000:5000"
+    container_name: warframe-tracker-data-update
+    environment:
+      - DB_HOST=postgres
+    env_file:
+      - ./.env
+
+  certbot:
+    image: certbot/certbot
+    container_name: warframe-tracker-certbot
+    volumes:
+      - ./https-setup/certbot-etc:/etc/letsencrypt
+      - ./https-setup/certbot-var:/var/lib/letsencrypt
+      - ./https-setup/nginx-html:/var/www/html
+      - ./https-setup/certbot_entrypoint.sh:/certbot_entrypoint.sh
+      - ./https-setup:/certs
+    env_file:
+      - ./.env
+    entrypoint: ["/certbot_entrypoint.sh"]
+    depends_on:
+      - nginx-frontend

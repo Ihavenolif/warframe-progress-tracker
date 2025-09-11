@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./rest-api
+          file: ./rest-api/Dockerfile
+          push: true
+          tags: ghcr.io/ihavenolif/warframe-progress-tracker-backend:latest
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./vue-mpa
+          file: ./vue-mpa/Dockerfile
+          push: true
+          tags: ghcr.io/ihavenolif/warframe-progress-tracker-frontend:latest
+      
+      - name: Build data-update image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./data-update
+          file: ./data-update/Dockerfile
+          push: true
+          tags: ghcr.io/ihavenolif/warframe-progress-tracker-data-update:latest

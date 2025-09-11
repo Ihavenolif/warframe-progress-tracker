@@ -54,7 +54,7 @@ def clan_progress(name):
     clan: Clan = Clan.query.filter(Clan.name == name).first()
     if not clan:
         flash("Clan not found.", "error")
-        return redirect("/")
+        return redirect("/clans")
 
     player: Player = Player.query.filter_by(registered_user_id=getattr(current_user, "id")).first()
 
@@ -62,7 +62,7 @@ def clan_progress(name):
         flash("You need to link your warframe account first.", "error")
         return redirect("/settings")
 
-    if not PlayerClan.query.filter(PlayerClan.clan_id == name).filter(PlayerClan.player_id == player.id):
+    if not PlayerClan.query.filter(PlayerClan.clan_id == clan.id).filter(PlayerClan.player_id == player.id).first():
         flash("You are not a member of this clan.", "error")
         return redirect("/")
 

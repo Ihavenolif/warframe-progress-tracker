@@ -1,3 +1,4 @@
+import chardet
 import json
 import time
 import os
@@ -19,6 +20,14 @@ from util import render
 class UploadFileForm(FlaskForm):
     file = FileField("File")
     submit = SubmitField("Upload File")
+
+
+def detect_encoding(file_path):
+    with open(file_path, 'rb') as file:
+        raw_data = file.read()
+        result = chardet.detect(raw_data)
+        encoding = result['encoding']
+        return encoding
 
 
 @app.route("/progress/import", methods=["GET", "POST"])
@@ -58,7 +67,10 @@ def import_progress():
     filename = f"import_{time.time()}_{getattr(current_user, "username")}.json"
     file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "r") as tempfile:
+    path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    encoding = detect_encoding(path)
+
+    with open(path, "r", encoding=encoding) as tempfile:
         try:
             json_raw = tempfile.read()
         except:

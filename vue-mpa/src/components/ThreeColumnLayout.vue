@@ -1,0 +1,75 @@
+<template>
+    <div class="row">
+        <div class="column left">
+        </div>
+        <div class="column middle">
+            <slot>Three column layout placeholder</slot>
+        </div>
+        <div class="column right">
+        </div>
+    </div>
+</template>
+
+
+<script>
+export default {
+    name: "ThreeColumnLayout"
+}
+</script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+.column {
+    float: left;
+    padding: 20px;
+}
+
+.left,
+.right {
+    width: 20%;
+}
+
+.middle {
+    width: 60%;
+}
+
+.img-holder {
+    width: 50%;
+    margin-left: 25%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.img-in-the-middle {
+    width: 50%;
+}
+
+/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+    .middle {
+        width: 100%;
+    }
+
+    .img-in-the-middle {
+        width: 100%;
+    }
+
+    .left,
+    .right {
+        display: none;
+    }
+
+    .img-holder {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+</style>

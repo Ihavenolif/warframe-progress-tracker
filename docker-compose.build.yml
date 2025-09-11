@@ -1,0 +1,9 @@
+services:
+  nginx-frontend:
+    build: ./vue-mpa
+
+  backend:
+    build: ./rest-api
+
+  data-update:
+    build: ./data-update

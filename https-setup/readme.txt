@@ -1,0 +1,1 @@
+fuck it just import the cert into chrome 

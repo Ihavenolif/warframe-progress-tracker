@@ -9,3 +9,13 @@ out.json
 dist
 build
 app.spec
+obj
+bin
+.env
+nginx/certs/*
+rest-api/out
+*.crt
+*.key
+cache
+*.csr
+*.pfx

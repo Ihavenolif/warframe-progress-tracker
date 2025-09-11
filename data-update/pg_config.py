@@ -1,4 +1,6 @@
 from configparser import ConfigParser
+from dotenv import load_dotenv
+import os
 
 
 def load_config(filename='../database.ini', section='postgresql'):
@@ -16,6 +18,20 @@ def load_config(filename='../database.ini', section='postgresql'):
             'Section {0} not found in the {1} file'.format(section, filename))
 
     return config
+
+
+def load_env():
+    load_dotenv("../.env")
+    host = os.getenv("DB_HOST")
+    database = os.getenv("POSTGRES_DB")
+    user = os.getenv("POSTGRES_USER")
+    password = os.getenv("POSTGRES_PASSWORD")
+    return {
+        "host": host,
+        "database": database,
+        "user": user,
+        "password": password
+    }
 
 
 if __name__ == '__main__':
