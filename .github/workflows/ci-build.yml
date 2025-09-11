@@ -38,3 +38,11 @@ jobs:
           file: ./vue-mpa/Dockerfile
           push: true
           tags: ghcr.io/ihavenolif/warframe-progress-tracker-frontend:latest
+      
+      - name: Build data-update image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./data-update
+          file: ./data-update/Dockerfile
+          push: true
+          tags: ghcr.io/ihavenolif/warframe-progress-tracker-data-update:latest

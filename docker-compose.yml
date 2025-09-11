@@ -50,3 +50,13 @@ services:
     
     volumes:
       - ./imgcache:/imgcache
+
+  data-update:
+    image: ghcr.io/ihavenolif/warframe-progress-tracker-data-update:latest
+    ports:
+      - "5000:5000"
+    container_name: warframe-tracker-data-update
+    environment:
+      - DB_HOST=postgres
+    env_file:
+      - ./.env
