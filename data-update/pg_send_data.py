@@ -1,5 +1,5 @@
 import psycopg2
-from pg_config import load_config
+from pg_config import load_config, load_env
 from data import *
 
 
@@ -14,7 +14,7 @@ def connect(config) -> psycopg2.extensions.connection:
         print(error)
 
 
-def main():
+def send_data():
     warframes = []
     weapons = []
     companions = []
@@ -31,7 +31,7 @@ def main():
     recipes = get_recipes(index, gear_item_names)
     resources = get_resources(index)
 
-    config = load_config()
+    config = load_env()
 
     gear_items_insert = []
     resources_insert = []
@@ -127,6 +127,11 @@ def main():
     cursor.executemany("INSERT INTO recipe_ingredients (recipe_name, item_ingredient, ingredient_count) VALUES (%s, %s, %s) ON CONFLICT (recipe_name, item_ingredient) DO NOTHING", recipes_ingredients_insert)
 
     connection.commit()
+    connection.close()
+
+
+def main():
+    send_data()
 
 
 if __name__ == '__main__':
