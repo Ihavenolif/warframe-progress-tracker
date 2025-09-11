@@ -70,6 +70,7 @@ public class MasteryService : IMasteryService
         JsonArray xpInfo = (root["XPInfo"] ?? throw new ArgumentException("Invalid JSON data: Missing XPInfo")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid XPInfo");
         JsonArray recipes = (root["Recipes"] ?? throw new ArgumentException("Invalid JSON data: Missing Recipes")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes");
         JsonArray miscItems = (root["MiscItems"] ?? throw new ArgumentException("Invalid JSON data: Missing MiscItems")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid MiscItems");
+        int masteryRank = (root["PlayerLevel"] ?? throw new ArgumentException("Invalid JSON data: Missing PlayerLevel")).GetValue<int>();
 
         List<Player_items_mastery> masteryItems = [.. xpInfo
             .Where(x => allItems.Contains(validateMasteryItem(x!)["ItemType"]!.GetValue<string>()))
@@ -97,6 +98,7 @@ public class MasteryService : IMasteryService
             })];
 
         using var transaction = _dbContext.Database.BeginTransaction();
+        player.mastery_rank = masteryRank;
         try
         {
             await _dbContext.BulkInsertOrUpdateAsync(masteryItems, new BulkConfig
