@@ -1,5 +1,3 @@
-using System.Text.Json.Nodes;
-using rest_api.Models;
 using SharpCompress.Compressors.LZMA;
 
 namespace rest_api.Services;
@@ -7,46 +5,10 @@ namespace rest_api.Services;
 public interface IWarframePublicExportService
 {
     public Task<Dictionary<string, string>> GetIndex();
-    public Task<List<Item>> GetWarframes(Dictionary<string, string> index);
 }
 
 public class WarframePublicExportService : IWarframePublicExportService
 {
-    private static Dictionary<string, string> ItemClasses = new Dictionary<string, string> {
-        {"LongGuns", "Primary"},
-        {"Pistols", "Secondary"},
-        {"Melee", "Melee"},
-        {"Suits", "Warframe"},
-        {"Kdrive", "K-Drive"},
-        {"MechSuits", "Necramech"},
-        {"SpaceSuits", "Archwing"},
-        {"Amp", "Amp"},
-        {"Kitgun", "Kitgun"},
-        {"OperatorAmps", "Amp"},
-        {"Zaw", "Zaw"},
-        {"SpaceMelee", "Archmelee"},
-        {"Hound", "Hound"},
-        {"KubrowPets", "Pet"},
-        {"Moa", "Moa"},
-        {"Sentinels", "Sentinel"},
-        {"SentinelWeapons", "Sentinel Weapon"},
-        {"SpaceGuns", "Archgun"}
-    };
-
-    private static Dictionary<string, string> ItemsToReplace = new Dictionary<string, string>
-    {
-        {"/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeSortieBlueprint","/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeBlueprint"}, // Sheev
-        {"/Lotus/Types/Recipes/Weapons/DetronBlueprint", "/Lotus/Types/Recipes/Weapons/CorpusHandcannonBlueprint"} // Detron
-    };
-
-    private static List<string> ItemsToIgnore = new List<string>
-    {
-        "/Lotus/Types/Recipes/Weapons/LowKatanaBlueprint",
-        "/Lotus/Types/Recipes/Weapons/GrineerHandcannonBlueprint",
-        "/Lotus/Types/Recipes/Weapons/CorpusHandcannonBlueprint",
-        "/Lotus/Types/Recipes/Weapons/GrineerCombatKnifeBlueprint"
-    };
-
     static async Task<string> GetRawIndex()
     {
         string url = "https://origin.warframe.com/PublicExport/index_en.txt.lzma";
@@ -96,53 +58,5 @@ public class WarframePublicExportService : IWarframePublicExportService
 
         return ret;
         throw new NotImplementedException();
-    }
-
-    public async Task<List<Item>> GetWarframes(Dictionary<string, string> index)
-    {
-        string url = $"http://content.warframe.com/PublicExport/Manifest/${index["Warframes"]}";
-        using HttpClient client = new HttpClient();
-        var data = await client.GetStringAsync(url);
-
-        JsonNode root = JsonNode.Parse(data)!;
-
-        List<Item> warframes = new List<Item>();
-        foreach (var item in root["ExportWarframes"]!.AsArray())
-        {
-            string name = item!["name"]!.ToString();
-            string itemClass = ItemClasses[item["productCategory"]!.ToString()];
-            string uniqueName = item["uniqueName"]!.ToString();
-            string itemType = "";
-
-            if (name.Contains("<ARCHWING> "))
-            {
-                name = name.Replace("<ARCHWING> ", "");
-            }
-
-            if (name.Contains("Prime"))
-            {
-                itemType = "Prime";
-            }
-            else if (name.Contains("Umbra"))
-            {
-                itemType = "Umbra";
-            }
-            else
-            {
-                itemType = "Normal";
-            }
-
-
-            warframes.Add(new Item
-            {
-                name = name,
-                unique_name = uniqueName,
-                item_class = itemClass,
-                type = itemType,
-            });
-        }
-
-
-        return warframes;
     }
 }
