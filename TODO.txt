@@ -1,2 +1,1 @@
 add parsing of mastery ranks into /import
-some form of loading bar on import and db update calls
