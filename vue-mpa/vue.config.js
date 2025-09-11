@@ -59,7 +59,12 @@ module.exports = defineConfig({
             entry: 'src/pages/clans/progress.js',
             template: 'public/clans/progress.html',
             filename: 'clans/progress.html'
-        }
+        },
+        "adminPanel": {
+            entry: 'src/pages/adminPanel.js',
+            template: 'public/adminPanel.html',
+            filename: 'admin.html'
+        },
     },
     devServer: {
         host: 'www.localhost.me',
