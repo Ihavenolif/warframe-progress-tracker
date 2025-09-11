@@ -29,6 +29,7 @@ public class UserService : IUserService
     {
         Player player = new Player(playerName);
         user.player = player;
+        user.Roles.Add("WARFRAME");
         await _dbContext.SaveChangesAsync();
     }
 
@@ -57,6 +58,7 @@ public class UserService : IUserService
         Player player = user.player!;
         user.player = null;
         _dbContext.players.Remove(player);
+        user.Roles.Remove("WARFRAME");
         await _dbContext.SaveChangesAsync();
     }
 
