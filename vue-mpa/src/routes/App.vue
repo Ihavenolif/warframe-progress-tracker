@@ -1,9 +1,9 @@
 <template>
     <NavbarElement></NavbarElement>
 
-    <h1>App page</h1>
-    <p>Welcome to the About page!</p>
-    <img alt="Vue logo" src="../assets/logo.png">
+    <h1>Front page</h1>
+    <p>todo</p>
+
 </template>
 
 <script>
