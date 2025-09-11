@@ -1,1 +1,2 @@
+#!/bin/sh
 certbot certonly --webroot -w /var/www/html --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email -d $ORIGIN_URL
