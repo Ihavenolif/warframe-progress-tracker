@@ -15,7 +15,7 @@ export default {
     },
     computed: {
         isActive() {
-            return window.location.pathname == this.href;
+            return window.location.pathname == this.href || window.location.pathname == (this.href + "/");
         }
     }
 }

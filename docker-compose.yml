@@ -11,6 +11,7 @@ services:
       - ./https-setup:/etc/nginx/certs
       - ./vue-mpa/nginx/entrypoint.sh:/entrypoint.sh
       - ./cache:/var/cache/nginx
+      - ./https-setup/nginx-html:/var/www/html
     restart: unless-stopped
     env_file:
       - ./.env
@@ -61,3 +62,17 @@ services:
       - DB_HOST=postgres
     env_file:
       - ./.env
+
+  certbot:
+    image: certbot/certbot
+    container_name: warframe-tracker-certbot
+    volumes:
+      - ./https-setup/certbot-etc:/etc/letsencrypt
+      - ./https-setup/certbot-var:/var/lib/letsencrypt
+      - ./https-setup/nginx-html:/var/www/html
+      - ./https-setup/certbot_entrypoint.sh:/certbot_entrypoint.sh
+    env_file:
+      - ./.env
+    entrypoint: ["/certbot_entrypoint.sh"]
+    depends_on:
+      - nginx-frontend
