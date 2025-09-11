@@ -36,6 +36,10 @@ public class UserService : IUserService
     {
         string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
         Registered_user user = new Registered_user(username, hashedPassword);
+        if (!await _dbContext.registered_users.AnyAsync())
+        {
+            user.Roles.Add("ADMIN");
+        }
         await _dbContext.registered_users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
         return user;

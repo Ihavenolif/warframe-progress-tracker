@@ -17,7 +17,7 @@ def health_check():
 def data_update():
     from pg_send_data import send_data
     send_data()
-    return "Data update initiated", 202
+    return "Data update initiated", 200
 
 
 if __name__ == "__main__":

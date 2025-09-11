@@ -20,6 +20,7 @@ public class ConfigurationService
 
         this.AppEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "DEVELOPMENT";
         this.OriginUrl = Environment.GetEnvironmentVariable("ORIGIN_URL") ?? "";
+        this.DataUpdateServerUrl = Environment.GetEnvironmentVariable("DATA_UPDATE_SERVER_URL") ?? "localhost";
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(GetConnectionString());
         dataSourceBuilder.EnableDynamicJson();
@@ -32,6 +33,7 @@ public class ConfigurationService
     public readonly NpgsqlDataSource DataSource;
     public readonly string AppEnvironment;
     public readonly string OriginUrl;
+    public readonly string DataUpdateServerUrl;
 
     private string? dbHost;
     private string? dbName;

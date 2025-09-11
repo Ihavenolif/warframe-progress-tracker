@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using rest_api.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -24,5 +25,24 @@ public class ItemController : ControllerBase
     {
         var index = warframePublicExportService.GetIndex().Result;
         return Ok(index);
+    }
+
+    [HttpPost("updateDatabase")]
+    [SwaggerOperation(Summary = "Triggers an update of the item database", Description = "Sends a request to the data update server to refresh the item database.")]
+    [SwaggerResponse(200, "Item database update initiated successfully")]
+    [SwaggerResponse(500, "Failed to initiate item database update")]
+    [SwaggerResponse(403, "You are not allowed to perform this action")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> UpdateItemDatabase()
+    {
+        var result = await itemService.UpdateItemDatabaseAsync();
+        if (result)
+        {
+            return Ok(new { message = "Item database update initiated successfully." });
+        }
+        else
+        {
+            return StatusCode(500, new { message = "Failed to initiate item database update." });
+        }
     }
 }
