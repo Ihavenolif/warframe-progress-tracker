@@ -7,6 +7,7 @@
     <NavbarDropdown title="Warframe" :is-right-aligned="true" v-if="shouldDisplayWarframe">
         <NavbarDropdownEntry href="/clans">Clans</NavbarDropdownEntry>
         <NavbarDropdownEntry href="/progress">Progress</NavbarDropdownEntry>
+        <NavbarDropdownEntry href="/progress/import">Import progress</NavbarDropdownEntry>
     </NavbarDropdown>
 
     <div class="right-aligned">

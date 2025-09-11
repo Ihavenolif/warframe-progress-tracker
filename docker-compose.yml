@@ -23,6 +23,7 @@ services:
       - "5224:8080"
     environment:
       - DB_HOST=postgres
+      - DATA_UPDATE_SERVER_URL=data-update
   
     env_file:
       - ./.env
