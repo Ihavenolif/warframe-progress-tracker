@@ -125,6 +125,8 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.Property(e => e.username).HasMaxLength(256);
             entity.Property(e => e.duviri_skills).HasDefaultValue(0);
             entity.Property(e => e.railjack_skills).HasDefaultValue(0);
+            entity.Property(e => e.TotalMasteryXp).HasDefaultValue(0)
+                .HasColumnName("total_mastery_xp");
 
             entity.HasMany(d => d.clans)
                 .WithMany(p => p.players)
@@ -178,7 +180,7 @@ public partial class WarframeTrackerDbContext : DbContext
                 .HasForeignKey(d => d.player_id)
                 .HasConstraintName("player_items_mastery_player_id_fkey");
 
-            entity.HasOne(d => d.unique_nameNavigation).WithMany(p => p.player_items_masteries)
+            entity.HasOne(d => d.item).WithMany(p => p.player_items_masteries)
                 .HasForeignKey(d => d.unique_name)
                 .HasConstraintName("player_items_mastery_unique_name_fkey");
         });
@@ -287,11 +289,16 @@ public partial class WarframeTrackerDbContext : DbContext
 
             entity.ToTable("missions");
 
-            entity.Property(e => e.UniqueName).HasMaxLength(256);
-            entity.Property(e => e.Name).HasMaxLength(256);
-            entity.Property(e => e.Planet).HasMaxLength(256);
-            entity.Property(e => e.Type).HasMaxLength(256);
-            entity.Property(e => e.MasteryXp).HasDefaultValue(0);
+            entity.Property(e => e.UniqueName).HasMaxLength(256)
+                .HasColumnName("unique_name");
+            entity.Property(e => e.Name).HasMaxLength(256)
+                .HasColumnName("name");
+            entity.Property(e => e.Planet).HasMaxLength(256)
+                .HasColumnName("planet");
+            entity.Property(e => e.Type).HasMaxLength(256)
+                .HasColumnName("type");
+            entity.Property(e => e.MasteryXp).HasDefaultValue(0)
+                .HasColumnName("mastery_xp");
 
             entity.HasMany(e => e.MissionCompletions)
                 .WithOne(e => e.Mission)
@@ -306,10 +313,14 @@ public partial class WarframeTrackerDbContext : DbContext
 
             entity.ToTable("player_mission_completion");
 
-            entity.Property(e => e.UniqueName).HasMaxLength(256);
-            entity.Property(e => e.PlayerId).HasColumnName("player_id");
-            entity.Property(e => e.CompletionCount).HasDefaultValue(0);
-            entity.Property(e => e.SPComplete).HasDefaultValue(false);
+            entity.Property(e => e.UniqueName).HasMaxLength(256)
+                .HasColumnName("unique_name");
+            entity.Property(e => e.PlayerId).HasColumnName("player_id")
+                .HasColumnName("player_id");
+            entity.Property(e => e.CompletionCount).HasDefaultValue(0)
+                .HasColumnName("completes");
+            entity.Property(e => e.SPComplete).HasDefaultValue(false)
+                .HasColumnName("sp_complete");
 
             entity.HasOne(d => d.Player).WithMany(p => p.MissionsCompleted)
                 .HasForeignKey(d => d.PlayerId)

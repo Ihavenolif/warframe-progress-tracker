@@ -21,6 +21,8 @@ public partial class Player
 
     public int railjack_skills { get; set; }
 
+    public int TotalMasteryXp { get; set; }
+
     public virtual ICollection<Clan_invitation> clan_invitations { get; set; } = new List<Clan_invitation>();
 
     public virtual ICollection<Clan> clans { get; set; } = new List<Clan>();
