@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using Microsoft.Identity.Client;
 
 namespace rest_api.Models;
 
@@ -32,13 +34,20 @@ public partial class Player_items_mastery
         578000, 612500, 648000, 684500, 722000, 760500, 800000
     ];
 
-    public int GetRank()
+    private int GetMaxRank()
+    {
+        return item?.xp_required == 1600000 || item?.xp_required == 800000 ? 40 :
+               item?.xp_required == 900000 || item?.xp_required == 450000 ? 30 :
+               throw new InvalidOperationException("Unknown item xp_required value");
+    }
+
+    private int GetRank()
     {
         int[] thresholds = item?.xp_required == 1600000 || item?.xp_required == 900000 ? WarframeThresholds :
             item?.xp_required == 800000 || item?.xp_required == 450000 ? WeaponThresholds :
             throw new InvalidOperationException("Unknown item xp_required value");
 
-        int maxLevel = item?.xp_required == 1600000 || item?.xp_required == 800000 ? 40 : 30;
+        int maxLevel = GetMaxRank();
 
         for (int level = 1; level < maxLevel + 1; level++)
         {
@@ -50,7 +59,7 @@ public partial class Player_items_mastery
         return maxLevel;
     }
 
-    public int GetMasteryPoints()
+    private int GetMasteryPoints()
     {
         int rank = GetRank();
         if (rank == 0) return 0;
@@ -65,4 +74,9 @@ public partial class Player_items_mastery
 
         return res;
     }
+
+    public int Rank => GetRank();
+    public int MaxRank => GetMaxRank();
+    [JsonIgnore]
+    public int MasteryPoints => GetMasteryPoints();
 }

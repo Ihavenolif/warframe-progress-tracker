@@ -164,7 +164,7 @@ public class MasteryService : IMasteryService
                 .Where(pim => pim.player_id == player.id)
                 .Include(pim => pim.item)
                 .ToArrayAsync();
-            int masteryXp = masteryItemsForXp.Sum(item => item.GetMasteryPoints());
+            int masteryXp = masteryItemsForXp.Sum(item => item.MasteryPoints);
             int missionXp = await _dbContext.mission_completions
                 .Where(mc => mc.PlayerId == player.id)
                 .Join(_dbContext.missions,
