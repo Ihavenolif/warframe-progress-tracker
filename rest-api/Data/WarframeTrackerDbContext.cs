@@ -38,6 +38,10 @@ public partial class WarframeTrackerDbContext : DbContext
 
     public virtual DbSet<RefreshToken> refresh_tokens { get; set; }
 
+    public virtual DbSet<Mission> missions { get; set; }
+
+    public virtual DbSet<MissionCompletion> mission_completions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresEnum<InvitationStatus>();
@@ -119,6 +123,8 @@ public partial class WarframeTrackerDbContext : DbContext
 
             entity.Property(e => e.mastery_rank).HasDefaultValue(0);
             entity.Property(e => e.username).HasMaxLength(256);
+            entity.Property(e => e.duviri_skills).HasDefaultValue(0);
+            entity.Property(e => e.railjack_skills).HasDefaultValue(0);
 
             entity.HasMany(d => d.clans)
                 .WithMany(p => p.players)
@@ -135,6 +141,12 @@ public partial class WarframeTrackerDbContext : DbContext
                         j.HasKey("clan_id", "player_id").HasName("player_clan_pkey");
                         j.ToTable("player_clan");
                     });
+
+            entity.HasMany(e => e.MissionsCompleted)
+                .WithOne(e => e.Player)
+                .HasForeignKey(e => e.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("player_mission_completion_player_id_fkey");
         });
 
         modelBuilder.Entity<Player_item>(entity =>
@@ -267,6 +279,47 @@ public partial class WarframeTrackerDbContext : DbContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("refresh_token_user_id_fkey");
+        });
+
+        modelBuilder.Entity<Mission>(entity =>
+        {
+            entity.HasKey(e => e.UniqueName).HasName("missions_pkey");
+
+            entity.ToTable("missions");
+
+            entity.Property(e => e.UniqueName).HasMaxLength(256);
+            entity.Property(e => e.Name).HasMaxLength(256);
+            entity.Property(e => e.Planet).HasMaxLength(256);
+            entity.Property(e => e.Type).HasMaxLength(256);
+            entity.Property(e => e.MasteryXp).HasDefaultValue(0);
+
+            entity.HasMany(e => e.MissionCompletions)
+                .WithOne(e => e.Mission)
+                .HasForeignKey(e => e.UniqueName)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("player_mission_completion_unique_name_fkey");
+        });
+
+        modelBuilder.Entity<MissionCompletion>(entity =>
+        {
+            entity.HasKey(e => new { e.UniqueName, e.PlayerId }).HasName("player_mission_completion_pkey");
+
+            entity.ToTable("player_mission_completion");
+
+            entity.Property(e => e.UniqueName).HasMaxLength(256);
+            entity.Property(e => e.PlayerId).HasColumnName("player_id");
+            entity.Property(e => e.CompletionCount).HasDefaultValue(0);
+            entity.Property(e => e.SPComplete).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Player).WithMany(p => p.MissionsCompleted)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("player_mission_completion_player_id_fkey");
+
+            entity.HasOne(d => d.Mission).WithMany(p => p.MissionCompletions)
+                .HasForeignKey(d => d.UniqueName)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("player_mission_completion_unique_name_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);
