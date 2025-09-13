@@ -5,9 +5,10 @@
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            height: '38px',
-            backgroundColor: item[this.playerName].blueprintOwned ? 'rgb(92, 233, 92)' : 'rgb(235, 130, 130)'
-        }">
+            height: '38px'
+        }" :class="[
+            item[this.playerName]['blueprintOwned'] ? 'mastery-state-0' : 'mastery-state-2'
+        ]">
             <ProgressTableComponentItem ref="componentItemBp" v-bind:item="blueprintItem"></ProgressTableComponentItem>
         </div>
         <div v-for="(component, index) in sortedComponents" :key="index" :style="{
@@ -15,10 +16,11 @@
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            height: '38px',
-            backgroundColor: component['countOwned'] >= component['countRequired'] ? 'rgb(92, 233, 92)' :
-                component['blueprintOwned'] ? 'rgb(238, 238, 119)' : 'rgb(235, 130, 130)'
-        }">
+            height: '38px'
+        }" :class="[
+            component['countOwned'] >= component['countRequired'] ? 'mastery-state-0' :
+                component['blueprintOwned'] ? 'mastery-state-1' : 'mastery-state-2'
+        ]">
 
             <ProgressTableComponentItem ref="componentItem" v-bind:item="component"></ProgressTableComponentItem>
 

@@ -1,6 +1,6 @@
 <template>
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar" :style="{ width: `${progressPercent}%` }">
+    <div class="progress-container mastery-state-1">
+        <div class="progress-bar mastery-state-0" id="progressBar" :style="{ width: `${progressPercent}%` }">
             <slot></slot>
         </div>
     </div>
@@ -21,8 +21,6 @@ export default {
 <style>
 .progress-container {
     width: 100%;
-    background-color: rgb(238, 238, 119);
-    ;
     overflow: hidden;
     padding: 0px;
     margin: 0px;
@@ -31,7 +29,6 @@ export default {
 .progress-bar {
     height: 100%;
     width: 0;
-    background-color: rgb(92, 233, 92);
     padding: 0px;
     padding-left: 10px;
     margin: 0px;
