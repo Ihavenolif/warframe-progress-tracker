@@ -1,5 +1,7 @@
 <template>
-    <td style="padding: 0px" width="32px"><img :src="item['imgSrc']" alt="" height="34px"></td>
+    <td style="padding: 0px" width="32px"><a :href="wikiLink" target="_blank"><img :src="item['imgSrc']" alt=""
+                height="34px"></a>
+    </td>
     <td>
         <span class="row-text">{{ item["itemName"] }}</span>
     </td>
@@ -24,7 +26,18 @@ export default {
         playerNames: {
             required: true
         }
+    },
+    computed: {
+        wikiLink() {
+            return `https://wiki.warframe.com/w/${this.item['itemName'].replace(/ /g, '_')}`;
+        }
     }
 }
 
 </script>
+
+<style scoped>
+img {
+    cursor: pointer;
+}
+</style>
