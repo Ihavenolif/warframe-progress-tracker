@@ -1,4 +1,6 @@
 //export const BASE_URL = "http://localhost:5224"
+import { emit, TokenUpdateSignal } from "./signals";
+import { store } from "@/store";
 export const BASE_URL = window.location.origin
 
 export async function getPlayerName() {
@@ -34,7 +36,12 @@ async function refreshToken() {
         }
 
         const data = await response.json();
-        localStorage.setItem("token", data.token);
+        // localStorage.setItem("token", data.token);
+        store.commit('setCredentials', {
+            token: data.token,
+            username: data.username
+        });
+        emit(TokenUpdateSignal);
         refreshingTokenPromise = null;
         return data.token;
     })();

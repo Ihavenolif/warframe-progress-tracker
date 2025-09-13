@@ -25,15 +25,11 @@
 import ProgressTable from '@/components/Progress/ProgressTable.vue';
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
 import {
-    getImage,
-    subscribe,
-    ManifestLoadStartedSignal,
-    ManifestLoadFinishedSignal,
-    ManifestParseStartedSignal,
-    ManifestParseFinishedSignal,
-    ManifestFetchStartedSignal,
-    ManifestFetchFinishedSignal
+    getImage
 } from '@/util/images';
+
+import { ManifestFetchStartedSignal, ManifestFetchFinishedSignal, ManifestLoadStartedSignal, ManifestLoadFinishedSignal, ManifestParseStartedSignal, ManifestParseFinishedSignal, subscribe } from '@/util/signals';
+
 import { authFetch } from '@/util/util';
 
 export default {

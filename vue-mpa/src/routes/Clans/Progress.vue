@@ -23,15 +23,9 @@ import NavbarElement from '@/components/Navbar/NavbarElement.vue';
 import ProgressTable from '@/components/Progress/ProgressTable.vue';
 import { authFetch } from '@/util/util';
 import {
-    getImage,
-    subscribe,
-    ManifestLoadStartedSignal,
-    ManifestLoadFinishedSignal,
-    ManifestParseStartedSignal,
-    ManifestParseFinishedSignal,
-    ManifestFetchStartedSignal,
-    ManifestFetchFinishedSignal
+    getImage
 } from '@/util/images';
+import { ManifestFetchStartedSignal, ManifestFetchFinishedSignal, ManifestLoadStartedSignal, ManifestLoadFinishedSignal, ManifestParseStartedSignal, ManifestParseFinishedSignal, subscribe } from '@/util/signals';
 import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
 
 export default {

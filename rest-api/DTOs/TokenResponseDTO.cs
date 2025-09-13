@@ -6,5 +6,6 @@ namespace rest_api.DTO
         /// The JWT token issued upon successful authentication.
         /// </summary>
         public string Token { get; set; }
+        public string Username { get; set; }
     }
 }
