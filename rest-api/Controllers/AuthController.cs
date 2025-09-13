@@ -55,7 +55,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = _config.SecureCookies,
             SameSite = SameSiteMode.None,
-            Domain = $".${_config.OriginUrl}",
+            Domain = $".{_config.OriginUrl}",
             MaxAge = TimeSpan.FromDays(7)
         };
 
