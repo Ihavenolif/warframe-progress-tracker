@@ -25,7 +25,7 @@ export default {
                 username: '',
                 password: ''
             },
-            errorMessage: "1234"
+            errorMessage: ""
         };
     },
     methods: {

@@ -115,6 +115,9 @@ def send_data():
             recipes_ingredients_insert.append(
                 (recipe["uniqueName"], ingredient["ItemType"], ingredient["ItemCount"]))
 
+    missions = list(map(lambda mission: (mission["name"], mission["unique_name"],
+                    mission["planet"], mission["mastery_xp"], mission["type"]), get_missions()))
+
     cursor.executemany(
         "INSERT INTO item (name, unique_name, type, item_class, xp_required) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (unique_name) DO NOTHING", gear_items_insert)
     cursor.executemany(
@@ -125,6 +128,8 @@ def send_data():
     cursor.executemany(
         "INSERT INTO recipe (unique_name, result_item) VALUES (%s, %s) ON CONFLICT (unique_name) DO NOTHING", recipes_insert)
     cursor.executemany("INSERT INTO recipe_ingredients (recipe_name, item_ingredient, ingredient_count) VALUES (%s, %s, %s) ON CONFLICT (recipe_name, item_ingredient) DO NOTHING", recipes_ingredients_insert)
+    cursor.executemany(
+        "INSERT INTO missions (name, unique_name, planet, mastery_xp, type) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (unique_name) DO NOTHING", missions)
 
     connection.commit()
     connection.close()

@@ -58,6 +58,14 @@ public class MasteryService : IMasteryService
         return item;
     }
 
+    private JsonNode validateMissionItems(JsonNode item)
+    {
+        if (item == null) throw new ArgumentException("Invalid JSON data: Invalid Missions entry");
+        if (item["Completes"] == null) throw new ArgumentException("Invalid JSON data: Invalid Missions entry");
+        if (item["Tag"]!.GetValue<string>() == null) throw new ArgumentException("Invalid JSON data: Invalid Missions entry");
+        return item;
+    }
+
     // TODO: Fuckton of validation
     // Also TODO: Write some tests
     public async Task UpdatePlayerMasteryAsync(Player player, string jsonData)
@@ -70,6 +78,7 @@ public class MasteryService : IMasteryService
         JsonArray xpInfo = (root["XPInfo"] ?? throw new ArgumentException("Invalid JSON data: Missing XPInfo")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid XPInfo");
         JsonArray recipes = (root["Recipes"] ?? throw new ArgumentException("Invalid JSON data: Missing Recipes")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes");
         JsonArray miscItems = (root["MiscItems"] ?? throw new ArgumentException("Invalid JSON data: Missing MiscItems")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid MiscItems");
+        int masteryRank = (root["PlayerLevel"] ?? throw new ArgumentException("Invalid JSON data: Missing PlayerLevel")).GetValue<int>();
 
         List<Player_items_mastery> masteryItems = [.. xpInfo
             .Where(x => allItems.Contains(validateMasteryItem(x!)["ItemType"]!.GetValue<string>()))
@@ -96,7 +105,38 @@ public class MasteryService : IMasteryService
                 item_count = x!["ItemCount"]!.GetValue<int>()
             })];
 
+
+        JsonNode allSkills = root["PlayerSkills"] ?? throw new ArgumentException("Invalid JSON data: Missing PlayerSkills");
+
+        int duviriSkills = allSkills["LPS_DRIFT_RIDING"]?.GetValue<int>() ?? 0 +
+                        allSkills["LPS_DRIFT_COMBAT"]?.GetValue<int>() ?? 0 +
+                        allSkills["LPS_DRIFT_OPPORTUNITY"]?.GetValue<int>() ?? 0 +
+                        allSkills["LPS_DRIFT_ENDURANCE"]?.GetValue<int>() ?? 0;
+
+        int railjackSkills = allSkills["LPS_PILOTING"]?.GetValue<int>() ?? 0 +
+                        allSkills["LPS_TACTICAL"]?.GetValue<int>() ?? 0 +
+                        allSkills["LPS_GUNNERY"]?.GetValue<int>() ?? 0 +
+                        allSkills["LPS_ENGINEERING"]?.GetValue<int>() ?? 0 +
+                        allSkills["LPS_COMMAND"]?.GetValue<int>() ?? 0;
+
+        JsonArray missions = (root["Missions"] ?? throw new ArgumentException("Invalid JSON data: Missing Missions")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Missions");
+
+        List<string> allMissionTags = await _dbContext.missions.Select(m => m.UniqueName!).ToListAsync();
+
+        List<MissionCompletion> missionEntries = [.. missions
+            .Select(x => new MissionCompletion
+            {
+                UniqueName = validateMissionItems(x!)["Tag"]!.GetValue<string>(),
+                PlayerId = player.id,
+                CompletionCount = x!["Completes"]!.GetValue<int>(),
+                SPComplete = validateMissionItems(x!)["Tier"]?.GetValue<int>() == 1
+            })
+            .Where(x => allMissionTags.Contains(x.UniqueName!))];
+
         using var transaction = _dbContext.Database.BeginTransaction();
+        player.mastery_rank = masteryRank;
+        player.duviri_skills = duviriSkills;
+        player.railjack_skills = railjackSkills;
         try
         {
             await _dbContext.BulkInsertOrUpdateAsync(masteryItems, new BulkConfig
@@ -114,13 +154,38 @@ public class MasteryService : IMasteryService
                 UpdateByProperties = new List<string> { "unique_name", "player_id" },
                 PropertiesToInclude = new List<string> { "item_count" }
             });
+            await _dbContext.BulkInsertOrUpdateAsync(missionEntries, new BulkConfig
+            {
+                UpdateByProperties = new List<string> { "UniqueName", "PlayerId" },
+                PropertiesToInclude = new List<string> { "CompletionCount", "SPComplete" }
+            });
+
+            var masteryItemsForXp = await _dbContext.player_items_masteries
+                .Where(pim => pim.player_id == player.id)
+                .Include(pim => pim.item)
+                .ToArrayAsync();
+            int masteryXp = masteryItemsForXp.Sum(item => item.MasteryPoints);
+            int missionXp = await _dbContext.mission_completions
+                .Where(mc => mc.PlayerId == player.id)
+                .Join(_dbContext.missions,
+                    mc => mc.UniqueName,
+                    m => m.UniqueName,
+                    (mc, m) => new { mc.CompletionCount, m.MasteryXp })
+                .SumAsync(mc => mc.MasteryXp);
+
+
+            int totalXp = masteryXp + missionXp + duviriSkills * 1500 + railjackSkills * 1500;
+
+            player.TotalMasteryXp = totalXp;
 
             _dbContext.SaveChanges();
             transaction.Commit();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             transaction.Rollback();
+
+            Console.WriteLine($"An error occurred: {ex.Message}");
             throw;
         }
     }

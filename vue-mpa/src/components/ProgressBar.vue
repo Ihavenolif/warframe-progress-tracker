@@ -1,16 +1,15 @@
 <template>
     <div class="progress-container">
-        <div class="progress-bar" id="progressBar" :style="{ width: `${progress}%` }">XP Progress: {{
-            Math.round(progress)
-            }}%</div>
-
+        <div class="progress-bar" id="progressBar" :style="{ width: `${progressPercent}%` }">
+            <slot></slot>
+        </div>
     </div>
 </template>
 
 <script>
 export default {
     props: {
-        progress: {
+        progressPercent: {
             type: Number,
             required: true
         }

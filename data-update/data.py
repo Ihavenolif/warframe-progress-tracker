@@ -2,6 +2,8 @@ import lzma
 import requests
 import json
 import subprocess
+import re
+from slpp import slpp as lua
 
 REGISTERED: list[str] = []
 
@@ -386,6 +388,46 @@ def get_resources(index: dict[str, str]) -> list:
     parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     return parsed["ExportResources"]
+
+
+def extract_lua_table(lua: str, table_name: str) -> str:
+    # Regex to find the start of the variable
+    pattern = rf'{table_name}\s*=\s*\{{'
+    match = re.search(pattern, lua)
+    if not match:
+        raise ValueError(f"Could not find variable: {table_name}")
+
+    start_idx = match.end() - 1  # position of first {
+
+    # Now do brace matching
+    depth = 0
+    for idx in range(start_idx, len(lua)):
+        char = lua[idx]
+        if char == '{':
+            depth += 1
+        elif char == '}':
+            depth -= 1
+            if depth == 0:
+                end_idx = idx + 1
+                return lua[start_idx:end_idx]
+
+    raise ValueError("Could not find matching closing brace.")
+
+
+def get_missions() -> dict:
+    req = requests.get(
+        "https://warframe.fandom.com/wiki/Module:Missions/data?action=raw")
+    lua_content = req.text
+
+    lua_table_str = extract_lua_table(lua_content, "MissionData")
+    parsed_table = list(map(lambda mission: {
+        "name": mission["Name"],
+        "unique_name": mission["InternalName"],
+        "planet": mission["Planet"],
+        "mastery_xp": mission["MasteryExp"],
+        "type": mission["Type"]
+    }, lua.decode(lua_table_str)["MissionDetails"]))
+    return parsed_table
 
 
 def main():

@@ -3,35 +3,41 @@
         <form @submit.prevent="submitForm">
             <!--file upload form-->
             <label class="form-label" for="file">Select file to upload:</label>
-            <input class="form-control" id="file" name="file" required="" type="file" v-on:change="form.file = $event.target.files[0]">
-            
+            <input class="form-control" id="file" name="file" required="" type="file"
+                v-on:change="form.file = $event.target.files[0]">
+
+            <LoadingIndicator v-if="responseLoading" />
+
             <p style="color: red">{{ errorMessage }}</p>
 
             <button class="form-button" type="submit">Upload</button>
-        </form>    
+        </form>
     </div>
 </template>
 
 
 <script>
 import { BASE_URL } from '@/util/util';
+import LoadingIndicator from '../LoadingIndicator.vue';
 
 export default {
     computed: {
-        token(){
+        token() {
             return this.$store.state.token;
         }
     },
-    data(){
+    data() {
         return {
             form: {
                 file: null
             },
-            errorMessage: ""
+            errorMessage: "",
+            responseLoading: false
         }
     },
     methods: {
         async submitForm() {
+            this.responseLoading = true;
             const url = new URL(`${BASE_URL}/api/mastery/update`);
 
             const formData = new FormData();
@@ -44,12 +50,17 @@ export default {
                 }
             });
 
-            if(response.ok){
+            this.responseLoading = false;
+
+            if (response.ok) {
                 window.location.href = "/progress";
             } else {
                 this.errorMessage = await response.text();
             }
         }
+    },
+    components: {
+        LoadingIndicator
     }
 }    
 </script>

@@ -3,12 +3,14 @@
 
     <ThreeColumnLayout>
         <h2>Warframe</h2>
-        <SimpleButton @click="updateWarframeData">Update Warframe database data</SimpleButton>
+        <LoadingIndicator v-if="loading" />
         <p>{{ updateResultMessage }}</p>
+        <SimpleButton @click="updateWarframeData">Update Warframe database data</SimpleButton>
     </ThreeColumnLayout>
 </template>
 
 <script>
+import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
 import SimpleButton from '@/components/SimpleButton.vue';
 import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
@@ -19,10 +21,12 @@ export default {
     components: {
         NavbarElement,
         ThreeColumnLayout,
-        SimpleButton
+        SimpleButton,
+        LoadingIndicator
     },
     methods: {
         async updateWarframeData() {
+            this.loading = true
             const res = await authFetch("/api/items/updateDatabase", {
                 method: "POST"
             })
@@ -34,11 +38,14 @@ export default {
 
             const data = await res.json()
             this.updateResultMessage = data.message
+            this.loading = false
         }
     },
     data() {
         return {
-            updateResultMessage: ""
+            updateResultMessage: "",
+            loading: false
+
         }
     }
 }

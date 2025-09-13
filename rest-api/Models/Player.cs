@@ -17,6 +17,12 @@ public partial class Player
 
     public int mastery_rank { get; set; }
 
+    public int duviri_skills { get; set; }
+
+    public int railjack_skills { get; set; }
+
+    public int TotalMasteryXp { get; set; }
+
     public virtual ICollection<Clan_invitation> clan_invitations { get; set; } = new List<Clan_invitation>();
 
     public virtual ICollection<Clan> clans { get; set; } = new List<Clan>();
@@ -28,4 +34,6 @@ public partial class Player
     public virtual ICollection<Registered_user> registered_users { get; set; } = new List<Registered_user>();
 
     public virtual ICollection<Clan> clansLeading { get; set; } = new List<Clan>();
+
+    public virtual ICollection<MissionCompletion> MissionsCompleted { get; set; } = new List<MissionCompletion>();
 }

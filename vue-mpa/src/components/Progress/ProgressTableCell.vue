@@ -4,13 +4,16 @@
         </ProgressTableUnowned>
     </td>
     <td class="mastery-state-1" v-else-if="item[playerName]['xpGained'] < item['xpRequired']" style="padding: 0px">
-        <ProgressBar :progress="(item[playerName]['xpGained'] / item['xpRequired']) * 100"> </ProgressBar>
+        <ProgressBar :progressPercent="(itemRank / itemMaxRank) * 100">
+            Rank {{ itemRank }}
+        </ProgressBar>
     </td>
     <td class="mastery-state-0" v-else>Mastered</td>
 
 </template>
 
 <script>
+import { getMaxRank, getRank } from '@/util/util';
 import ProgressBar from '../ProgressBar.vue';
 import ProgressTableUnowned from './ProgressTableUnowned.vue';
 
@@ -27,6 +30,14 @@ export default {
     components: {
         ProgressBar,
         ProgressTableUnowned
+    },
+    computed: {
+        itemRank() {
+            return getRank(this.item['xpRequired'], this.item[this.playerName]['xpGained']);
+        },
+        itemMaxRank() {
+            return getMaxRank(this.item['xpRequired']);
+        }
     }
 }
 </script>
