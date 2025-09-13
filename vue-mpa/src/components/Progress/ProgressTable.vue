@@ -61,6 +61,7 @@
 </template>
 
 <script>
+import { getMaxRank, getRank } from '@/util/util';
 import CollapsibleContainer from '../Collapsible.vue';
 import ProgressTableItem from './ProgressTableItem.vue';
 
@@ -132,10 +133,19 @@ export default {
                     // IF both are mastered, keep original order
                     if (a[this.sorting.key]["xpGained"] >= a["xpRequired"] && b[this.sorting.key]["xpGained"] >= b["xpRequired"]) return 0;
 
-                    const masteredRateA = a[this.sorting.key]["xpGained"] / a["xpRequired"]
-                    const masteredRateB = b[this.sorting.key]["xpGained"] / b["xpRequired"]
+                    const maxRankA = getMaxRank(a["xpRequired"]);
+                    const maxRankB = getMaxRank(b["xpRequired"]);
+
+                    const masteredRateA = getRank(a["xpRequired"], a[this.sorting.key]["xpGained"]) / getMaxRank(a["xpRequired"]) //a[this.sorting.key]["xpGained"] / a["xpRequired"]
+                    const masteredRateB = getRank(b["xpRequired"], b[this.sorting.key]["xpGained"]) / getMaxRank(b["xpRequired"]) //b[this.sorting.key]["xpGained"] / b["xpRequired"]
 
                     if (masteredRateA == masteredRateB) return 0;
+
+                    if (masteredRateA > 0 && masteredRateB > 0 && masteredRateA < 1 && masteredRateB < 1) {
+                        if (maxRankA != maxRankB) {
+                            return (maxRankB < maxRankA ? -1 : 1) * (this.sorting.asc ? 1 : -1);
+                        }
+                    }
 
                     return (masteredRateB < masteredRateA ? -1 : 1) * (this.sorting.asc ? 1 : -1);
                 })
