@@ -1,2 +1,1 @@
 add ADVANCED parsing of mastery ranks into /import
-add tooltip to unowned items with more info
