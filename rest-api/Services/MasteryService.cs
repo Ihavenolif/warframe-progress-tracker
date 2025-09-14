@@ -108,16 +108,16 @@ public class MasteryService : IMasteryService
 
         JsonNode allSkills = root["PlayerSkills"] ?? throw new ArgumentException("Invalid JSON data: Missing PlayerSkills");
 
-        int duviriSkills = allSkills["LPS_DRIFT_RIDING"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_DRIFT_COMBAT"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_DRIFT_OPPORTUNITY"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_DRIFT_ENDURANCE"]?.GetValue<int>() ?? 0;
+        int duviriSkills = (allSkills["LPS_DRIFT_RIDING"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_DRIFT_COMBAT"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_DRIFT_OPPORTUNITY"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_DRIFT_ENDURANCE"]?.GetValue<int>() ?? 0);
 
-        int railjackSkills = allSkills["LPS_PILOTING"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_TACTICAL"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_GUNNERY"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_ENGINEERING"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_COMMAND"]?.GetValue<int>() ?? 0;
+        int railjackSkills = (allSkills["LPS_PILOTING"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_TACTICAL"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_GUNNERY"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_ENGINEERING"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_COMMAND"]?.GetValue<int>() ?? 0);
 
         JsonArray missions = (root["Missions"] ?? throw new ArgumentException("Invalid JSON data: Missing Missions")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Missions");
 
@@ -170,8 +170,8 @@ public class MasteryService : IMasteryService
                 .Join(_dbContext.missions,
                     mc => mc.UniqueName,
                     m => m.UniqueName,
-                    (mc, m) => new { mc.CompletionCount, m.MasteryXp })
-                .SumAsync(mc => mc.MasteryXp);
+                    (mc, m) => new { mc.SPComplete, m.MasteryXp })
+                .SumAsync(mc => mc.SPComplete ? mc.MasteryXp * 2 : mc.MasteryXp);
 
 
             int totalXp = masteryXp + missionXp + duviriSkills * 1500 + railjackSkills * 1500;
