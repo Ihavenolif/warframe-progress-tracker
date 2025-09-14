@@ -416,7 +416,7 @@ def extract_lua_table(lua: str, table_name: str) -> str:
 
 def get_missions() -> dict:
     req = requests.get(
-        "https://warframe.fandom.com/wiki/Module:Missions/data?action=raw")
+        "https://wiki.warframe.com/w/Module:Missions/data?action=raw")
     lua_content = req.text
 
     lua_table_str = extract_lua_table(lua_content, "MissionData")
