@@ -106,18 +106,24 @@ public class MasteryService : IMasteryService
             })];
 
 
+        var missingItems = xpInfo
+            .Where(x => !allItems.Contains(validateMasteryItem(x!)["ItemType"]!.GetValue<string>()))
+            .Select(x => (validateMasteryItem(x!)["ItemType"]!.GetValue<string>(), x!["XP"]!.GetValue<int>()))
+            .Distinct()
+            .ToList();
+
         JsonNode allSkills = root["PlayerSkills"] ?? throw new ArgumentException("Invalid JSON data: Missing PlayerSkills");
 
-        int duviriSkills = allSkills["LPS_DRIFT_RIDING"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_DRIFT_COMBAT"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_DRIFT_OPPORTUNITY"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_DRIFT_ENDURANCE"]?.GetValue<int>() ?? 0;
+        int duviriSkills = (allSkills["LPS_DRIFT_RIDING"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_DRIFT_COMBAT"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_DRIFT_OPPORTUNITY"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_DRIFT_ENDURANCE"]?.GetValue<int>() ?? 0);
 
-        int railjackSkills = allSkills["LPS_PILOTING"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_TACTICAL"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_GUNNERY"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_ENGINEERING"]?.GetValue<int>() ?? 0 +
-                        allSkills["LPS_COMMAND"]?.GetValue<int>() ?? 0;
+        int railjackSkills = (allSkills["LPS_PILOTING"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_TACTICAL"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_GUNNERY"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_ENGINEERING"]?.GetValue<int>() ?? 0) +
+                        (allSkills["LPS_COMMAND"]?.GetValue<int>() ?? 0);
 
         JsonArray missions = (root["Missions"] ?? throw new ArgumentException("Invalid JSON data: Missing Missions")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Missions");
 
@@ -163,18 +169,18 @@ public class MasteryService : IMasteryService
             var masteryItemsForXp = await _dbContext.player_items_masteries
                 .Where(pim => pim.player_id == player.id)
                 .Include(pim => pim.item)
-                .ToArrayAsync();
+                .ToListAsync();
             int masteryXp = masteryItemsForXp.Sum(item => item.MasteryPoints);
             int missionXp = await _dbContext.mission_completions
                 .Where(mc => mc.PlayerId == player.id)
                 .Join(_dbContext.missions,
                     mc => mc.UniqueName,
                     m => m.UniqueName,
-                    (mc, m) => new { mc.CompletionCount, m.MasteryXp })
-                .SumAsync(mc => mc.MasteryXp);
+                    (mc, m) => new { mc.SPComplete, m.MasteryXp })
+                .SumAsync(mc => mc.SPComplete ? mc.MasteryXp * 2 : mc.MasteryXp);
 
 
-            int totalXp = masteryXp + missionXp + duviriSkills * 1500 + railjackSkills * 1500;
+            int totalXp = masteryXp + missionXp + (duviriSkills * 1500) + (railjackSkills * 1500);
 
             player.TotalMasteryXp = totalXp;
 

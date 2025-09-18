@@ -56,7 +56,8 @@ def send_data():
             "Primary",
             "Secondary",
             "Sentinel Weapon",
-            "Zaw"
+            "Zaw",
+            "Hound Weapon"
         ]:
             xp_required = 450000
         elif item["class"] in [
@@ -66,11 +67,12 @@ def send_data():
             "Moa",
             "Pet",
             "Sentinel",
-            "Warframe"
+            "Warframe",
+            "Plexus"
         ]:
             xp_required = 900000
         else:
-            raise Exception("nejaka picovina mi utekla")
+            raise Exception("nejaka picovina mi utekla: " + item["class"])
 
         gear_items_insert.append(
             (item["name"], item["nameraw"], item["type"], item["class"], xp_required))

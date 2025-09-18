@@ -1,0 +1,5 @@
+ALTER TABLE player_mission_completion DROP CONSTRAINT player_mission_completion_player_id_fkey;
+ALTER TABLE player_mission_completion ADD CONSTRAINT player_mission_completion_player_id_fkey FOREIGN KEY (player_id) REFERENCES player(id) ON DELETE CASCADE;
+
+ALTER TABLE player_mission_completion DROP CONSTRAINT player_mission_completion_unique_name_fkey;
+ALTER TABLE player_mission_completion ADD CONSTRAINT player_mission_completion_unique_name_fkey FOREIGN KEY (unique_name) REFERENCES missions(unique_name) ON DELETE CASCADE;

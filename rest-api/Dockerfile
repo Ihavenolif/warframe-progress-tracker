@@ -13,4 +13,6 @@ WORKDIR /app
 
 COPY --from=build /app/out .
 
+RUN apt update && apt install -y curl
+
 ENTRYPOINT ["dotnet", "rest-api.dll"]

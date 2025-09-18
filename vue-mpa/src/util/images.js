@@ -1,5 +1,6 @@
 import localforage from "localforage";
 import { authFetch, BASE_URL } from "./util";
+import { ManifestFetchStartedSignal, ManifestFetchFinishedSignal, ManifestLoadStartedSignal, ManifestLoadFinishedSignal, ManifestParseStartedSignal, ManifestParseFinishedSignal, emit } from "./signals";
 
 localforage.config({
     name: 'warframe-tracker',
@@ -7,21 +8,6 @@ localforage.config({
 })
 
 let updateImageDbPromise = null;
-export const ManifestFetchStartedSignal = new Set();
-export const ManifestFetchFinishedSignal = new Set();
-export const ManifestParseStartedSignal = new Set();
-export const ManifestParseFinishedSignal = new Set();
-export const ManifestLoadStartedSignal = new Set();
-export const ManifestLoadFinishedSignal = new Set();
-
-export function subscribe(signal, callback) {
-    signal.add(callback);
-    return () => signal.delete(callback);
-}
-
-function emit(signal, args = null) {
-    signal.forEach(cb => cb(args));
-}
 
 async function getIndex() {
     emit(ManifestFetchStartedSignal);
@@ -54,6 +40,9 @@ async function updateImageDb() {
 }
 
 export async function getImage(uniqueName) {
+    if (uniqueName == "/Lotus/Types/Game/CrewShip/RailJack/DefaultHarness") {
+        return "https://wiki.warframe.com/images/Plexus.png?25d71";
+    }
     const image = await localforage.getItem(uniqueName);
     if (image) {
         return encodeURI(BASE_URL + "/images/http://content.warframe.com/PublicExport" + image + "@png");

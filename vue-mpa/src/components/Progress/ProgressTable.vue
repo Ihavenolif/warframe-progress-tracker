@@ -207,20 +207,31 @@ th {
 }
 
 tr:nth-child(even) {
-    background-color: #fefefe;
-    filter: brightness(0.95);
+    background-color: #e7e7e7;
 }
 
 .mastery-state-0 {
     background-color: rgb(92, 233, 92);
 }
 
+tr:nth-child(even) .mastery-state-0 {
+    background-color: rgb(86, 216, 86);
+}
+
 .mastery-state-1 {
     background-color: rgb(238, 238, 119);
 }
 
+tr:nth-child(even) .mastery-state-1 {
+    background-color: rgb(224, 224, 111);
+}
+
 .mastery-state-2 {
     background-color: rgb(235, 130, 130);
+}
+
+tr:nth-child(even) .mastery-state-2 {
+    background-color: rgb(225, 125, 125);
 }
 
 .checkbox-item input {

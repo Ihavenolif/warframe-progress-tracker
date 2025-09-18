@@ -61,7 +61,11 @@ public class AuthController : ControllerBase
 
         Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
 
-        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(accessToken) });
+        return Ok(new
+        {
+            token = new JwtSecurityTokenHandler().WriteToken(accessToken),
+            username = user.username
+        });
     }
 
     [HttpPost("register")]
@@ -81,7 +85,11 @@ public class AuthController : ControllerBase
 
         var token = _tokenService.GenerateAccessToken(user);
 
-        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+        return Ok(new
+        {
+            token = new JwtSecurityTokenHandler().WriteToken(token),
+            username = user.username
+        });
     }
 
     [HttpPost("refresh")]
@@ -131,7 +139,11 @@ public class AuthController : ControllerBase
 
         Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
 
-        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(accessToken) });
+        return Ok(new
+        {
+            token = new JwtSecurityTokenHandler().WriteToken(accessToken),
+            username = user.username
+        });
     }
 
     [HttpPost("me")]
@@ -171,7 +183,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = _config.SecureCookies,
             SameSite = SameSiteMode.None,
-            Domain = ".localhost.me",
+            Domain = $".{_config.OriginUrl}",
             Expires = DateTime.UtcNow.AddDays(-1) // Expire the cookie
         };
 

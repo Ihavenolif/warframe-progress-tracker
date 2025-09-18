@@ -12,9 +12,10 @@
 
 import UserLoggedIn from './UserLoggedIn.vue';
 import UserNotLoggedIn from './UserNotLoggedIn.vue';
+import { subscribe, TokenUpdateSignal } from '@/util/signals';
 
-export default{
-    components:{
+export default {
+    components: {
         UserLoggedIn,
         UserNotLoggedIn
     },
@@ -22,6 +23,11 @@ export default{
         username() {
             return this.$store.state.username;
         }
+    },
+    mounted() {
+        this.unsubscribe = subscribe(TokenUpdateSignal, () => {
+            this.$forceUpdate();
+        });
     }
 }
 
