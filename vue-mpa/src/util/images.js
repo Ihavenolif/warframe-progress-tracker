@@ -40,6 +40,9 @@ async function updateImageDb() {
 }
 
 export async function getImage(uniqueName) {
+    if (uniqueName == "/Lotus/Types/Game/CrewShip/RailJack/DefaultHarness") {
+        return "https://wiki.warframe.com/images/Plexus.png?25d71";
+    }
     const image = await localforage.getItem(uniqueName);
     if (image) {
         return encodeURI(BASE_URL + "/images/http://content.warframe.com/PublicExport" + image + "@png");

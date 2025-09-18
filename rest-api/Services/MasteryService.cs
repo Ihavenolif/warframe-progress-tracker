@@ -106,6 +106,12 @@ public class MasteryService : IMasteryService
             })];
 
 
+        var missingItems = xpInfo
+            .Where(x => !allItems.Contains(validateMasteryItem(x!)["ItemType"]!.GetValue<string>()))
+            .Select(x => (validateMasteryItem(x!)["ItemType"]!.GetValue<string>(), x!["XP"]!.GetValue<int>()))
+            .Distinct()
+            .ToList();
+
         JsonNode allSkills = root["PlayerSkills"] ?? throw new ArgumentException("Invalid JSON data: Missing PlayerSkills");
 
         int duviriSkills = (allSkills["LPS_DRIFT_RIDING"]?.GetValue<int>() ?? 0) +
@@ -163,7 +169,7 @@ public class MasteryService : IMasteryService
             var masteryItemsForXp = await _dbContext.player_items_masteries
                 .Where(pim => pim.player_id == player.id)
                 .Include(pim => pim.item)
-                .ToArrayAsync();
+                .ToListAsync();
             int masteryXp = masteryItemsForXp.Sum(item => item.MasteryPoints);
             int missionXp = await _dbContext.mission_completions
                 .Where(mc => mc.PlayerId == player.id)
@@ -174,7 +180,7 @@ public class MasteryService : IMasteryService
                 .SumAsync(mc => mc.SPComplete ? mc.MasteryXp * 2 : mc.MasteryXp);
 
 
-            int totalXp = masteryXp + missionXp + duviriSkills * 1500 + railjackSkills * 1500;
+            int totalXp = masteryXp + missionXp + (duviriSkills * 1500) + (railjackSkills * 1500);
 
             player.TotalMasteryXp = totalXp;
 

@@ -49,6 +49,11 @@ public partial class Player_items_mastery
 
         int maxLevel = GetMaxRank();
 
+        if (maxLevel != 30)
+        {
+            Console.WriteLine("Something is fishy");
+        }
+
         for (int level = 1; level < maxLevel + 1; level++)
         {
             if (xp_gained < thresholds[level])
@@ -62,12 +67,15 @@ public partial class Player_items_mastery
     private int GetMasteryPoints()
     {
         int rank = GetRank();
-        if (rank == 0) return 0;
+        if (rank == 0)
+        {
+            return 0;
+        }
         int res = item?.xp_required == 1600000 || item?.xp_required == 900000 ? rank * 200 :
                item?.xp_required == 800000 || item?.xp_required == 450000 ? rank * 100 :
                throw new InvalidOperationException("Unknown item xp_required value");
 
-        if (res == 3000)
+        if (res == 6000)
         {
             Console.WriteLine("Something is fishy");
         }

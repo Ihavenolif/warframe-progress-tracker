@@ -120,6 +120,13 @@ def get_warframes(index: dict[str, str], warframes: list) -> None:
             "nameraw": warframe["uniqueName"]
         })
 
+    warframes.append({
+        "name": "Plexus",
+        "class": "Plexus",
+        "type": "Normal",
+        "nameraw": "/Lotus/Types/Game/CrewShip/RailJack/DefaultHarness"
+    })
+
 
 def parse_amp(amp: dict, weapons: list) -> None:
     name: str = amp["name"]
@@ -175,10 +182,19 @@ def parse_kitgun(kitgun: dict, weapons: list) -> None:
     })
 
 
-def parse_hound(hound: dict, companions: list) -> None:
+def parse_hound(hound: dict, companions: list, weapons: list) -> None:
     name: str = hound["name"]
 
     if "Hound" not in hound["name"]:
+        _class: str = "Hound Weapon"
+        _type: str = "Normal"
+        REGISTERED.append(name)
+        weapons.append({
+            "name": name,
+            "class": _class,
+            "type": _type,
+            "nameraw": hound["uniqueName"]
+        })
         return
 
     _class: str = "Hound"
@@ -193,11 +209,20 @@ def parse_hound(hound: dict, companions: list) -> None:
     })
 
 
-def parse_moa(moa: dict, companions: list) -> None:
+def parse_moa(moa: dict, companions: list, weapons: list) -> None:
     name: str = moa["name"]
 
     if "Moa" not in moa["name"]:
-        return
+        _class: str = "Sentinel Weapon"
+        _type: str = "Normal"
+
+        REGISTERED.append(name)
+        weapons.append({
+            "name": name,
+            "class": _class,
+            "type": _type,
+            "nameraw": moa["uniqueName"]
+        })
 
     _class: str = "Moa"
     _type: str = "Normal"
@@ -256,10 +281,10 @@ def get_weapons(index: dict[str, str], warframes: list, weapons: list, companion
             parse_kitgun(item, weapons)
             continue
         if "MoaPets" in item["uniqueName"]:
-            parse_moa(item, companions)
+            parse_moa(item, companions, weapons)
             continue
         if "ZanukaPets" in item["uniqueName"]:
-            parse_hound(item, companions)
+            parse_hound(item, companions, weapons)
             continue
         if "Hoverboard" in item["uniqueName"]:
             parse_kdrive(item, warframes)
@@ -320,6 +345,15 @@ def get_sentinels(index: dict[str, str], companions: list) -> None:
         _type: str = ""
 
         if "SpecialItems" == companion["productCategory"]:
+            _class = "Pet"
+            _type = "Prime" if "Prime" in name else "Normal"
+            REGISTERED.append(name)
+            companions.append({
+                "name": name,
+                "class": _class,
+                "type": _type,
+                "nameraw": companion["uniqueName"]
+            })
             continue
 
         if "<ARCHWING> " in name:
