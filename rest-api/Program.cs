@@ -106,7 +106,11 @@ if (config.AppEnvironment == "DEVELOPMENT")
     });
 }
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
+
+app.MapHealthChecks("/health");
 
 app.MapOpenApi();
 app.UseSwagger();

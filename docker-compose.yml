@@ -16,6 +16,12 @@ services:
     env_file:
       - ./.env
     entrypoint: ["/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
   backend:
     image: ghcr.io/ihavenolif/warframe-progress-tracker-backend:latest
@@ -25,6 +31,12 @@ services:
     environment:
       - DB_HOST=postgres
       - DATA_UPDATE_SERVER_URL=data-update
+    healthcheck:
+      test: ["CMD", "curl", "backend:8080/health"]
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 30s
   
     env_file:
       - ./.env
@@ -39,6 +51,12 @@ services:
     volumes:
       - ./pgdata:/var/lib/postgresql/data
       - ./create.sql:/create.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
 
@@ -62,6 +80,12 @@ services:
       - DB_HOST=postgres
     env_file:
       - ./.env
+    healthcheck:
+      test: ["CMD", "curl", "localhost:5000/health"]
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
   certbot:
     image: certbot/certbot
