@@ -21,9 +21,12 @@ public class ItemController : ControllerBase
     [HttpGet("index")]
     [SwaggerOperation(Summary = "Gets Warframe Public Export index", Description = "Fetches and returns the Warframe Public Export index.")]
     [SwaggerResponse(200, "Index retrieved successfully", typeof(Dictionary<string, string>))]
-    public ActionResult<Dictionary<string, string>> Index()
+    public async Task<ActionResult<Dictionary<string, string>>> Index()
     {
-        var index = warframePublicExportService.GetIndex().Result;
+        // This blocks current thread, it can cause deadlocks.
+        // warframePublicExportService.GetIndex().Result; 
+        // https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios#yield-for-tasks-in-a-nonblocking-manner
+        var index = await warframePublicExportService.GetIndex();
         return Ok(index);
     }
 
@@ -40,9 +43,7 @@ public class ItemController : ControllerBase
         {
             return Ok(new { message = "Item database update initiated successfully." });
         }
-        else
-        {
-            return StatusCode(500, new { message = "Failed to initiate item database update." });
-        }
+
+        return StatusCode(500, new { message = "Failed to initiate item database update." });
     }
 }

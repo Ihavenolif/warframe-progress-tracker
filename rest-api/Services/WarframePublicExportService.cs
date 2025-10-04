@@ -1,4 +1,5 @@
-using SharpCompress.Compressors.LZMA;
+using System.Text;
+using Decoder = SharpCompress.Compressors.LZMA.Decoder;
 
 namespace rest_api.Services;
 
@@ -9,54 +10,65 @@ public interface IWarframePublicExportService
 
 public class WarframePublicExportService : IWarframePublicExportService
 {
-    static async Task<string> GetRawIndex()
+    private const string RAW_INDEX_URL = "https://origin.warframe.com/PublicExport/index_en.txt.lzma";
+    
+    private const string SPLIT_RAW_INDEX_BY = "\r\n";
+    private const char MANIFEST_TILL_CHAR = '.';
+    private const char NON_MANIFEST_TILL_CHAR = '_';
+    
+    private static async Task<string> GetRawIndex()
     {
-        string url = "https://origin.warframe.com/PublicExport/index_en.txt.lzma";
-        using HttpClient client = new HttpClient();
-        byte[] compressedData = await client.GetByteArrayAsync(url);
+        using var client = new HttpClient();
+        var compressedData = await client.GetByteArrayAsync(RAW_INDEX_URL);
 
-        using MemoryStream input = new MemoryStream(compressedData);
-        using MemoryStream output = new MemoryStream();
+        using var input = new MemoryStream(compressedData);
+        using var output = new MemoryStream();
 
         // Read the first 5 bytes: properties
-        byte[] properties = new byte[5];
+        var properties = new byte[5];
         input.Read(properties, 0, 5);
 
         // Read the next 8 bytes: uncompressed size (little endian)
-        byte[] sizeBytes = new byte[8];
-        input.Read(sizeBytes, 0, 8);
-        long outSize = BitConverter.ToInt64(sizeBytes, 0);
+        Span<byte> sizeBytes = stackalloc byte[8];
+        input.Read(sizeBytes);
+        var outSize = BitConverter.ToInt64(sizeBytes);
 
         // Decode
-        Decoder decoder = new Decoder();
+        var decoder = new Decoder();
         decoder.SetDecoderProperties(properties);
         decoder.Code(input, output, input.Length - input.Position, outSize, null);
-
-        return System.Text.Encoding.UTF8.GetString(output.ToArray());
+        
+        return Encoding.UTF8.GetString(output.ToArray());
     }
-
+    
     public async Task<Dictionary<string, string>> GetIndex()
     {
-        var indexRaw = await GetRawIndex();
-        var ret = new Dictionary<string, string>();
+        var rawIndex = await GetRawIndex();
+        var result = new Dictionary<string, string>();
 
-        var lines = indexRaw.Split("\r\n");
+        var lines = rawIndex.Split(SPLIT_RAW_INDEX_BY);
         foreach (var line in lines)
         {
-            if (line.Contains("Manifest"))
-            {
-                var innerKey = line.Split('.')[0].Substring(6); // Remove "Export" prefix
-                var innerValue = line;
-                ret[innerKey] = innerValue;
-                continue;
-            }
-
-            var key = line.Split('_')[0].Substring(6);
-            var value = line;
-            ret[key] = value;
+            var charToSplit = line.Contains("Manifest") ? MANIFEST_TILL_CHAR : NON_MANIFEST_TILL_CHAR;
+            var key = TakeTillAndSkip(line, charToSplit, 6);
+            result[key] = line;
         }
 
-        return ret;
-        throw new NotImplementedException();
+        return result;
+
+        static string TakeTillAndSkip(string value, char till, int startingIndex)
+        {
+            var sb = new StringBuilder(); // StringBuilderPool can better option here.
+            
+            for (var i = startingIndex; i < value.Length; i++)
+            {
+                var @char = value[i]; 
+                if (@char == till) break;
+                sb.Append(@char);
+            }
+            
+            var result = sb.ToString();
+            return result;
+        }
     }
 }
