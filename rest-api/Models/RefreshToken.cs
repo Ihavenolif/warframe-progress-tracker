@@ -9,13 +9,15 @@ public partial class RefreshToken
         this.User = user;
         this.UserId = user.id;
         this.IssuedByIp = ip;
+        this.Issued = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+        this.Expires = DateTime.SpecifyKind(DateTime.Now.AddDays(7), DateTimeKind.Unspecified);
     }
 
     public string Token { get; set; } = null!;
 
-    public DateTime Issued { get; set; } = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+    public DateTime Issued { get; set; }
 
-    public DateTime Expires { get; set; } = DateTime.SpecifyKind(DateTime.Now.AddDays(7), DateTimeKind.Unspecified);
+    public DateTime Expires { get; set; }
 
     public bool Revoked { get; set; } = false;
 

@@ -110,6 +110,12 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<WarframeTrackerDbContext>();
+    dbContext.Database.Migrate();
+}
+
 app.MapHealthChecks("/health");
 
 app.MapOpenApi();

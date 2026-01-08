@@ -44,6 +44,10 @@ public partial class WarframeTrackerDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.UseOpenIddict();
+
         modelBuilder.HasPostgresEnum<InvitationStatus>();
 
         modelBuilder.Entity<Clan>(entity =>
@@ -231,7 +235,6 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.Property(e => e.password_hash).HasMaxLength(256);
             entity.Property(e => e.username).HasMaxLength(256);
             entity.Property(e => e.Roles)
-                .HasDefaultValue(new List<string>())
                 .HasColumnName("roles")
                 .HasColumnType("text[]");
 
@@ -265,7 +268,6 @@ public partial class WarframeTrackerDbContext : DbContext
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.Issued)
                 .HasColumnName("issued")
-                .HasDefaultValue(DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified))
                 .HasColumnType("timestamp without time zone");
 
             entity.Property(e => e.Revoked)
