@@ -10,4 +10,4 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 -subj "/CN=localhost.me" \
 -addext "subjectAltName=DNS:www.localhost.me,DNS:api.localhost.me"
 
-openssl pkcs12 -export -out localhost-me.pfx -inkey localhost-me.key -in localhost-me.crt -passout pass:
+openssl pkcs12 -export -out certificate.pfx -inkey localhost-me.key -in localhost-me.crt -passout pass:
