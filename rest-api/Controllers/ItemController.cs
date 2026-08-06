@@ -22,7 +22,6 @@ public class ItemController : ControllerBase
     [SwaggerOperation(Summary = "Gets Warframe Public Export index", Description = "Fetches and returns the Warframe Public Export index.")]
     [SwaggerResponse(200, "Index retrieved successfully", typeof(Dictionary<string, string>))]
     public async Task<ActionResult<Dictionary<string, string>>> Index()
-    public async Task<ActionResult<Dictionary<string, string>>> Index()
     {
         var index = await warframePublicExportService.GetIndex();
         return Ok(index);

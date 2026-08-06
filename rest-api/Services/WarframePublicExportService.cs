@@ -46,7 +46,7 @@ public class WarframePublicExportService : IWarframePublicExportService
         var rawIndex = await GetRawIndex();
         var result = new Dictionary<string, string>();
 
-        var lines = indexRaw.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var lines = rawIndex.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         foreach (var line in lines)
         {
             var fileName = line.Split(line.Contains("Manifest") ? '.' : '_')[0];
@@ -55,9 +55,9 @@ public class WarframePublicExportService : IWarframePublicExportService
                 continue;
             }
 
-            ret[fileName["Export".Length..]] = line;
+            result[fileName["Export".Length..]] = line;
         }
 
-        return ret;
+        return result;
     }
 }
