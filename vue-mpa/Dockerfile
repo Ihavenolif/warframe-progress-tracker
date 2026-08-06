@@ -9,6 +9,5 @@ RUN npm run build
 
 FROM nginx:latest as deploy
 
-RUN apt update && apt install -y curl
-
+COPY nginx/static.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html

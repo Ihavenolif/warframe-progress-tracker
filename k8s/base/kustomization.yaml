@@ -14,9 +14,6 @@ configMapGenerator:
       - CORS_POLICY=ProdPolicy
       - SECURE_COOKIES=true
       - DATA_UPDATE_SERVER_URL=warframe-tracker-data-update
-  - name: warframe-tracker-frontend
-    files:
-      - default.conf=frontend-nginx.conf
 
 images:
   - name: warframe-tracker-frontend
