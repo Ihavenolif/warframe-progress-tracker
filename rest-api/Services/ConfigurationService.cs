@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using DotNetEnv;
 using Npgsql;
@@ -23,9 +22,6 @@ public class ConfigurationService
         this.OriginUrl = Environment.GetEnvironmentVariable("ORIGIN_URL") ?? "";
         this.DataUpdateServerUrl = Environment.GetEnvironmentVariable("DATA_UPDATE_SERVER_URL") ?? "localhost";
 
-        var certPassword = Environment.GetEnvironmentVariable("CERT_PASSWORD") ?? "";
-        this.cert = X509CertificateLoader.LoadPkcs12FromFile("../https-setup/certificate.pfx", certPassword);
-
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(GetConnectionString());
         dataSourceBuilder.EnableDynamicJson();
         dataSourceBuilder.MapEnum<InvitationStatus>("invitation_status");
@@ -38,8 +34,6 @@ public class ConfigurationService
     public readonly string AppEnvironment;
     public readonly string OriginUrl;
     public readonly string DataUpdateServerUrl;
-    public readonly X509Certificate2 cert;
-
     private string? dbHost;
     private string? dbName;
     private string? dbUser;
