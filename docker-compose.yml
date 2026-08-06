@@ -1,102 +1,89 @@
 services:
-  nginx-frontend:
-    image: ghcr.io/ihavenolif/warframe-progress-tracker-frontend:latest
-    container_name: warframe-tracker-frontend
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./vue-mpa/nginx/ngnix.conf:/etc/nginx/nginx.conf
-      - ./vue-mpa/nginx/nginx.conf.d:/etc/nginx/nginx.templates.d
-      - ./https-setup:/etc/nginx/certs
-      - ./vue-mpa/nginx/entrypoint.sh:/entrypoint.sh
-      - ./https-setup/nginx-html:/var/www/html
-    restart: unless-stopped
+  frontend:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    command: sh -c "npm install && npm run serve -- --host 0.0.0.0"
+    init: true
     env_file:
       - ./.env
-    entrypoint: ["/entrypoint.sh"]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health" ]
-      interval: 1m
-      timeout: 30s
-      retries: 5
-      start_period: 30s
+    environment:
+      BACKEND_URL: http://backend:8080
+      IMGPROXY_URL: http://imgproxy:8080
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./vue-mpa:/app
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      - backend
+      - imgproxy
 
   backend:
-    image: ghcr.io/ihavenolif/warframe-progress-tracker-backend:latest
-    container_name: warframe-tracker-backend
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    working_dir: /app
+    command: dotnet watch run --no-launch-profile --urls http://0.0.0.0:8080
+    init: true
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DATA_UPDATE_SERVER_URL: data-update
+      DB_HOST: postgres
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "1"
     ports:
       - "5224:8080"
-    environment:
-      - DB_HOST=postgres
-      - DATA_UPDATE_SERVER_URL=data-update
-    healthcheck:
-      test: ["CMD", "curl", "backend:8080/health"]
-      interval: 1m
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-  
-    env_file:
-      - ./.env
-
-  postgres:
-    image: postgres:16.10-bookworm
-    container_name: warframe-tracker-postgres
-    env_file:
-      - ./.env
-    ports:
-      - "5432:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
-      - ./create.sql:/create.sql
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 1m
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
+      - ./rest-api:/app
+      - backend-nuget:/root/.nuget/packages
+    depends_on:
+      postgres:
+        condition: service_healthy
+      data-update:
+        condition: service_started
 
+  data-update:
+    image: python:3.13-slim-bookworm
+    working_dir: /app
+    command: >-
+      sh -c "pip install --no-cache-dir -r requirements.txt
+      && python -u server.py"
+    init: true
+    env_file:
+      - ./.env
+    environment:
+      DB_HOST: postgres
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data-update:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:latest
-    container_name: imgproxy
-    restart: unless-stopped
-
     environment:
-      - IMGPROXY_CACHE_CONTROL_PASSTHROUGH=true
-    
+      IMGPROXY_CACHE_CONTROL_PASSTHROUGH: "true"
     volumes:
       - ./imgcache:/imgcache
 
-  data-update:
-    image: ghcr.io/ihavenolif/warframe-progress-tracker-data-update:latest
-    ports:
-      - "5000:5000"
-    container_name: warframe-tracker-data-update
-    environment:
-      - DB_HOST=postgres
+  postgres:
+    image: postgres:16.10-bookworm
     env_file:
       - ./.env
-    healthcheck:
-      test: ["CMD", "curl", "localhost:5000/health"]
-      interval: 1m
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-
-  certbot:
-    image: certbot/certbot
-    container_name: warframe-tracker-certbot
     volumes:
-      - ./https-setup/certbot-etc:/etc/letsencrypt
-      - ./https-setup/certbot-var:/var/lib/letsencrypt
-      - ./https-setup/nginx-html:/var/www/html
-      - ./https-setup/certbot_entrypoint.sh:/certbot_entrypoint.sh
-      - ./https-setup:/certs
-    env_file:
-      - ./.env
-    entrypoint: ["/certbot_entrypoint.sh"]
-    depends_on:
-      - nginx-frontend
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  backend-nuget:
+  frontend-node-modules:
+  postgres-data:
+    name: warframe-tracker-postgres-data

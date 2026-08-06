@@ -9,12 +9,15 @@ module.exports = defineConfig({
         port: 8080,
         proxy: {
             '/api': {
-                target: 'http://localhost:5224',
+                target: process.env.BACKEND_URL || 'http://localhost:5224',
                 changeOrigin: true,
             },
             '/images': {
-                target: 'http://localhost:18080',
+                target: process.env.IMGPROXY_URL || 'http://localhost:20080',
                 changeOrigin: true,
+                pathRewrite: {
+                    '^/images/': '/insecure/resize:fit:34:34:0/gravity:sm/plain/'
+                },
             }
         },
         historyApiFallback: true

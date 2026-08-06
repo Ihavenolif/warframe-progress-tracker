@@ -11,6 +11,7 @@ ITEM_CLASSES = {
     "LongGuns": "Primary",
     "Pistols": "Secondary",
     "Melee": "Melee",
+    "SpecialItems": "Warframe",
     "Suits": "Warframe",
     "Kdrive": "K-Drive",
     "MechSuits": "Necramech",
