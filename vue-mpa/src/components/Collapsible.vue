@@ -1,6 +1,6 @@
 <template>
-    <button type="button" class="collapsible" ref="collapsibleButton"><strong>{{ title }}</strong></button>
-    <div class="collapsible-content">
+    <button type="button" class="collapsible" :class="{ 'collapsible-active': expanded }" @click="expanded = !expanded"><strong>{{ title }}</strong></button>
+    <div class="collapsible-content" v-show="expanded">
         <slot>Collapsible placeholder slot</slot>
     </div>
 </template>
@@ -14,16 +14,10 @@ export default {
             required: true
         }
     },
-    mounted() {
-        this.$refs.collapsibleButton.addEventListener("click", function () {
-            this.classList.toggle("collapsible-active");
-            var content = this.nextElementSibling;
-            if (content.style.display === "block") {
-                content.style.display = "none";
-            } else {
-                content.style.display = "block";
-            }
-        });
+    data() {
+        return {
+            expanded: false
+        }
     }
 }
 </script>

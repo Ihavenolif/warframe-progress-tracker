@@ -1,7 +1,7 @@
 <template>
-    <a :href="href" :class="{ 'active-inverted': isActive }">
+    <RouterLink :to="href" :class="{ 'active-inverted': isActive }">
         <slot></slot>
-    </a>
+    </RouterLink>
 </template>
 
 <script>
@@ -15,7 +15,7 @@ export default {
     },
     computed: {
         isActive() {
-            return window.location.pathname == this.href || window.location.pathname == (this.href + "/");
+            return this.$route.path == this.href || this.$route.path == (this.href + "/");
         }
     }
 }

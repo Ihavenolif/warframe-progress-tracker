@@ -11,34 +11,8 @@
     </NavbarDropdown>
 
     <div class="right-aligned">
-        <a href="/admin" v-if="shouldDisplayAdmin" :class="{
-            'active': isAdminActive
-        }">Admin</a>
+        <RouterLink to="/admin" v-if="shouldDisplayAdmin" exact-active-class="active">Admin</RouterLink>
     </div>
-
-
-
-
-    <!--<div class="dropdown right-aligned">
-        <button class="dropbtn">{{ username }}
-            <i class="fa fa-caret-down"></i>
-        </button>
-
-        <div class="dropdown-content right-aligned">
-            <a class='{% if page == "clans.html" %}active-inverted{% endif %}' href="/clans">Clans</a>
-            <a class='{% if page == "progress/progress.html" %}active-inverted{% endif %}' href="/progress">Progress</a>
-            <a class='{% if page == "settings.html" %}active-inverted{% endif %}' href="/settings">Settings</a>
-            <a class='{% if page == "logout.html" %}active-inverted{% endif %}' href="/logout">Log out</a>
-        </div>
-    </div>-->
-
-    <!--{% if page == "progress/progress.html" or page == "progress/import.html" %}-->
-
-    <!--<div class="right-aligned">
-        <a class='{% if page == "progress/import.html" %}active{% endif %}' href="/progress/import">Import</a>
-    </div>-->
-
-    <!--{% endif %}    -->
 </template>
 
 <script>
@@ -60,9 +34,6 @@ export default {
         },
         shouldDisplayAdmin() {
             return getRoles(parseJwt(this.token)).includes('ADMIN');
-        },
-        isAdminActive() {
-            return window.location.pathname == "/admin";
         }
     },
     components: {

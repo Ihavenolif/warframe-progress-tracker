@@ -67,6 +67,12 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 export default {
     name: "ClansDetails",
+    props: {
+        clanName: {
+            type: String,
+            required: true
+        }
+    },
     components: {
         ThreeColumnLayout,
         NavbarElement,
@@ -74,9 +80,8 @@ export default {
         SimpleButton
     },
     computed: {
-        clanName() {
-            const pathParts = window.location.href.split('/');
-            return decodeURIComponent(pathParts[pathParts.length - 2]);
+        encodedClanName() {
+            return encodeURIComponent(this.clanName);
         },
         leaderName() {
             if (this.userData && this.clanMembers) {
@@ -102,12 +107,53 @@ export default {
         }
     },
     methods: {
+        async loadData() {
+            const res = await authFetch(`/api/clans/${this.encodedClanName}/members`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            const res2 = await authFetch("/api/auth/me", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            if (res.status == 404) {
+                this.$router.push({ name: 'settings' });
+                return;
+            }
+
+            if (res.status == 403) {
+                this.$router.push({ name: 'clans' });
+                return;
+            }
+
+            this.userData = await res2.json();
+            this.clanMembers = await res.json();
+
+            if (this.amLeader) {
+                const res3 = await authFetch(`/api/clans/${this.encodedClanName}/pendingInvitations`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+
+                this.pendingInvitations = await res3.json();
+            } else {
+                this.pendingInvitations = null;
+            }
+        },
         async invitePlayer() {
             if (!this.inputVisible) this.inputVisible = true;
 
             if (!this.invitePlayerName) return;
 
-            const res = await authFetch(`/api/clans/${this.clanName}/invite`, {
+            const res = await authFetch(`/api/clans/${this.encodedClanName}/invite`, {
                 method: "PUT",
                 headers: {
                     'Content-Type': 'application/json'
@@ -116,13 +162,17 @@ export default {
             })
 
             if (res.ok) {
-                window.location.reload();
+                this.inputVisible = false;
+                this.invitePlayerName = "";
+                await this.loadData();
+                return;
             }
 
             const error = await res.text();
 
             if (res.status == 404 && error == "Player not found") {
-                window.location.href = "/settings";
+                this.$router.push({ name: 'settings' });
+                return;
             }
 
             this.errorMessage = error;
@@ -135,7 +185,7 @@ export default {
                 }
             })
 
-            window.location.reload();
+            await this.loadData();
         },
         async removeMember(username) {
             if (prompt("Please confirm the username of the player you want to remove:") !== username) {
@@ -143,7 +193,7 @@ export default {
                 return;
             }
 
-            await authFetch(`/api/clans/${this.clanName}/removePlayer`, {
+            await authFetch(`/api/clans/${this.encodedClanName}/removePlayer`, {
                 method: "DELETE",
                 headers: {
                     'Content-Type': 'application/json'
@@ -151,10 +201,10 @@ export default {
                 body: JSON.stringify({ username: username })
             })
 
-            window.location.reload();
+            await this.loadData();
         },
         async transferLeadership(username) {
-            await authFetch(`/api/clans/${this.clanName}/changeLeader`, {
+            await authFetch(`/api/clans/${this.encodedClanName}/changeLeader`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
@@ -162,57 +212,23 @@ export default {
                 body: JSON.stringify({ username: username })
             })
 
-            window.location.reload();
+            await this.loadData();
         },
         async leaveClan() {
             if (!confirm("Are you sure you want to leave the clan?")) return;
 
-            await authFetch(`/api/clans/${this.clanName}/leave`, {
+            await authFetch(`/api/clans/${this.encodedClanName}/leave`, {
                 method: "DELETE",
                 headers: {
                     'Content-Type': 'application/json'
                 }
             })
 
-            window.location.href = "/clans";
+            this.$router.push({ name: 'clans' });
         }
     },
-    async mounted() {
-        const res = await authFetch(`/api/clans/${this.clanName}/members`, {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-
-        const res2 = await authFetch("/api/auth/me", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-
-        if (res.status == 404) {
-            window.location.href = "/settings"
-        }
-
-        if (res.status == 403) {
-            window.location.href = "/clans"
-        }
-
-        this.userData = await res2.json();
-        this.clanMembers = await res.json();
-
-        if (this.amLeader) {
-            const res3 = await authFetch(`/api/clans/${this.clanName}/pendingInvitations`, {
-                method: "GET",
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            this.pendingInvitations = await res3.json();
-        }
+    mounted() {
+        this.loadData();
     }
 }
 

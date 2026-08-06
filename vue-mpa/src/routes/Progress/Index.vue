@@ -28,8 +28,6 @@ import {
     getImage
 } from '@/util/images';
 
-import { ManifestFetchStartedSignal, ManifestFetchFinishedSignal, ManifestLoadStartedSignal, ManifestLoadFinishedSignal, ManifestParseStartedSignal, ManifestParseFinishedSignal, subscribe } from '@/util/signals';
-
 import { authFetch } from '@/util/util';
 
 export default {
@@ -52,6 +50,7 @@ export default {
     },
     async mounted() {
         await this.getMasteryItems();
+        if (!this.data.items) return;
 
         this.itemList = this.data.items;
         this.playerNames = this.data.playerNames;
@@ -66,7 +65,8 @@ export default {
             })
 
             if (res.status == 404) {
-                window.location.href = "/settings";
+                this.$router.push({ name: 'settings' });
+                return;
             }
 
             this.loadingMessages.push("Done fetching mastery data.");
@@ -105,26 +105,6 @@ export default {
                     }
                 }
             }
-        },
-        addLoadingEventListeners() {
-            subscribe(ManifestLoadStartedSignal, () => {
-                this.loadingMessages.push("Loading manifest from Warframe servers...");
-            });
-            subscribe(ManifestLoadFinishedSignal, () => {
-                this.loadingMessages.push("Done loading manifest from Warframe servers.");
-            });
-            subscribe(ManifestParseStartedSignal, () => {
-                this.loadingMessages.push("Parsing manifest...");
-            });
-            subscribe(ManifestParseFinishedSignal, () => {
-                this.loadingMessages.push("Done parsing manifest.");
-            });
-            subscribe(ManifestFetchStartedSignal, () => {
-                this.loadingMessages.push("Fetching manifest...");
-            });
-            subscribe(ManifestFetchFinishedSignal, () => {
-                this.loadingMessages.push("Done fetching manifest.");
-            });
         }
     }
 }

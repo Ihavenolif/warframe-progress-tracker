@@ -164,11 +164,16 @@ export default {
 
     },
     async mounted() {
+        this.previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
         this.sortTable("itemName");
         this.sortTable("itemClass");
         this.playerNames.forEach(name => {
             this.sortTable(name);
         });
+    },
+    beforeUnmount() {
+        document.body.style.overflow = this.previousBodyOverflow;
     }
 }
 </script>
@@ -182,10 +187,6 @@ table {
     border-right: 1px solid #777;
     box-sizing: border-box;
     line-height: 10px !important;
-}
-
-body {
-    overflow: hidden;
 }
 
 th,

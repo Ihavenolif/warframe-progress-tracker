@@ -2,7 +2,7 @@
 
 `base` contains environment-neutral application resources only:
 
-- Frontend Nginx and its internal API reverse proxy.
+- Vue Router SPA served by Nginx, with an internal API reverse proxy.
 - ASP.NET Core backend.
 - Data updater, exposed only inside the cluster.
 - imgproxy.
@@ -42,6 +42,7 @@ Configure environment-managed Ingress routes as follows:
 - `/images/`: `warframe-tracker-imgproxy:8080`, rewriting the path as required by imgproxy.
 
 Frontend forwards API requests to backend internally. It does not proxy or cache image requests. No application pod needs certificates.
+All frontend paths use the same `index.html`; Vue Router resolves routes client-side.
 
 ## Overlay
 

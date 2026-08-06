@@ -1,6 +1,7 @@
 //export const BASE_URL = "http://localhost:5224"
 import { emit, TokenUpdateSignal } from "./signals";
 import { store } from "@/store";
+import router from "@/router";
 export const BASE_URL = window.location.origin
 
 export async function getPlayerName() {
@@ -11,7 +12,7 @@ export async function getPlayerName() {
     if (res.status == 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("username");
-        window.location.href = "login";
+        router.push({ name: 'login' });
     }
 
     const data = await res.json();
@@ -67,7 +68,7 @@ export async function authFetch(url, options = {}) {
         localStorage.removeItem("token");
         localStorage.removeItem("username");
 
-        window.location.href = "/login";
+        router.push({ name: 'login' });
         return;
     }
 

@@ -64,7 +64,7 @@ builder.Services.AddCors(options =>
     });
     options.AddPolicy("DevPolicy", policy =>
     {
-        policy.WithOrigins("https://www.localhost.me:8080")
+        policy.WithOrigins("http://localhost:8080")
               .AllowCredentials()
               .AllowAnyMethod()
               .AllowAnyHeader();
@@ -96,13 +96,9 @@ builder.Services.AddAuthentication(options =>
 
 if (config.AppEnvironment == "DEVELOPMENT")
 {
-    // Need self-signed https only for dev. For prod, nginx handles this.
     builder.WebHost.ConfigureKestrel(options =>
     {
-        options.ListenLocalhost(5224, listenOptions =>
-        {
-            listenOptions.UseHttps("../https-setup/localhost-me.pfx", "");
-        });
+        options.ListenLocalhost(5224);
     });
 }
 

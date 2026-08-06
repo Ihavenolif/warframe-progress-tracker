@@ -74,7 +74,9 @@ export default {
 
                     const data = await res.json();
                     this.$store.commit("setCredentials", { username: this.username, token: data.token });
-                    window.location.reload();
+                    this.playerName = this.playerNameInput;
+                    this.playerNameInput = "";
+                    this.inputVisible = false;
                 }
             }
         },
@@ -87,7 +89,7 @@ export default {
             if (res.ok) {
                 const data = await res.json();
                 this.$store.commit("setCredentials", { username: this.username, token: data.token });
-                window.location.reload();
+                this.playerName = null;
             }
         }
     },

@@ -50,14 +50,8 @@ public class AuthController : ControllerBase
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = await _tokenService.GenerateRefreshToken(user, Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
 
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = _config.SecureCookies,
-            SameSite = SameSiteMode.None,
-            Domain = $".{_config.OriginUrl}",
-            MaxAge = TimeSpan.FromDays(7)
-        };
+        var cookieOptions = CreateCookieOptions();
+        cookieOptions.MaxAge = TimeSpan.FromDays(7);
 
         Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
 
@@ -128,14 +122,8 @@ public class AuthController : ControllerBase
         var newRefreshToken = await _tokenService.GenerateRefreshToken(refreshToken.User, Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? null);
         await _tokenService.InvalidateRefreshTokenAsync(refreshToken);
 
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = _config.SecureCookies,
-            SameSite = SameSiteMode.None,
-            Domain = $".{_config.OriginUrl}",
-            MaxAge = TimeSpan.FromDays(7)
-        };
+        var cookieOptions = CreateCookieOptions();
+        cookieOptions.MaxAge = TimeSpan.FromDays(7);
 
         Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
 
@@ -178,17 +166,28 @@ public class AuthController : ControllerBase
             }
         }
 
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = _config.SecureCookies,
-            SameSite = SameSiteMode.None,
-            Domain = $".{_config.OriginUrl}",
-            Expires = DateTime.UtcNow.AddDays(-1) // Expire the cookie
-        };
+        var cookieOptions = CreateCookieOptions();
+        cookieOptions.Expires = DateTime.UtcNow.AddDays(-1);
 
         Response.Cookies.Append("refreshToken", "", cookieOptions);
 
         return Ok("Logged out successfully");
+    }
+
+    private CookieOptions CreateCookieOptions()
+    {
+        var options = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _config.SecureCookies,
+            SameSite = _config.SecureCookies ? SameSiteMode.None : SameSiteMode.Lax
+        };
+
+        if (_config.SecureCookies && !string.IsNullOrWhiteSpace(_config.OriginUrl))
+        {
+            options.Domain = $".{_config.OriginUrl}";
+        }
+
+        return options;
     }
 }

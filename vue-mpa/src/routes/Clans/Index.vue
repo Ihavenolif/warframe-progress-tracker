@@ -13,11 +13,11 @@
 
 
                 <div class="button-right">
-                    <a :href="`/clans/${clan['name']}/progress`">View progress</a>
+                    <RouterLink :to="{ name: 'clan-progress', params: { clanName: clan.name } }">View progress</RouterLink>
                 </div>
 
                 <div class="button-right">
-                    <a :href="`/clans/${clan['name']}/details`">Details</a>
+                    <RouterLink :to="{ name: 'clan-details', params: { clanName: clan.name } }">Details</RouterLink>
                 </div>
 
             </div>
@@ -83,29 +83,33 @@ export default {
             errorMessage: ""
         }
     },
-    async mounted() {
-        const res = await authFetch("/api/clans/myClans", {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-
-        const res2 = await authFetch("/api/clans/invite/pending", {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-
-        if (res.status == 404 || res2.status == 404) {
-            window.location.href = "/settings"
-        }
-
-        this.clans = await res.json();
-        this.invitations = await res2.json();
+    mounted() {
+        this.loadData();
     },
     methods: {
+        async loadData() {
+            const res = await authFetch("/api/clans/myClans", {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            const res2 = await authFetch("/api/clans/invite/pending", {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            if (res.status == 404 || res2.status == 404) {
+                this.$router.push({ name: 'settings' });
+                return;
+            }
+
+            this.clans = await res.json();
+            this.invitations = await res2.json();
+        },
         async createClan() {
             if (!this.inputVisible) {
                 this.inputVisible = true;
@@ -125,10 +129,13 @@ export default {
             })
 
             if (res.status == 404) {
-                window.location.href = "/settings"
+                this.$router.push({ name: 'settings' });
+                return;
             }
             if (res.ok) {
-                window.location.reload();
+                this.inputVisible = false;
+                this.newClanName = "";
+                await this.loadData();
             } else {
                 this.errorMessage = await res.text();
             }
@@ -139,10 +146,11 @@ export default {
             })
 
             if (res.status == 404) {
-                window.location.href = "/settings"
+                this.$router.push({ name: 'settings' });
+                return;
             }
             if (res.ok) {
-                window.location.reload();
+                await this.loadData();
             } else {
                 console.error(await res.text());
             }
@@ -153,10 +161,11 @@ export default {
             })
 
             if (res.status == 404) {
-                window.location.href = "/settings"
+                this.$router.push({ name: 'settings' });
+                return;
             }
             if (res.ok) {
-                window.location.reload();
+                await this.loadData();
             } else {
                 console.error(await res.text());
             }

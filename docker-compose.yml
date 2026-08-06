@@ -10,7 +10,6 @@ services:
       - ./vue-mpa/nginx/nginx.conf.d:/etc/nginx/nginx.templates.d
       - ./https-setup:/etc/nginx/certs
       - ./vue-mpa/nginx/entrypoint.sh:/entrypoint.sh
-      - ./cache:/var/cache/nginx
       - ./https-setup/nginx-html:/var/www/html
     restart: unless-stopped
     env_file:
