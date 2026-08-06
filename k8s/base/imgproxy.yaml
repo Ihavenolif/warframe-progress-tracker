@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warframe-tracker-imgproxy
+  labels:
+    app.kubernetes.io/name: warframe-tracker-imgproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: warframe-tracker-imgproxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: warframe-tracker-imgproxy
+    spec:
+      containers:
+        - name: imgproxy
+          image: imgproxy
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: IMGPROXY_CACHE_CONTROL_PASSTHROUGH
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: warframe-tracker-imgproxy
+  labels:
+    app.kubernetes.io/name: warframe-tracker-imgproxy
+spec:
+  selector:
+    app.kubernetes.io/name: warframe-tracker-imgproxy
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

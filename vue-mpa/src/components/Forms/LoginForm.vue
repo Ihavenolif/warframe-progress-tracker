@@ -30,13 +30,9 @@ export default {
     },
     methods: {
         async submitForm() {
-            console.log(BASE_URL);
-
             const url = new URL(`${BASE_URL}/api/auth/login`);
             url.searchParams.append('username', this.form.username);
             url.searchParams.append('password', this.form.password);
-
-            console.log(url);
 
             const response = await fetch(url, {
                 method: 'POST'
@@ -45,7 +41,7 @@ export default {
             if (response.ok) {
                 const data = await response.json();
                 this.$store.commit('setCredentials', { username: this.form.username, token: data.token });
-                window.location.href = "/";
+                this.$router.push({ name: 'home' });
             } else {
                 this.errorMessage = await response.text();
             }

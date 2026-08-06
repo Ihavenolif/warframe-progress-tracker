@@ -1,4 +1,6 @@
-# vue-mpa
+# Warframe Progress Tracker frontend
+
+Vue 3 single-page application using Vue Router history mode. Production servers must return `index.html` for unknown frontend paths.
 
 ## Project setup
 ```

@@ -1,6 +1,6 @@
 <template>
     <div class="topnav" id="myTopnav">
-        <a :class="{ active: currentPath == '/' }" href="/">Home</a>
+        <RouterLink to="/" exact-active-class="active">Home</RouterLink>
 
         <UserMenu></UserMenu>
 
@@ -21,14 +21,6 @@ export default {
                 x.className = "topnav";
             }
         }
-    },
-    mounted() {
-        this.currentPath = window.location.pathname;
-    },
-    data() {
-        return {
-            currentPath: '',
-        };
     },
     components: {
         UserMenu

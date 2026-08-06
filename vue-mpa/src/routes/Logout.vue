@@ -25,11 +25,10 @@ export default {
 
         if (res.ok) {
             this.header = "Successfully logged out!";
-            localStorage.removeItem("token");
-            localStorage.removeItem("username");
+            this.$store.commit('clearCredentials');
 
-            setTimeout(() => {
-                window.location.href = "/";
+            this.redirectTimeout = setTimeout(() => {
+                this.$router.push({ name: 'home' });
             }, 2000);
         } else {
             this.header = "Error logging out!";
@@ -40,8 +39,12 @@ export default {
     },
     data() {
         return {
-            header: "Logging out..."
+            header: "Logging out...",
+            redirectTimeout: null
         }
+    },
+    beforeUnmount() {
+        clearTimeout(this.redirectTimeout);
     }
 }
 </script>

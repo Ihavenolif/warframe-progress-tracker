@@ -30,15 +30,20 @@ import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
 
 export default {
     name: "ClansProgress",
+    props: {
+        clanName: {
+            type: String,
+            required: true
+        }
+    },
     components: {
         NavbarElement,
         ProgressTable,
         ThreeColumnLayout
     },
     computed: {
-        clanName() {
-            const pathParts = window.location.href.split('/');
-            return decodeURIComponent(pathParts[pathParts.length - 2]);
+        encodedClanName() {
+            return encodeURIComponent(this.clanName);
         }
     },
     data() {
@@ -50,17 +55,19 @@ export default {
             loadingMessages: ["Fetching mastery data..."],
             imagesNeedLoading: 0,
             imagesLoaded: 0,
-            imagesLoading: false
+            imagesLoading: false,
+            unsubscribers: []
         }
     },
     methods: {
         async getMasteryItems() {
-            const res = await authFetch(`/api/clans/${this.clanName}/progress`, {
+            const res = await authFetch(`/api/clans/${this.encodedClanName}/progress`, {
                 method: "GET"
             })
 
             if (!res.ok) {
-                window.location.href = "/clans";
+                this.$router.push({ name: 'clans' });
+                return;
             }
 
             this.loadingMessages.push("Done fetching mastery data.");
@@ -95,35 +102,51 @@ export default {
             }
         },
         addLoadingEventListeners() {
-            subscribe(ManifestLoadStartedSignal, () => {
+            this.unsubscribers.push(subscribe(ManifestLoadStartedSignal, () => {
                 this.loadingMessages.push("Loading manifest from Warframe servers...");
-            });
-            subscribe(ManifestLoadFinishedSignal, () => {
+            }));
+            this.unsubscribers.push(subscribe(ManifestLoadFinishedSignal, () => {
                 this.loadingMessages.push("Done loading manifest from Warframe servers.");
-            });
-            subscribe(ManifestParseStartedSignal, () => {
+            }));
+            this.unsubscribers.push(subscribe(ManifestParseStartedSignal, () => {
                 this.loadingMessages.push("Parsing manifest...");
-            });
-            subscribe(ManifestParseFinishedSignal, () => {
+            }));
+            this.unsubscribers.push(subscribe(ManifestParseFinishedSignal, () => {
                 this.loadingMessages.push("Done parsing manifest.");
-            });
-            subscribe(ManifestFetchStartedSignal, () => {
+            }));
+            this.unsubscribers.push(subscribe(ManifestFetchStartedSignal, () => {
                 this.loadingMessages.push("Fetching manifest...");
-            });
-            subscribe(ManifestFetchFinishedSignal, () => {
+            }));
+            this.unsubscribers.push(subscribe(ManifestFetchFinishedSignal, () => {
                 this.loadingMessages.push("Done fetching manifest.");
-            });
+            }));
+        },
+        async loadData() {
+            this.playerNames = [];
+            this.itemList = [];
+            this.data = {};
+            this.dataReady = false;
+            this.loadingMessages = ["Fetching mastery data..."];
+            this.imagesNeedLoading = 0;
+            this.imagesLoaded = 0;
+            this.imagesLoading = false;
+
+            await this.getMasteryItems();
+            if (!this.data.items) return;
+
+            this.itemList = this.data.items;
+            this.playerNames = this.data.playerNames;
+
+            await this.fetchAllImages();
+            this.dataReady = true;
         }
     },
     async mounted() {
         this.addLoadingEventListeners();
-        await this.getMasteryItems();
-
-        this.itemList = this.data.items;
-        this.playerNames = this.data.playerNames;
-
-        await this.fetchAllImages();
-        this.dataReady = true;
+        await this.loadData();
+    },
+    beforeUnmount() {
+        this.unsubscribers.forEach(unsubscribe => unsubscribe());
     }
 }
 </script>

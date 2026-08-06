@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warframe-tracker-frontend
+  labels:
+    app.kubernetes.io/name: warframe-tracker-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: warframe-tracker-frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: warframe-tracker-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: warframe-tracker-frontend
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: warframe-tracker-frontend
+  labels:
+    app.kubernetes.io/name: warframe-tracker-frontend
+spec:
+  selector:
+    app.kubernetes.io/name: warframe-tracker-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

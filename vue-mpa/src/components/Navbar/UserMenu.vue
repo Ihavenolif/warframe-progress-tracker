@@ -28,6 +28,9 @@ export default {
         this.unsubscribe = subscribe(TokenUpdateSignal, () => {
             this.$forceUpdate();
         });
+    },
+    beforeUnmount() {
+        this.unsubscribe?.();
     }
 }
 

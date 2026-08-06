@@ -46,29 +46,18 @@ public class WarframePublicExportService : IWarframePublicExportService
         var rawIndex = await GetRawIndex();
         var result = new Dictionary<string, string>();
 
-        var lines = rawIndex.Split(SPLIT_RAW_INDEX_BY);
+        var lines = indexRaw.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         foreach (var line in lines)
         {
-            var charToSplit = line.Contains("Manifest") ? MANIFEST_TILL_CHAR : NON_MANIFEST_TILL_CHAR;
-            var key = TakeTillAndSkip(line, charToSplit, 6);
-            result[key] = line;
-        }
-
-        return result;
-
-        static string TakeTillAndSkip(string value, char till, int startingIndex)
-        {
-            var sb = new StringBuilder(); // StringBuilderPool can better option here.
-            
-            for (var i = startingIndex; i < value.Length; i++)
+            var fileName = line.Split(line.Contains("Manifest") ? '.' : '_')[0];
+            if (!fileName.StartsWith("Export", StringComparison.Ordinal) || fileName.Length == "Export".Length)
             {
-                var @char = value[i]; 
-                if (@char == till) break;
-                sb.Append(@char);
+                continue;
             }
-            
-            var result = sb.ToString();
-            return result;
+
+            ret[fileName["Export".Length..]] = line;
         }
+
+        return ret;
     }
 }

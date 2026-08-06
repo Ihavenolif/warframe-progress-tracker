@@ -34,7 +34,6 @@ public class ConfigurationService
     public readonly string AppEnvironment;
     public readonly string OriginUrl;
     public readonly string DataUpdateServerUrl;
-
     private string? dbHost;
     private string? dbName;
     private string? dbUser;

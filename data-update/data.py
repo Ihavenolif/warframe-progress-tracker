@@ -11,6 +11,7 @@ ITEM_CLASSES = {
     "LongGuns": "Primary",
     "Pistols": "Secondary",
     "Melee": "Melee",
+    "SpecialItems": "Warframe",
     "Suits": "Warframe",
     "Kdrive": "K-Drive",
     "MechSuits": "Necramech",
@@ -185,6 +186,9 @@ def parse_kitgun(kitgun: dict, weapons: list) -> None:
 def parse_hound(hound: dict, companions: list, weapons: list) -> None:
     name: str = hound["name"]
 
+    if "Core" in name or "Stabilizer" in name or "Bracket" in name:
+        return
+
     if "Hound" not in hound["name"]:
         _class: str = "Hound Weapon"
         _type: str = "Normal"
@@ -211,6 +215,9 @@ def parse_hound(hound: dict, companions: list, weapons: list) -> None:
 
 def parse_moa(moa: dict, companions: list, weapons: list) -> None:
     name: str = moa["name"]
+
+    if "Core" in name or "Gyro" in name or "Bracket" in name:
+        return
 
     if "Moa" not in moa["name"]:
         _class: str = "Sentinel Weapon"

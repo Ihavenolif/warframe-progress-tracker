@@ -32,7 +32,7 @@ export default {
             })
 
             if (res.status == 401 || res.status == 403) {
-                window.location.href = "/"
+                this.$router.push({ name: 'home' })
                 return
             }
 

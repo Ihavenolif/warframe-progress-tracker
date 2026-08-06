@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - frontend.yaml
+  - backend.yaml
+  - data-update.yaml
+  - imgproxy.yaml
+
+configMapGenerator:
+  - name: warframe-tracker-runtime
+    literals:
+      - ASPNETCORE_ENVIRONMENT=PRODUCTION
+      - CORS_POLICY=ProdPolicy
+      - SECURE_COOKIES=true
+      - DATA_UPDATE_SERVER_URL=warframe-tracker-data-update
+
+images:
+  - name: warframe-tracker-frontend
+    newName: ghcr.io/ihavenolif/warframe-progress-tracker-frontend
+    newTag: latest
+  - name: warframe-tracker-backend
+    newName: ghcr.io/ihavenolif/warframe-progress-tracker-backend
+    newTag: latest
+  - name: warframe-tracker-data-update
+    newName: ghcr.io/ihavenolif/warframe-progress-tracker-data-update
+    newTag: latest
+  - name: imgproxy
+    newName: ghcr.io/imgproxy/imgproxy
+    newTag: latest
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: warframe-progress-tracker
+    includeSelectors: false

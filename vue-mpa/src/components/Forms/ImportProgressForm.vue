@@ -53,7 +53,7 @@ export default {
             this.responseLoading = false;
 
             if (response.ok) {
-                window.location.href = "/progress";
+                this.$router.push({ name: 'progress' });
             } else {
                 this.errorMessage = await response.text();
             }

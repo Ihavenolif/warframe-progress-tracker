@@ -22,10 +22,8 @@ public class ItemController : ControllerBase
     [SwaggerOperation(Summary = "Gets Warframe Public Export index", Description = "Fetches and returns the Warframe Public Export index.")]
     [SwaggerResponse(200, "Index retrieved successfully", typeof(Dictionary<string, string>))]
     public async Task<ActionResult<Dictionary<string, string>>> Index()
+    public async Task<ActionResult<Dictionary<string, string>>> Index()
     {
-        // This blocks current thread, it can cause deadlocks.
-        // warframePublicExportService.GetIndex().Result; 
-        // https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios#yield-for-tasks-in-a-nonblocking-manner
         var index = await warframePublicExportService.GetIndex();
         return Ok(index);
     }
