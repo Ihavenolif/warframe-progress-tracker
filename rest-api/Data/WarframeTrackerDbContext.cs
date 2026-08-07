@@ -42,6 +42,12 @@ public partial class WarframeTrackerDbContext : DbContext
 
     public virtual DbSet<MissionCompletion> mission_completions { get; set; }
 
+    public virtual DbSet<MasteryProgressEntry> mastery_progress_entries { get; set; }
+
+    public virtual DbSet<MasteryProgressItem> mastery_progress_items { get; set; }
+
+    public virtual DbSet<MasteryProgressMission> mastery_progress_missions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -153,6 +159,85 @@ public partial class WarframeTrackerDbContext : DbContext
                 .HasForeignKey(e => e.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("player_mission_completion_player_id_fkey");
+
+            entity.HasMany(e => e.MasteryProgressEntries)
+                .WithOne(e => e.Player)
+                .HasForeignKey(e => e.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("mastery_progress_entry_player_id_fkey");
+        });
+
+        modelBuilder.Entity<MasteryProgressEntry>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("mastery_progress_entry_pkey");
+
+            entity.ToTable("mastery_progress_entry");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PlayerId).HasColumnName("player_id");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.PreviousTotalMasteryXp).HasColumnName("previous_total_mastery_xp");
+            entity.Property(e => e.CurrentTotalMasteryXp).HasColumnName("current_total_mastery_xp");
+            entity.Property(e => e.MasteryXpGained).HasColumnName("mastery_xp_gained");
+            entity.HasOne(d => d.Player).WithMany(p => p.MasteryProgressEntries)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("mastery_progress_entry_player_id_fkey");
+        });
+
+        modelBuilder.Entity<MasteryProgressItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("mastery_progress_item_pkey");
+
+            entity.ToTable("mastery_progress_item");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.MasteryProgressEntryId).HasColumnName("mastery_progress_entry_id");
+            entity.Property<string>("item_unique_name").HasMaxLength(256).IsRequired();
+            entity.Property(e => e.Name).HasMaxLength(256).HasColumnName("name");
+            entity.Property(e => e.PreviousXp).HasColumnName("previous_xp");
+            entity.Property(e => e.CurrentXp).HasColumnName("current_xp");
+            entity.Property(e => e.MasteryXpGained).HasColumnName("mastery_xp_gained");
+
+            entity.HasOne(d => d.ProgressEntry).WithMany(p => p.LeveledItems)
+                .HasForeignKey(d => d.MasteryProgressEntryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("mastery_progress_item_entry_id_fkey");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MasteryProgressItems)
+                .HasForeignKey("item_unique_name")
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("mastery_progress_item_unique_name_fkey");
+        });
+
+        modelBuilder.Entity<MasteryProgressMission>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("mastery_progress_mission_pkey");
+
+            entity.ToTable("mastery_progress_mission");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.MasteryProgressEntryId).HasColumnName("mastery_progress_entry_id");
+            entity.Property(e => e.UniqueName).HasMaxLength(256).HasColumnName("unique_name");
+            entity.Property(e => e.Name).HasMaxLength(256).HasColumnName("name");
+            entity.Property(e => e.Planet).HasMaxLength(256).HasColumnName("planet");
+            entity.Property(e => e.PreviousCompletionCount).HasColumnName("previous_completion_count");
+            entity.Property(e => e.CurrentCompletionCount).HasColumnName("current_completion_count");
+            entity.Property(e => e.PreviousSPComplete).HasColumnName("previous_sp_complete");
+            entity.Property(e => e.CurrentSPComplete).HasColumnName("current_sp_complete");
+            entity.Property(e => e.MasteryXpGained).HasColumnName("mastery_xp_gained");
+
+            entity.HasOne(d => d.ProgressEntry).WithMany(p => p.Missions)
+                .HasForeignKey(d => d.MasteryProgressEntryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("mastery_progress_mission_entry_id_fkey");
+
+            entity.HasOne(d => d.Mission).WithMany(p => p.MasteryProgressMissions)
+                .HasForeignKey(d => d.UniqueName)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("mastery_progress_mission_unique_name_fkey");
         });
 
         modelBuilder.Entity<Player_item>(entity =>

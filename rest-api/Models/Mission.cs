@@ -9,5 +9,7 @@ namespace rest_api.Models
         public string? Type { get; set; }
 
         public virtual ICollection<MissionCompletion> MissionCompletions { get; set; } = new List<MissionCompletion>();
+
+        public virtual ICollection<MasteryProgressMission> MasteryProgressMissions { get; set; } = new List<MasteryProgressMission>();
     }
 }
