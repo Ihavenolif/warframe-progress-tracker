@@ -136,7 +136,6 @@ public class MasteryService : IMasteryService
             .Where(item => masteryItemUniqueNames.Contains(item.unique_name))
             .ToDictionaryAsync(item => item.unique_name);
         int previousTotalMasteryXp = player.TotalMasteryXp;
-        bool hasProgressEntries = await _dbContext.mastery_progress_entries.AnyAsync(entry => entry.PlayerId == player.id);
 
         List<MasteryProgressItem> leveledItems = [.. masteryItems
             .Select(item =>
@@ -292,16 +291,19 @@ public class MasteryService : IMasteryService
 
             player.TotalMasteryXp = totalXp;
 
-            _dbContext.mastery_progress_entries.Add(new MasteryProgressEntry
+            if (previousTotalMasteryXp > 0)
             {
-                PlayerId = player.id,
-                CreatedAt = DateTime.Now,
-                PreviousTotalMasteryXp = previousTotalMasteryXp,
-                CurrentTotalMasteryXp = totalXp,
-                MasteryXpGained = hasProgressEntries ? totalXp - previousTotalMasteryXp : 0,
-                LeveledItems = hasProgressEntries ? leveledItems : [],
-                Missions = hasProgressEntries ? missionProgress : []
-            });
+                _dbContext.mastery_progress_entries.Add(new MasteryProgressEntry
+                {
+                    PlayerId = player.id,
+                    CreatedAt = DateTime.Now,
+                    PreviousTotalMasteryXp = previousTotalMasteryXp,
+                    CurrentTotalMasteryXp = totalXp,
+                    MasteryXpGained = totalXp - previousTotalMasteryXp,
+                    LeveledItems = leveledItems,
+                    Missions = missionProgress
+                });
+            }
 
             _dbContext.SaveChanges();
             transaction.Commit();
@@ -422,13 +424,6 @@ public class MasteryService : IMasteryService
 
     public async Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player)
     {
-        int? baselineEntryId = await _dbContext.mastery_progress_entries
-            .Where(entry => entry.PlayerId == player.id)
-            .OrderBy(entry => entry.CreatedAt)
-            .ThenBy(entry => entry.Id)
-            .Select(entry => (int?)entry.Id)
-            .FirstOrDefaultAsync();
-
         List<MasteryProgressEntry> latestEntries = await _dbContext.mastery_progress_entries
             .Where(entry => entry.PlayerId == player.id)
             .OrderByDescending(entry => entry.CreatedAt)
@@ -444,10 +439,10 @@ public class MasteryService : IMasteryService
             createdAt = entry.CreatedAt,
             previousTotalMasteryXp = entry.PreviousTotalMasteryXp,
             currentTotalMasteryXp = entry.CurrentTotalMasteryXp,
-            masteryXpGained = entry.Id == baselineEntryId
+            masteryXpGained = entry.PreviousTotalMasteryXp == 0
                 ? 0
                 : entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp,
-            leveledItems = entry.Id == baselineEntryId ? [] : [.. entry.LeveledItems.Select(item => new DashboardProgressItemDTO
+            leveledItems = entry.PreviousTotalMasteryXp == 0 ? [] : [.. entry.LeveledItems.Select(item => new DashboardProgressItemDTO
             {
                 uniqueName = item.Item.unique_name,
                 name = item.Name ?? item.Item.name,
@@ -457,7 +452,7 @@ public class MasteryService : IMasteryService
                 currentXp = item.CurrentXp,
                 masteryXpGained = item.MasteryXpGained
             })],
-            missions = entry.Id == baselineEntryId ? [] : [.. entry.Missions.Select(mission => new DashboardProgressMissionDTO
+            missions = entry.PreviousTotalMasteryXp == 0 ? [] : [.. entry.Missions.Select(mission => new DashboardProgressMissionDTO
             {
                 uniqueName = mission.UniqueName,
                 name = mission.Name,
@@ -472,12 +467,6 @@ public class MasteryService : IMasteryService
     public async Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days)
     {
         DateTime startDate = DateTime.Today.AddDays(-(days - 1));
-        int? baselineEntryId = await _dbContext.mastery_progress_entries
-            .Where(entry => entry.PlayerId == player.id)
-            .OrderBy(entry => entry.CreatedAt)
-            .ThenBy(entry => entry.Id)
-            .Select(entry => (int?)entry.Id)
-            .FirstOrDefaultAsync();
 
         var dailyProgress = await _dbContext.mastery_progress_entries
             .Where(entry => entry.PlayerId == player.id && entry.CreatedAt.Date >= startDate)
@@ -485,7 +474,7 @@ public class MasteryService : IMasteryService
             .Select(group => new DashboardProgressDayDTO
             {
                 date = group.Key,
-                masteryXpGained = group.Sum(entry => entry.Id == baselineEntryId
+                masteryXpGained = group.Sum(entry => entry.PreviousTotalMasteryXp == 0
                     ? 0
                     : entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp)
             })

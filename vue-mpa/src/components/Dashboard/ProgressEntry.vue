@@ -31,14 +31,14 @@
 
             <div class="detail-column">
                 <h4>Missions</h4>
-                <table v-if="entry.missions.length > 0">
+                <table v-if="missionRows.length > 0">
                     <thead>
                         <tr><th>Mission</th><th>Progress</th><th>XP</th></tr>
                     </thead>
                     <tbody>
-                        <tr v-for="mission in entry.missions" :key="mission.uniqueName">
+                        <tr v-for="mission in missionRows" :key="`${mission.uniqueName}-${mission.progress}`">
                             <td>{{ mission.name || mission.uniqueName }}<span v-if="mission.planet">, {{ mission.planet }}</span></td>
-                            <td>{{ missionProgressText(mission) }}</td>
+                            <td>{{ mission.progress }}</td>
                             <td>{{ signedNumber(mission.masteryXpGained) }}</td>
                         </tr>
                     </tbody>
@@ -63,6 +63,24 @@ export default {
             expanded: false
         }
     },
+    computed: {
+        missionRows() {
+            return this.entry.missions.flatMap(mission => {
+                const progressCount = Number(mission.completed) + Number(mission.steelPathCompleted);
+                const masteryXpGained = progressCount > 0 ? mission.masteryXpGained / progressCount : 0;
+                const rows = [];
+
+                if (mission.completed) {
+                    rows.push({ ...mission, progress: 'Completed', masteryXpGained });
+                }
+                if (mission.steelPathCompleted) {
+                    rows.push({ ...mission, progress: 'Steel Path completed', masteryXpGained });
+                }
+
+                return rows;
+            });
+        }
+    },
     methods: {
         formatNumber(value) {
             return new Intl.NumberFormat().format(value || 0);
@@ -73,11 +91,6 @@ export default {
         },
         formatDateTime(value) {
             return new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-        },
-        missionProgressText(mission) {
-            if (mission.completed && mission.steelPathCompleted) return 'Completed and Steel Path completed';
-            if (mission.steelPathCompleted) return 'Steel Path completed';
-            return 'Completed';
         }
     }
 }
