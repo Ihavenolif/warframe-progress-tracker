@@ -22,7 +22,12 @@ services:
   backend:
     image: mcr.microsoft.com/dotnet/sdk:9.0
     working_dir: /app
-    command: dotnet watch run --no-launch-profile --urls http://0.0.0.0:8080
+    command: >-
+      sh -c 'while true; do
+      dotnet watch run --no-launch-profile --urls http://0.0.0.0:8080;
+      echo "dotnet watch exited; restarting in 1 second";
+      sleep 1;
+      done'
     init: true
     env_file:
       - ./.env

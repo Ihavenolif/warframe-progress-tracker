@@ -2,7 +2,6 @@ using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Npgsql;
-using System.Text.Json;
 using rest_api.Data;
 using rest_api.DTO;
 using rest_api.Models;
@@ -25,6 +24,8 @@ public interface IMasteryService
     public Task UpdatePlayerMasteryAsync(Player player, string jsonData);
     public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player);
     public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan);
+    public Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player);
+    public Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days);
 }
 
 public class MasteryService : IMasteryService
@@ -66,6 +67,44 @@ public class MasteryService : IMasteryService
         return item;
     }
 
+    public static int GetItemRank(int xpRequired, int xpGained)
+    {
+        int[] warframeThresholds = [
+            0, 1000, 4000, 9000, 16000, 25000, 36000, 49000, 64000, 81000,
+            100000, 121000, 144000, 169000, 196000, 225000, 256000, 289000,
+            324000, 361000, 400000, 441000, 484000, 529000, 576000, 625000,
+            676000, 729000, 784000, 841000, 900000, 961000, 1024000, 1089000,
+            1156000, 1225000, 1296000, 1369000, 1444000, 1521000, 1600000
+        ];
+
+        int[] weaponThresholds = [
+            0, 500, 2000, 4500, 8000, 12500, 18000, 24500, 32000, 40500,
+            50000, 60500, 72000, 84500, 98000, 112500, 128000, 144500,
+            162000, 180500, 200000, 220500, 242000, 264500, 288000, 312500,
+            338000, 364500, 392000, 420500, 450000, 480500, 512000, 544500,
+            578000, 612500, 648000, 684500, 722000, 760500, 800000
+        ];
+
+        int[] thresholds = xpRequired == 1600000 || xpRequired == 900000 ? warframeThresholds :
+            xpRequired == 800000 || xpRequired == 450000 ? weaponThresholds :
+            throw new InvalidOperationException("Unknown item xp_required value");
+        int maxRank = xpRequired == 1600000 || xpRequired == 800000 ? 40 : 30;
+
+        for (int rank = 1; rank <= maxRank; rank++)
+        {
+            if (xpGained < thresholds[rank]) return rank - 1;
+        }
+
+        return maxRank;
+    }
+
+    private static int GetMasteryPointsPerRank(int xpRequired)
+    {
+        return xpRequired == 1600000 || xpRequired == 900000 ? 200 :
+            xpRequired == 800000 || xpRequired == 450000 ? 100 :
+            throw new InvalidOperationException("Unknown item xp_required value");
+    }
+
     // TODO: Fuckton of validation
     // Also TODO: Write some tests
     public async Task UpdatePlayerMasteryAsync(Player player, string jsonData)
@@ -88,6 +127,33 @@ public class MasteryService : IMasteryService
                 player_id = player.id,
                 xp_gained = x!["XP"]!.GetValue<int>()
             })];
+
+        List<string> masteryItemUniqueNames = masteryItems.Select(item => item.unique_name).Distinct().ToList();
+        var previousMasteryItems = await _dbContext.player_items_masteries
+            .Where(item => item.player_id == player.id && masteryItemUniqueNames.Contains(item.unique_name))
+            .ToDictionaryAsync(item => item.unique_name, item => item.xp_gained);
+        var itemInfo = await _dbContext.items
+            .Where(item => masteryItemUniqueNames.Contains(item.unique_name))
+            .ToDictionaryAsync(item => item.unique_name);
+        int previousTotalMasteryXp = player.TotalMasteryXp;
+
+        List<MasteryProgressItem> leveledItems = [.. masteryItems
+            .Select(item =>
+            {
+                var info = itemInfo[item.unique_name];
+                int previousXp = previousMasteryItems.GetValueOrDefault(item.unique_name, 0);
+                int previousRank = GetItemRank(info.xp_required!.Value, previousXp);
+                int currentRank = GetItemRank(info.xp_required!.Value, item.xp_gained);
+                return new MasteryProgressItem
+                {
+                    Item = info,
+                    Name = info.name,
+                    PreviousXp = previousXp,
+                    CurrentXp = item.xp_gained,
+                    MasteryXpGained = (currentRank - previousRank) * GetMasteryPointsPerRank(info.xp_required.Value)
+                };
+            })
+            .Where(item => item.CurrentRank > item.PreviousRank)];
         List<Player_item> recipeItems = [.. recipes
             .Where(x => allRecipes.Contains(validateMiscItem(x!)["ItemType"]!.GetValue<string>()))
             .Select(x => new Player_item
@@ -127,7 +193,9 @@ public class MasteryService : IMasteryService
 
         JsonArray missions = (root["Missions"] ?? throw new ArgumentException("Invalid JSON data: Missing Missions")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Missions");
 
-        List<string> allMissionTags = await _dbContext.missions.Select(m => m.UniqueName!).ToListAsync();
+        var missionInfo = await _dbContext.missions
+            .Select(m => new { m.UniqueName, m.Name, m.Planet, m.MasteryXp })
+            .ToDictionaryAsync(m => m.UniqueName!);
 
         List<MissionCompletion> missionEntries = [.. missions
             .Select(x => new MissionCompletion
@@ -137,7 +205,46 @@ public class MasteryService : IMasteryService
                 CompletionCount = x!["Completes"]!.GetValue<int>(),
                 SPComplete = validateMissionItems(x!)["Tier"]?.GetValue<int>() == 1
             })
-            .Where(x => allMissionTags.Contains(x.UniqueName!))];
+            .Where(x => missionInfo.ContainsKey(x.UniqueName!))];
+
+        List<string> missionUniqueNames = missionEntries.Select(mission => mission.UniqueName!).Distinct().ToList();
+        var previousMissionCompletions = await _dbContext.mission_completions
+            .Where(mission => mission.PlayerId == player.id && missionUniqueNames.Contains(mission.UniqueName!))
+            .ToDictionaryAsync(mission => mission.UniqueName!);
+
+        List<MasteryProgressMission> missionProgress = [.. missionEntries
+            .Select(mission =>
+            {
+                var info = missionInfo[mission.UniqueName!];
+                previousMissionCompletions.TryGetValue(mission.UniqueName!, out MissionCompletion? previous);
+
+                int previousCompletionCount = previous?.CompletionCount ?? 0;
+                bool previousSPComplete = previous?.SPComplete ?? false;
+                int masteryXpGained = 0;
+                if (previousCompletionCount == 0 && mission.CompletionCount > 0)
+                {
+                    masteryXpGained += info.MasteryXp;
+                }
+                if (!previousSPComplete && mission.SPComplete)
+                {
+                    masteryXpGained += info.MasteryXp;
+                }
+
+                return new MasteryProgressMission
+                {
+                    UniqueName = mission.UniqueName!,
+                    Name = info.Name,
+                    Planet = info.Planet,
+                    PreviousCompletionCount = previousCompletionCount,
+                    CurrentCompletionCount = mission.CompletionCount,
+                    PreviousSPComplete = previousSPComplete,
+                    CurrentSPComplete = mission.SPComplete,
+                    MasteryXpGained = masteryXpGained
+                };
+            })
+            .Where(mission =>
+                mission.PreviousCompletionCount == 0 && mission.CurrentCompletionCount > 0 ||
+                !mission.PreviousSPComplete && mission.CurrentSPComplete)];
 
         using var transaction = _dbContext.Database.BeginTransaction();
         player.mastery_rank = masteryRank;
@@ -183,6 +290,20 @@ public class MasteryService : IMasteryService
             int totalXp = masteryXp + missionXp + (duviriSkills * 1500) + (railjackSkills * 1500);
 
             player.TotalMasteryXp = totalXp;
+
+            if (previousTotalMasteryXp > 0)
+            {
+                _dbContext.mastery_progress_entries.Add(new MasteryProgressEntry
+                {
+                    PlayerId = player.id,
+                    CreatedAt = DateTime.Now,
+                    PreviousTotalMasteryXp = previousTotalMasteryXp,
+                    CurrentTotalMasteryXp = totalXp,
+                    MasteryXpGained = totalXp - previousTotalMasteryXp,
+                    LeveledItems = leveledItems,
+                    Missions = missionProgress
+                });
+            }
 
             _dbContext.SaveChanges();
             transaction.Commit();
@@ -299,5 +420,76 @@ public class MasteryService : IMasteryService
         }
 
         return rawItems.Values;
+    }
+
+    public async Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player)
+    {
+        List<MasteryProgressEntry> latestEntries = await _dbContext.mastery_progress_entries
+            .Where(entry => entry.PlayerId == player.id)
+            .OrderByDescending(entry => entry.CreatedAt)
+            .Take(10)
+            .Include(entry => entry.LeveledItems)
+                .ThenInclude(item => item.Item)
+            .Include(entry => entry.Missions)
+            .ToListAsync();
+
+        return [.. latestEntries.Select(entry => new DashboardProgressEntryDTO
+        {
+            id = entry.Id,
+            createdAt = entry.CreatedAt,
+            previousTotalMasteryXp = entry.PreviousTotalMasteryXp,
+            currentTotalMasteryXp = entry.CurrentTotalMasteryXp,
+            masteryXpGained = entry.PreviousTotalMasteryXp == 0
+                ? 0
+                : entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp,
+            leveledItems = entry.PreviousTotalMasteryXp == 0 ? [] : [.. entry.LeveledItems.Select(item => new DashboardProgressItemDTO
+            {
+                uniqueName = item.Item.unique_name,
+                name = item.Name ?? item.Item.name,
+                previousRank = item.PreviousRank,
+                currentRank = item.CurrentRank,
+                previousXp = item.PreviousXp,
+                currentXp = item.CurrentXp,
+                masteryXpGained = item.MasteryXpGained
+            })],
+            missions = entry.PreviousTotalMasteryXp == 0 ? [] : [.. entry.Missions.Select(mission => new DashboardProgressMissionDTO
+            {
+                uniqueName = mission.UniqueName,
+                name = mission.Name,
+                planet = mission.Planet,
+                completed = mission.PreviousCompletionCount == 0 && mission.CurrentCompletionCount > 0,
+                steelPathCompleted = !mission.PreviousSPComplete && mission.CurrentSPComplete,
+                masteryXpGained = mission.MasteryXpGained
+            })]
+        })];
+    }
+
+    public async Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days)
+    {
+        DateTime startDate = DateTime.Today.AddDays(-(days - 1));
+
+        var dailyProgress = await _dbContext.mastery_progress_entries
+            .Where(entry => entry.PlayerId == player.id && entry.CreatedAt.Date >= startDate)
+            .GroupBy(entry => entry.CreatedAt.Date)
+            .Select(group => new DashboardProgressDayDTO
+            {
+                date = group.Key,
+                masteryXpGained = group.Sum(entry => entry.PreviousTotalMasteryXp == 0
+                    ? 0
+                    : entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp)
+            })
+            .ToListAsync();
+
+        Dictionary<DateTime, int> dailyProgressByDate = dailyProgress.ToDictionary(day => day.date.Date, day => day.masteryXpGained);
+
+        return [.. Enumerable.Range(0, days).Select(offset =>
+            {
+                DateTime date = startDate.AddDays(offset);
+                return new DashboardProgressDayDTO
+                {
+                    date = date,
+                    masteryXpGained = dailyProgressByDate.GetValueOrDefault(date, 0)
+                };
+            })];
     }
 }

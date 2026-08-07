@@ -2,22 +2,16 @@
 
     <NavbarElement></NavbarElement>
 
-    <div class="row">
-        <div class="column left">
-        </div>
-        <div class="column middle">
-            <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList"></ProgressTable>
-            <div v-else>
-                <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
-                    update.</h2>
+    <main class="progress-page">
+        <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList"></ProgressTable>
+        <div v-else class="progress-loading">
+            <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
+                update.</h2>
 
-                <p v-for="message in loadingMessages" v-bind:key="message">{{ message }}</p>
-                <p v-if="imagesLoading">Loading images ({{ imagesLoaded }} / {{ imagesNeedLoading }})</p>
-            </div>
+            <p v-for="message in loadingMessages" v-bind:key="message">{{ message }}</p>
+            <p v-if="imagesLoading">Loading images ({{ imagesLoaded }} / {{ imagesNeedLoading }})</p>
         </div>
-        <div class="column right">
-        </div>
-    </div>
+    </main>
 
 </template>
 
@@ -109,3 +103,18 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.progress-page {
+    height: calc(100vh - 49px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+.progress-loading {
+    overflow-y: auto;
+    padding: 0 20px;
+}
+</style>

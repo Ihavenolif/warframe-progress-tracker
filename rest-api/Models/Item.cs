@@ -19,6 +19,8 @@ public partial class Item
 
     public virtual ICollection<Player_items_mastery> player_items_masteries { get; set; } = new List<Player_items_mastery>();
 
+    public virtual ICollection<MasteryProgressItem> MasteryProgressItems { get; set; } = new List<MasteryProgressItem>();
+
     public virtual ICollection<Recipe_ingredient> recipe_ingredients { get; set; } = new List<Recipe_ingredient>();
 
     public virtual ICollection<Recipe> reciperesult_itemNavigations { get; set; } = new List<Recipe>();
