@@ -2,26 +2,16 @@
 
     <NavbarElement></NavbarElement>
 
-    <div class="row">
-        <div class="column left">
-        </div>
-        <div class="column middle">
-            <div class="progress-page-head">
-                <h1>Progress</h1>
-                <RouterLink class="import-progress-link" to="/progress/import">Import progress</RouterLink>
-            </div>
-            <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList"></ProgressTable>
-            <div v-else>
-                <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
-                    update.</h2>
+    <main class="progress-page">
+        <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList"></ProgressTable>
+        <div v-else class="progress-loading">
+            <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
+                update.</h2>
 
-                <p v-for="message in loadingMessages" v-bind:key="message">{{ message }}</p>
-                <p v-if="imagesLoading">Loading images ({{ imagesLoaded }} / {{ imagesNeedLoading }})</p>
-            </div>
+            <p v-for="message in loadingMessages" v-bind:key="message">{{ message }}</p>
+            <p v-if="imagesLoading">Loading images ({{ imagesLoaded }} / {{ imagesNeedLoading }})</p>
         </div>
-        <div class="column right">
-        </div>
-    </div>
+    </main>
 
 </template>
 
@@ -115,21 +105,16 @@ export default {
 </script>
 
 <style scoped>
-.progress-page-head {
+.progress-page {
+    height: calc(100vh - 49px);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
 }
 
-.import-progress-link {
-    border: 1px solid #555;
-    padding: 9px 12px;
-    color: #2c3e50;
-    text-decoration: none;
-}
-
-.import-progress-link:hover {
-    background: #e7e7e7;
+.progress-loading {
+    overflow-y: auto;
+    padding: 0 20px;
 }
 </style>

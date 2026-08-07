@@ -1,9 +1,9 @@
 <template>
     <NavbarElement></NavbarElement>
 
-    <ThreeColumnLayout>
-        <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList"></ProgressTable>
-        <div v-else>
+    <main class="clan-progress-page">
+        <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList" :showImport="false"></ProgressTable>
+        <div v-else class="clan-progress-loading">
             <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
                 update.</h2>
 
@@ -11,7 +11,7 @@
             <p v-if="imagesLoading">Loading images ({{ imagesLoaded }} / {{ imagesNeedLoading }})</p>
         </div>
 
-    </ThreeColumnLayout>
+    </main>
 
 
 
@@ -26,7 +26,6 @@ import {
     getImage
 } from '@/util/images';
 import { ManifestFetchStartedSignal, ManifestFetchFinishedSignal, ManifestLoadStartedSignal, ManifestLoadFinishedSignal, ManifestParseStartedSignal, ManifestParseFinishedSignal, subscribe } from '@/util/signals';
-import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
 
 export default {
     name: "ClansProgress",
@@ -38,8 +37,7 @@ export default {
     },
     components: {
         NavbarElement,
-        ProgressTable,
-        ThreeColumnLayout
+        ProgressTable
     },
     computed: {
         encodedClanName() {
@@ -150,3 +148,17 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.clan-progress-page {
+    height: calc(100vh - 49px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.clan-progress-loading {
+    overflow-y: auto;
+    padding: 0 20px;
+}
+</style>
