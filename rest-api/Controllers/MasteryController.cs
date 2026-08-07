@@ -56,6 +56,32 @@ public class MasteryController : ControllerBase
         return Ok(res);
     }
 
+    [HttpGet("dashboard/entries")]
+    public async Task<ActionResult<List<DashboardProgressEntryDTO>>> GetLatestDashboardEntries()
+    {
+        Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        return Ok(await masteryService.GetLatestProgressEntriesAsync(player));
+    }
+
+    [HttpGet("dashboard/daily")]
+    public async Task<ActionResult<List<DashboardProgressDayDTO>>> GetDailyDashboardProgress([FromQuery] int days = 7)
+    {
+        if (days != 7 && days != 30) return BadRequest("Days must be 7 or 30");
+
+        Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        return Ok(await masteryService.GetDailyProgressAsync(player, days));
+    }
+
     [HttpPost("update")]
     public async Task<IActionResult> UpdatePlayerMastery(IFormFile jsonFile)
     {

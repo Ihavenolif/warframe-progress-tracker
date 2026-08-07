@@ -24,6 +24,8 @@ public interface IMasteryService
     public Task UpdatePlayerMasteryAsync(Player player, string jsonData);
     public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player);
     public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan);
+    public Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player);
+    public Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days);
 }
 
 public class MasteryService : IMasteryService
@@ -134,6 +136,7 @@ public class MasteryService : IMasteryService
             .Where(item => masteryItemUniqueNames.Contains(item.unique_name))
             .ToDictionaryAsync(item => item.unique_name);
         int previousTotalMasteryXp = player.TotalMasteryXp;
+        bool hasProgressEntries = await _dbContext.mastery_progress_entries.AnyAsync(entry => entry.PlayerId == player.id);
 
         List<MasteryProgressItem> leveledItems = [.. masteryItems
             .Select(item =>
@@ -240,7 +243,9 @@ public class MasteryService : IMasteryService
                     MasteryXpGained = masteryXpGained
                 };
             })
-            .Where(mission => mission.CurrentCompletionCount > mission.PreviousCompletionCount || mission.CurrentSPComplete != mission.PreviousSPComplete)];
+            .Where(mission =>
+                mission.PreviousCompletionCount == 0 && mission.CurrentCompletionCount > 0 ||
+                !mission.PreviousSPComplete && mission.CurrentSPComplete)];
 
         using var transaction = _dbContext.Database.BeginTransaction();
         player.mastery_rank = masteryRank;
@@ -293,9 +298,9 @@ public class MasteryService : IMasteryService
                 CreatedAt = DateTime.Now,
                 PreviousTotalMasteryXp = previousTotalMasteryXp,
                 CurrentTotalMasteryXp = totalXp,
-                MasteryXpGained = totalXp - previousTotalMasteryXp,
-                LeveledItems = leveledItems,
-                Missions = missionProgress
+                MasteryXpGained = hasProgressEntries ? totalXp - previousTotalMasteryXp : 0,
+                LeveledItems = hasProgressEntries ? leveledItems : [],
+                Missions = hasProgressEntries ? missionProgress : []
             });
 
             _dbContext.SaveChanges();
@@ -413,5 +418,89 @@ public class MasteryService : IMasteryService
         }
 
         return rawItems.Values;
+    }
+
+    public async Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player)
+    {
+        int? baselineEntryId = await _dbContext.mastery_progress_entries
+            .Where(entry => entry.PlayerId == player.id)
+            .OrderBy(entry => entry.CreatedAt)
+            .ThenBy(entry => entry.Id)
+            .Select(entry => (int?)entry.Id)
+            .FirstOrDefaultAsync();
+
+        List<MasteryProgressEntry> latestEntries = await _dbContext.mastery_progress_entries
+            .Where(entry => entry.PlayerId == player.id)
+            .OrderByDescending(entry => entry.CreatedAt)
+            .Take(10)
+            .Include(entry => entry.LeveledItems)
+                .ThenInclude(item => item.Item)
+            .Include(entry => entry.Missions)
+            .ToListAsync();
+
+        return [.. latestEntries.Select(entry => new DashboardProgressEntryDTO
+        {
+            id = entry.Id,
+            createdAt = entry.CreatedAt,
+            previousTotalMasteryXp = entry.PreviousTotalMasteryXp,
+            currentTotalMasteryXp = entry.CurrentTotalMasteryXp,
+            masteryXpGained = entry.Id == baselineEntryId
+                ? 0
+                : entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp,
+            leveledItems = entry.Id == baselineEntryId ? [] : [.. entry.LeveledItems.Select(item => new DashboardProgressItemDTO
+            {
+                uniqueName = item.Item.unique_name,
+                name = item.Name ?? item.Item.name,
+                previousRank = item.PreviousRank,
+                currentRank = item.CurrentRank,
+                previousXp = item.PreviousXp,
+                currentXp = item.CurrentXp,
+                masteryXpGained = item.MasteryXpGained
+            })],
+            missions = entry.Id == baselineEntryId ? [] : [.. entry.Missions.Select(mission => new DashboardProgressMissionDTO
+            {
+                uniqueName = mission.UniqueName,
+                name = mission.Name,
+                planet = mission.Planet,
+                completed = mission.PreviousCompletionCount == 0 && mission.CurrentCompletionCount > 0,
+                steelPathCompleted = !mission.PreviousSPComplete && mission.CurrentSPComplete,
+                masteryXpGained = mission.MasteryXpGained
+            })]
+        })];
+    }
+
+    public async Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days)
+    {
+        DateTime startDate = DateTime.Today.AddDays(-(days - 1));
+        int? baselineEntryId = await _dbContext.mastery_progress_entries
+            .Where(entry => entry.PlayerId == player.id)
+            .OrderBy(entry => entry.CreatedAt)
+            .ThenBy(entry => entry.Id)
+            .Select(entry => (int?)entry.Id)
+            .FirstOrDefaultAsync();
+
+        var dailyProgress = await _dbContext.mastery_progress_entries
+            .Where(entry => entry.PlayerId == player.id && entry.CreatedAt.Date >= startDate)
+            .GroupBy(entry => entry.CreatedAt.Date)
+            .Select(group => new DashboardProgressDayDTO
+            {
+                date = group.Key,
+                masteryXpGained = group.Sum(entry => entry.Id == baselineEntryId
+                    ? 0
+                    : entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp)
+            })
+            .ToListAsync();
+
+        Dictionary<DateTime, int> dailyProgressByDate = dailyProgress.ToDictionary(day => day.date.Date, day => day.masteryXpGained);
+
+        return [.. Enumerable.Range(0, days).Select(offset =>
+            {
+                DateTime date = startDate.AddDays(offset);
+                return new DashboardProgressDayDTO
+                {
+                    date = date,
+                    masteryXpGained = dailyProgressByDate.GetValueOrDefault(date, 0)
+                };
+            })];
     }
 }

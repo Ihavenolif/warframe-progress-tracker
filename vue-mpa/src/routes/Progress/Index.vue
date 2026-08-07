@@ -6,6 +6,10 @@
         <div class="column left">
         </div>
         <div class="column middle">
+            <div class="progress-page-head">
+                <h1>Progress</h1>
+                <RouterLink class="import-progress-link" to="/progress/import">Import progress</RouterLink>
+            </div>
             <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList"></ProgressTable>
             <div v-else>
                 <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
@@ -109,3 +113,23 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.progress-page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.import-progress-link {
+    border: 1px solid #555;
+    padding: 9px 12px;
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.import-progress-link:hover {
+    background: #e7e7e7;
+}
+</style>

@@ -40,6 +40,12 @@ const router = createRouter({
             component: () => import('@/routes/UserSettings.vue')
         },
         {
+            path: '/dashboard',
+            name: 'dashboard',
+            alias: '/dashboard.html',
+            component: () => import('@/routes/Dashboard.vue')
+        },
+        {
             path: '/progress',
             name: 'progress',
             alias: ['/progress/index', '/progress/index.html'],

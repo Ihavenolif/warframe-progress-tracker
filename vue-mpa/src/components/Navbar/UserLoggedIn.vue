@@ -1,13 +1,13 @@
 <template>
+    <template v-if="shouldDisplayWarframe">
+        <RouterLink to="/dashboard" active-class="active">Dashboard</RouterLink>
+        <RouterLink to="/progress" active-class="active">Progress</RouterLink>
+        <RouterLink to="/clans" active-class="active">Clans</RouterLink>
+    </template>
+
     <NavbarDropdown :title="username" :is-right-aligned="true">
         <NavbarDropdownEntry href="/settings">Settings</NavbarDropdownEntry>
         <NavbarDropdownEntry href="/logout">Log out</NavbarDropdownEntry>
-    </NavbarDropdown>
-
-    <NavbarDropdown title="Warframe" :is-right-aligned="true" v-if="shouldDisplayWarframe">
-        <NavbarDropdownEntry href="/clans">Clans</NavbarDropdownEntry>
-        <NavbarDropdownEntry href="/progress">Progress</NavbarDropdownEntry>
-        <NavbarDropdownEntry href="/progress/import">Import progress</NavbarDropdownEntry>
     </NavbarDropdown>
 
     <div class="right-aligned">
