@@ -45,7 +45,6 @@ export default {
 /* Style the collapsible content. Note: hidden by default */
 .collapsible-content {
     padding: 18px;
-    display: none;
     overflow: hidden;
     background-color: #f5f5f5;
     padding: 18px;
