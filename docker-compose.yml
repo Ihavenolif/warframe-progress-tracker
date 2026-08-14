@@ -23,8 +23,9 @@ services:
     image: mcr.microsoft.com/dotnet/sdk:9.0
     working_dir: /app
     command: >-
-      sh -c 'while true; do
-      dotnet watch run --no-launch-profile --urls http://0.0.0.0:8080;
+      sh -c 'dotnet restore --source https://www.nuget.org/api/v2/ --disable-parallel &&
+      while true; do
+      dotnet watch run --no-restore --no-launch-profile --urls http://0.0.0.0:8080;
       echo "dotnet watch exited; restarting in 1 second";
       sleep 1;
       done'

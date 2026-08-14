@@ -94,14 +94,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-if (config.AppEnvironment == "DEVELOPMENT")
-{
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        options.ListenLocalhost(5224);
-    });
-}
-
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
