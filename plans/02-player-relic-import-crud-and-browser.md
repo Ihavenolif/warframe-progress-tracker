@@ -63,7 +63,6 @@ List query parameters:
 
 - `search`: relic or reward name.
 - `era`: Lith, Meso, Neo, Axi.
-- `refinement`: optional ownership filter.
 - `owned`: all, owned, unowned.
 - `page` and `pageSize`.
 - `sort`: name, era, owned count.

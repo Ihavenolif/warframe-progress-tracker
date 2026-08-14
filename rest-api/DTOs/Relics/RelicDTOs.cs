@@ -4,7 +4,6 @@ public class RelicQueryDTO
 {
     public string? Search { get; set; }
     public string? Era { get; set; }
-    public string? Refinement { get; set; }
     public string Owned { get; set; } = "all";
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;

@@ -43,10 +43,6 @@ public class RelicService : IRelicService
         RelicEra? era = null;
         if (!string.IsNullOrWhiteSpace(query.Era))
             era = ParseEnum<RelicEra>(query.Era, "era");
-        RelicRefinement? refinement = null;
-        if (!string.IsNullOrWhiteSpace(query.Refinement))
-            refinement = ParseEnum<RelicRefinement>(query.Refinement, "refinement");
-
         var relics = _dbContext.relics.AsNoTracking().AsQueryable();
         if (era.HasValue)
             relics = relics.Where(relic => relic.Era == era.Value);
@@ -61,9 +57,6 @@ public class RelicService : IRelicService
                 || relic.Rewards.Any(reward => reward.Reward.name != null
                     && searchTerms.All(searchTerm => reward.Reward.name.ToLower().Contains(searchTerm))));
         }
-        if (refinement.HasValue)
-            relics = relics.Where(relic => relic.Variants.Any(variant => variant.Refinement == refinement.Value
-                && variant.Item.player_items.Any(item => item.player_id == playerId && item.item_count > 0)));
         if (owned == "owned")
             relics = relics.Where(relic => relic.Variants.Any(variant => variant.Item.player_items
                 .Any(item => item.player_id == playerId && item.item_count > 0)));

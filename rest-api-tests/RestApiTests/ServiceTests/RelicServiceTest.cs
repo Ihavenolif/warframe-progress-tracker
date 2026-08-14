@@ -58,7 +58,6 @@ public class RelicServiceTest
         {
             Search = "bra bar",
             Era = "lith",
-            Refinement = "radiant",
             Owned = "owned"
         });
         var page = await service.GetRelicsAsync(player.id, new RelicQueryDTO { Page = 1, PageSize = 1, Sort = "name" });
