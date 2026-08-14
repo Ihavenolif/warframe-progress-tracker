@@ -14,10 +14,16 @@ import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
 import SimpleButton from '@/components/SimpleButton.vue';
 import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
-import { authFetch } from '@/util/util';
+import { authFetch, getRoles, parseJwt } from '@/util/util';
 
 export default {
     name: 'AdminPanel',
+    created() {
+        const token = this.$store.state.token;
+        if (!token || !getRoles(parseJwt(token)).includes('ADMIN')) {
+            this.$router.replace({ name: 'home' });
+        }
+    },
     components: {
         NavbarElement,
         ThreeColumnLayout,

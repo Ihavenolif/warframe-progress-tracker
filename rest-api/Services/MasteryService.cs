@@ -33,12 +33,14 @@ public class MasteryService : IMasteryService
     private readonly WarframeTrackerDbContext _dbContext;
     private readonly IItemService _itemService;
     private readonly IClanService _clanService;
+    private readonly ILogger<MasteryService> _logger;
 
-    public MasteryService(WarframeTrackerDbContext dbContext, IItemService itemService, IClanService clanService)
+    public MasteryService(WarframeTrackerDbContext dbContext, IItemService itemService, IClanService clanService, ILogger<MasteryService> logger)
     {
         _dbContext = dbContext;
         _itemService = itemService;
         _clanService = clanService;
+        _logger = logger;
     }
 
     private JsonNode validateMasteryItem(JsonNode item)
@@ -105,14 +107,66 @@ public class MasteryService : IMasteryService
             throw new InvalidOperationException("Unknown item xp_required value");
     }
 
+    internal sealed record RelicSnapshotReconciliation(
+        List<Player_item> RelicEntries,
+        List<Player_item> NonRelicEntries,
+        List<Player_item> StaleEntries,
+        List<string> UnknownProjectionUniqueNames);
+
+    internal static RelicSnapshotReconciliation ReconcileRelicSnapshot(
+        int playerId,
+        IEnumerable<(string UniqueName, int ItemCount)> miscItems,
+        HashSet<string> knownRelicUniqueNames,
+        HashSet<string> allItemUniqueNames,
+        IEnumerable<Player_item> existingRelicEntries)
+    {
+        var relicEntries = miscItems
+            .Where(item => knownRelicUniqueNames.Contains(item.UniqueName) && item.ItemCount > 0)
+            .Select(item => new Player_item
+            {
+                unique_name = item.UniqueName,
+                player_id = playerId,
+                item_count = item.ItemCount
+            })
+            .ToList();
+        var nonRelicEntries = miscItems
+            .Where(item => !knownRelicUniqueNames.Contains(item.UniqueName)
+                && !item.UniqueName.Contains("/Projections/", StringComparison.OrdinalIgnoreCase)
+                && allItemUniqueNames.Contains(item.UniqueName))
+            .Select(item => new Player_item
+            {
+                unique_name = item.UniqueName,
+                player_id = playerId,
+                item_count = item.ItemCount
+            })
+            .ToList();
+        HashSet<string> snapshotUniqueNames = relicEntries
+            .Select(item => item.unique_name)
+            .ToHashSet(StringComparer.Ordinal);
+        List<Player_item> staleEntries = existingRelicEntries
+            .Where(item => !snapshotUniqueNames.Contains(item.unique_name))
+            .ToList();
+        List<string> unknownProjectionUniqueNames = miscItems
+            .Where(item => item.UniqueName.Contains("/Projections/", StringComparison.OrdinalIgnoreCase)
+                && !knownRelicUniqueNames.Contains(item.UniqueName))
+            .Select(item => item.UniqueName)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        return new(relicEntries, nonRelicEntries, staleEntries, unknownProjectionUniqueNames);
+    }
+
     // TODO: Fuckton of validation
     // Also TODO: Write some tests
     public async Task UpdatePlayerMasteryAsync(Player player, string jsonData)
     {
         JsonNode root = JsonNode.Parse(jsonData) ?? throw new ArgumentException("Invalid JSON data");
 
-        IEnumerable<string> allRecipes = await _itemService.GetRecipeUniqueNamesAsync();
-        IEnumerable<string> allItems = await _itemService.GetItemUniqueNamesAsync();
+        HashSet<string> allRecipes = (await _itemService.GetRecipeUniqueNamesAsync()).ToHashSet(StringComparer.Ordinal);
+        HashSet<string> allItems = (await _itemService.GetItemUniqueNamesAsync()).ToHashSet(StringComparer.Ordinal);
+        HashSet<string> knownRelicUniqueNames = await _dbContext.relic_variants
+            .Select(variant => variant.UniqueName)
+            .ToHashSetAsync();
 
         JsonArray xpInfo = (root["XPInfo"] ?? throw new ArgumentException("Invalid JSON data: Missing XPInfo")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid XPInfo");
         JsonArray recipes = (root["Recipes"] ?? throw new ArgumentException("Invalid JSON data: Missing Recipes")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes");
@@ -162,14 +216,25 @@ public class MasteryService : IMasteryService
                 player_id = player.id,
                 item_count = x!["ItemCount"]!.GetValue<int>()
             })];
-        List<Player_item> miscItemEntries = [.. miscItems
-            .Where(x => allItems.Contains(validateMiscItem(x!)["ItemType"]!.GetValue<string>()))
-            .Select(x => new Player_item
+        List<(string UniqueName, int ItemCount)> parsedMiscItems = [.. miscItems
+            .Select(x =>
             {
-                unique_name = validateMiscItem(x!)["ItemType"]!.GetValue<string>(),
-                player_id = player.id,
-                item_count = x!["ItemCount"]!.GetValue<int>()
+                JsonNode item = validateMiscItem(x!);
+                return (item["ItemType"]!.GetValue<string>(), item["ItemCount"]!.GetValue<int>());
             })];
+        List<Player_item> existingRelicEntries = await _dbContext.player_items
+            .Where(item => item.player_id == player.id && knownRelicUniqueNames.Contains(item.unique_name))
+            .ToListAsync();
+        RelicSnapshotReconciliation relicSnapshot = ReconcileRelicSnapshot(
+            player.id, parsedMiscItems, knownRelicUniqueNames, allItems, existingRelicEntries);
+        foreach (string uniqueName in relicSnapshot.UnknownProjectionUniqueNames)
+        {
+            _logger.LogWarning("Skipping unknown relic projection {UniqueName} from MiscItems snapshot", uniqueName);
+        }
+
+        List<Player_item> miscItemEntries = [
+            .. relicSnapshot.NonRelicEntries,
+            .. relicSnapshot.RelicEntries];
 
 
         var missingItems = xpInfo
@@ -252,6 +317,8 @@ public class MasteryService : IMasteryService
         player.railjack_skills = railjackSkills;
         try
         {
+            _dbContext.player_items.RemoveRange(relicSnapshot.StaleEntries);
+            await _dbContext.SaveChangesAsync();
             await _dbContext.BulkInsertOrUpdateAsync(masteryItems, new BulkConfig
             {
                 UpdateByProperties = new List<string> { "unique_name", "player_id" },
@@ -305,14 +372,13 @@ public class MasteryService : IMasteryService
                 });
             }
 
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
         catch (Exception ex)
         {
-            transaction.Rollback();
-
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "An error occurred while updating mastery for player {PlayerId}", player.id);
             throw;
         }
     }

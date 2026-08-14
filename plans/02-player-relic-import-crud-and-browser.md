@@ -1,4 +1,4 @@
-# Player Relic Import, CRUD, and Browser
+# Player Relic Import and Browser
 
 ## Goal
 
@@ -12,7 +12,7 @@ Depends on phase 1 relic metadata and variant `Item` rows.
 - Preserve counts separately for every refinement.
 - Browse and filter all known relics.
 - Show current player's owned quantities.
-- Provide admin CRUD for correcting relic metadata.
+- Treat PublicExport as the authoritative, read-only metadata source.
 - Do not calculate recommendations yet.
 
 ## Player Import
@@ -76,30 +76,12 @@ Authorization:
 - Requests without linked player may browse metadata only if product behavior permits; otherwise return existing `Player not found` response.
 - Never expose another player's inventory through these endpoints.
 
-## Admin CRUD
+## Metadata Authority
 
-Add admin-authorized endpoints:
-
-```http
-POST   /api/relics
-PUT    /api/relics/{id}
-DELETE /api/relics/{id}
-POST   /api/relics/{id}/variants
-PUT    /api/relics/{id}/variants/{uniqueName}
-DELETE /api/relics/{id}/variants/{uniqueName}
-POST   /api/relics/{id}/rewards
-PUT    /api/relics/{id}/rewards/{rewardUniqueName}
-DELETE /api/relics/{id}/rewards/{rewardUniqueName}
-```
-
-CRUD exists for operational correction, but PublicExport remains source of truth. Next metadata sync may overwrite manual changes. UI must communicate this.
-
-Deletion rules:
-
-- Prevent deleting variant referenced by player inventory unless ownership rows are explicitly handled.
-- Prefer deactivation over destructive deletion when imported source removes data.
-- Validate four unique refinements per complete canonical relic.
-- Validate rewards reference existing items.
+Relic metadata is read-only through the application API. PublicExport sync is
+the only supported writer for canonical relics, variants, and rewards. Fix
+incorrect metadata at the import source or parser instead of applying manual
+database corrections.
 
 ## Backend Structure
 
@@ -136,15 +118,7 @@ Add navigation entry following existing layout conventions.
 
 Use existing colors and components from progress pages. Preserve mobile usability; expanded rewards should stack rather than force wide horizontal scrolling.
 
-### Admin UI
-
-Extend existing admin panel or add admin-only controls in relic detail:
-
-- Create/edit canonical relic.
-- Manage variants.
-- Manage rewards.
-- Confirm destructive actions.
-- Warn that PublicExport sync may overwrite edits.
+No relic metadata editor is exposed in the admin UI.
 
 ## Tests
 
@@ -161,9 +135,7 @@ Extend existing admin panel or add admin-only controls in relic detail:
 - Current player sees only own counts.
 - Search matches relic and reward names.
 - Era, owned, sorting, and pagination filters compose correctly.
-- Non-admin cannot mutate relic metadata.
-- Admin CRUD validates duplicate names, variants, and rewards.
-- Referenced variant cannot be destructively deleted.
+- Relic API exposes no metadata mutation endpoints.
 
 ### Frontend
 
@@ -178,7 +150,7 @@ Extend existing admin panel or add admin-only controls in relic detail:
 - Fresh player profile import stores accurate relic counts by refinement.
 - Consumed relics do not remain falsely owned after next import.
 - Player can browse all relics and see own inventory.
-- Admin can inspect and correct relic metadata through authorized CRUD.
+- PublicExport sync remains the only relic metadata writer.
 - Ownership APIs do not leak other players' inventory.
 - Backend tests and Vue production build pass.
 
