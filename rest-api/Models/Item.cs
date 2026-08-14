@@ -26,4 +26,8 @@ public partial class Item
     public virtual ICollection<Recipe> reciperesult_itemNavigations { get; set; } = new List<Recipe>();
 
     public virtual Recipe? recipeunique_nameNavigation { get; set; }
+
+    public virtual RelicVariant? RelicVariant { get; set; }
+
+    public virtual ICollection<RelicReward> RelicRewards { get; set; } = new List<RelicReward>();
 }

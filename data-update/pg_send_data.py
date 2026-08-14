@@ -15,6 +15,8 @@ def connect(config) -> psycopg2.extensions.connection:
 
 
 def send_data():
+    REGISTERED.clear()
+
     warframes = []
     weapons = []
     companions = []
@@ -30,6 +32,25 @@ def send_data():
 
     recipes = get_recipes(index, gear_item_names)
     resources = get_resources(index)
+    relic_data = get_relics(index)
+
+    known_item_unique_names = {
+        item["nameraw"] for item in gear_items
+    } | {
+        resource["uniqueName"] for resource in resources
+    } | {
+        recipe["uniqueName"] for recipe in recipes
+    }
+
+    relic_rewards = relic_data["rewards"]
+    unmapped_rewards = sorted({
+        reward["reward_unique_name"] for reward in relic_rewards
+        if reward["reward_unique_name"] not in known_item_unique_names
+    })
+    relic_reward_only_items = [
+        (unique_name.rsplit("/", 1)[-1], unique_name, "RelicReward", "MiscItems")
+        for unique_name in unmapped_rewards
+    ]
 
     config = load_env()
 
@@ -134,6 +155,106 @@ def send_data():
         "INSERT INTO missions (name, unique_name, planet, mastery_xp, type) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (unique_name) DO NOTHING", missions)
 
     connection.commit()
+
+    relic_variant_items = [
+        (variant["name"], variant["unique_name"], "Relic", "MiscItems")
+        for variant in relic_data["variants"]
+    ]
+    relics_insert = [
+        (relic["name"], relic["era"])
+        for relic in relic_data["relics"]
+    ]
+    relic_variants_insert = [
+        (variant["unique_name"], variant["relic_name"], variant["refinement"])
+        for variant in relic_data["variants"]
+    ]
+    relic_rewards_insert = [
+        (
+            reward["relic_name"],
+            reward["reward_unique_name"],
+            reward["rarity"],
+            reward["item_count"]
+        )
+        for reward in relic_rewards
+    ]
+
+    try:
+        cursor.executemany(
+            """
+            INSERT INTO item (name, unique_name, type, item_class)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (unique_name) DO UPDATE SET
+                name = EXCLUDED.name,
+                type = EXCLUDED.type,
+                item_class = EXCLUDED.item_class
+            """,
+            relic_variant_items
+        )
+        cursor.executemany(
+            """
+            INSERT INTO item (name, unique_name, type, item_class)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (unique_name) DO NOTHING
+            """,
+            relic_reward_only_items
+        )
+        cursor.executemany(
+            """
+            INSERT INTO relic (name, era)
+            VALUES (%s, %s)
+            ON CONFLICT (name) DO UPDATE SET era = EXCLUDED.era
+            """,
+            relics_insert
+        )
+        relic_names = [relic["name"] for relic in relic_data["relics"]]
+        variant_unique_names = [variant["unique_name"] for variant in relic_data["variants"]]
+        cursor.execute(
+            """
+            DELETE FROM relic_variant
+            WHERE relic_id IN (SELECT id FROM relic WHERE name = ANY(%s))
+                AND NOT (unique_name = ANY(%s))
+            """,
+            (relic_names, variant_unique_names)
+        )
+        cursor.executemany(
+            """
+            INSERT INTO relic_variant (unique_name, relic_id, refinement)
+            SELECT %s, id, %s FROM relic WHERE name = %s
+            ON CONFLICT (unique_name) DO UPDATE SET
+                relic_id = EXCLUDED.relic_id,
+                refinement = EXCLUDED.refinement
+            """,
+            [
+                (unique_name, refinement, relic_name)
+                for unique_name, relic_name, refinement in relic_variants_insert
+            ]
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM relic_reward
+            WHERE relic_id IN (SELECT id FROM relic WHERE name = ANY(%s))
+            """,
+            (relic_names,)
+        )
+        cursor.executemany(
+            """
+            INSERT INTO relic_reward (relic_id, reward_unique_name, rarity, item_count)
+            SELECT id, %s, %s, %s FROM relic WHERE name = %s
+            ON CONFLICT (relic_id, reward_unique_name) DO UPDATE SET
+                rarity = EXCLUDED.rarity,
+                item_count = EXCLUDED.item_count
+            """,
+            [
+                (reward_unique_name, rarity, item_count, relic_name)
+                for relic_name, reward_unique_name, rarity, item_count in relic_rewards_insert
+            ]
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
     connection.close()
 
 
