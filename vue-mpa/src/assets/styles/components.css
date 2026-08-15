@@ -178,6 +178,15 @@
         box-shadow: var(--shadow-popover);
     }
 
+    .topnav .dropdown-content::before {
+        position: absolute;
+        top: -4px;
+        right: 0;
+        left: 0;
+        height: 4px;
+        content: "";
+    }
+
     .topnav .dropdown-content a {
         float: none;
         display: block;
