@@ -346,7 +346,7 @@ namespace rest_api.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -747,6 +747,92 @@ namespace rest_api.Migrations
                     b.ToTable("registered_user", (string)null);
                 });
 
+            modelBuilder.Entity("rest_api.Models.Relic", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Era")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("era");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("relic_pkey");
+
+                    b.HasIndex(new[] { "Name" }, "relic_name_key")
+                        .IsUnique();
+
+                    b.ToTable("relic", (string)null);
+                });
+
+            modelBuilder.Entity("rest_api.Models.RelicReward", b =>
+                {
+                    b.Property<int>("RelicId")
+                        .HasColumnType("integer")
+                        .HasColumnName("relic_id");
+
+                    b.Property<string>("RewardUniqueName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("reward_unique_name");
+
+                    b.Property<int>("ItemCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("item_count");
+
+                    b.Property<string>("Rarity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("rarity");
+
+                    b.HasKey("RelicId", "RewardUniqueName")
+                        .HasName("relic_reward_pkey");
+
+                    b.HasIndex(new[] { "RewardUniqueName" }, "IX_relic_reward_reward_unique_name");
+
+                    b.ToTable("relic_reward", (string)null);
+                });
+
+            modelBuilder.Entity("rest_api.Models.RelicVariant", b =>
+                {
+                    b.Property<string>("UniqueName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("unique_name");
+
+                    b.Property<string>("Refinement")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("refinement");
+
+                    b.Property<int>("RelicId")
+                        .HasColumnType("integer")
+                        .HasColumnName("relic_id");
+
+                    b.HasKey("UniqueName")
+                        .HasName("relic_variant_pkey");
+
+                    b.HasIndex(new[] { "RelicId", "Refinement" }, "IX_relic_variant_relic_id_refinement");
+
+                    b.ToTable("relic_variant", (string)null);
+                });
+
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization", b =>
                 {
                     b.HasOne("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", "Application")
@@ -1003,6 +1089,48 @@ namespace rest_api.Migrations
                     b.Navigation("player");
                 });
 
+            modelBuilder.Entity("rest_api.Models.RelicReward", b =>
+                {
+                    b.HasOne("rest_api.Models.Relic", "Relic")
+                        .WithMany("Rewards")
+                        .HasForeignKey("RelicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("relic_reward_relic_id_fkey");
+
+                    b.HasOne("rest_api.Models.Item", "Reward")
+                        .WithMany("RelicRewards")
+                        .HasForeignKey("RewardUniqueName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("relic_reward_reward_unique_name_fkey");
+
+                    b.Navigation("Relic");
+
+                    b.Navigation("Reward");
+                });
+
+            modelBuilder.Entity("rest_api.Models.RelicVariant", b =>
+                {
+                    b.HasOne("rest_api.Models.Relic", "Relic")
+                        .WithMany("Variants")
+                        .HasForeignKey("RelicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("relic_variant_relic_id_fkey");
+
+                    b.HasOne("rest_api.Models.Item", "Item")
+                        .WithOne("RelicVariant")
+                        .HasForeignKey("rest_api.Models.RelicVariant", "UniqueName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("relic_variant_unique_name_fkey");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Relic");
+                });
+
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>
                 {
                     b.Navigation("Authorizations");
@@ -1023,6 +1151,10 @@ namespace rest_api.Migrations
             modelBuilder.Entity("rest_api.Models.Item", b =>
                 {
                     b.Navigation("MasteryProgressItems");
+
+                    b.Navigation("RelicRewards");
+
+                    b.Navigation("RelicVariant");
 
                     b.Navigation("player_items");
 
@@ -1074,6 +1206,13 @@ namespace rest_api.Migrations
             modelBuilder.Entity("rest_api.Models.Registered_user", b =>
                 {
                     b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("rest_api.Models.Relic", b =>
+                {
+                    b.Navigation("Rewards");
+
+                    b.Navigation("Variants");
                 });
 #pragma warning restore 612, 618
         }

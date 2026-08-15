@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using rest_api.DTO;
 using rest_api.DTOs.Clans;
+using rest_api.DTOs.RelicRecommendations;
 using rest_api.Models;
 using rest_api.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -18,13 +19,60 @@ public class ClanController : ControllerBase
     private readonly IUserService _userService;
     private readonly IPlayerService _playerService;
     private readonly IMasteryService _masteryService;
+    private readonly IRelicRecommendationService _relicRecommendationService;
 
-    public ClanController(IClanService clanService, IUserService userService, IPlayerService playerService, IMasteryService masteryService)
+    public ClanController(
+        IClanService clanService,
+        IUserService userService,
+        IPlayerService playerService,
+        IMasteryService masteryService,
+        IRelicRecommendationService relicRecommendationService)
     {
         _clanService = clanService;
         _userService = userService;
         _playerService = playerService;
         _masteryService = masteryService;
+        _relicRecommendationService = relicRecommendationService;
+    }
+
+    [HttpPost("{clanName}/relic-recommendations")]
+    [SwaggerOperation(Summary = "Rank useful relics owned by selected clan members.")]
+    [ProducesResponseType(typeof(RelicRecommendationResponseDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RelicRecommendationResponseDto>> GetRelicRecommendations(
+        [FromRoute] string clanName,
+        [FromBody] RelicRecommendationRequestDto request,
+        [FromQuery] int limit = 10)
+    {
+        Registered_user? user = await _userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        Clan? clan = await _clanService.GetClanByNameAsync(clanName);
+        if (clan == null) return NotFound("Clan not found");
+        if (!clan.players.Any(member => member.id == player.id)) return Forbid();
+
+        var playerIds = request?.PlayerIds ?? new List<int>();
+        if (playerIds.Count is < 1 or > 4 || playerIds.Distinct().Count() != playerIds.Count)
+            return BadRequest("Select 1-4 distinct players.");
+        if (playerIds.Any(id => clan.players.All(member => member.id != id)))
+            return BadRequest("Every selected player must belong to this clan.");
+
+        try
+        {
+            return Ok(await _relicRecommendationService.GetRecommendationsAsync(playerIds, limit));
+        }
+        catch (MissingProfileDataException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("myClans")]

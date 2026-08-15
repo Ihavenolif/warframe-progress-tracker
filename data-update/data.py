@@ -3,7 +3,6 @@ import requests
 import json
 import subprocess
 import re
-from slpp import slpp as lua
 
 REGISTERED: list[str] = []
 
@@ -11,7 +10,6 @@ ITEM_CLASSES = {
     "LongGuns": "Primary",
     "Pistols": "Secondary",
     "Melee": "Melee",
-    "SpecialItems": "Warframe",
     "Suits": "Warframe",
     "Kdrive": "K-Drive",
     "MechSuits": "Necramech",
@@ -99,6 +97,9 @@ def get_warframes(index: dict[str, str], warframes: list) -> None:
     parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     for warframe in parsed["ExportWarframes"]:
+        if warframe["productCategory"] == "SpecialItems":
+            continue
+
         name: str = warframe["name"]
         _class: str = ITEM_CLASSES[warframe["productCategory"]]
         _type: str = ""
@@ -431,6 +432,97 @@ def get_resources(index: dict[str, str]) -> list:
     return parsed["ExportResources"]
 
 
+RELIC_REFINEMENTS = {
+    "Bronze": "Intact",
+    "Silver": "Exceptional",
+    "Gold": "Flawless",
+    "Platinum": "Radiant"
+}
+
+RELIC_ERAS = ("Lith", "Meso", "Neo", "Axi")
+
+
+def normalize_store_item_unique_name(unique_name: str) -> str:
+    prefix = "/Lotus/StoreItems/"
+    if unique_name.startswith(prefix):
+        return "/Lotus/" + unique_name[len(prefix):]
+    return unique_name
+
+
+def parse_relics(export_relic_arcane: list[dict]) -> dict[str, list[dict]]:
+    relics_by_name: dict[str, dict] = {}
+
+    for record in export_relic_arcane:
+        display_name = record.get("name", "")
+        if re.fullmatch(r"(Lith|Meso|Neo|Axi) .+ Relic", display_name) is None:
+            continue
+
+        canonical_name = display_name.removesuffix(" Relic")
+        era = canonical_name.split(" ", 1)[0]
+        unique_name = record["uniqueName"]
+        suffix = next((value for value in RELIC_REFINEMENTS if unique_name.endswith(value)), None)
+        if suffix is None:
+            raise ValueError(f"Unknown refinement suffix for {display_name}: {unique_name}")
+
+        rewards = []
+        for reward in record.get("relicRewards", []):
+            reward_unique_name = normalize_store_item_unique_name(reward["rewardName"])
+            if "Prime" not in reward_unique_name:
+                continue
+            rewards.append((
+                reward_unique_name,
+                reward["rarity"].title(),
+                reward.get("itemCount", 1)
+            ))
+        rewards = tuple(sorted(rewards))
+
+        relic = relics_by_name.setdefault(canonical_name, {
+            "name": canonical_name,
+            "era": era,
+            "variants": [],
+            "rewards": rewards
+        })
+
+        if relic["rewards"] != rewards:
+            raise ValueError(f"Refinement reward mismatch for {canonical_name}")
+
+        relic["variants"].append({
+            "unique_name": unique_name,
+            "relic_name": canonical_name,
+            "refinement": RELIC_REFINEMENTS[suffix],
+            "name": f"{canonical_name} {RELIC_REFINEMENTS[suffix]}"
+        })
+
+    required_refinements = set(RELIC_REFINEMENTS.values())
+    for relic in relics_by_name.values():
+        refinements = {variant["refinement"] for variant in relic["variants"]}
+        if refinements != required_refinements:
+            raise ValueError(f"Expected all refinements for {relic['name']}, got {sorted(refinements)}")
+
+    relics = []
+    variants = []
+    rewards = []
+    for relic in sorted(relics_by_name.values(), key=lambda value: value["name"]):
+        relics.append({"name": relic["name"], "era": relic["era"]})
+        variants.extend(sorted(relic["variants"], key=lambda value: value["refinement"]))
+        rewards.extend({
+            "relic_name": relic["name"],
+            "reward_unique_name": reward_unique_name,
+            "rarity": rarity,
+            "item_count": item_count
+        } for reward_unique_name, rarity, item_count in relic["rewards"])
+
+    return {"relics": relics, "variants": variants, "rewards": rewards}
+
+
+def get_relics(index: dict[str, str]) -> dict[str, list[dict]]:
+    req = requests.get(
+        f"http://content.warframe.com/PublicExport/Manifest/{index['RelicArcane']}")
+    req.raise_for_status()
+    parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
+    return parse_relics(parsed["ExportRelicArcane"])
+
+
 def extract_lua_table(lua: str, table_name: str) -> str:
     # Regex to find the start of the variable
     pattern = rf'{table_name}\s*=\s*\{{'
@@ -456,6 +548,8 @@ def extract_lua_table(lua: str, table_name: str) -> str:
 
 
 def get_missions() -> dict:
+    from slpp import slpp as lua
+
     req = requests.get(
         "https://wiki.warframe.com/w/Module:Missions/data?action=raw")
     lua_content = req.text

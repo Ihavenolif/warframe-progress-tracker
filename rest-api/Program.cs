@@ -53,6 +53,8 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IWarframePublicExportService, WarframePublicExportService>();
 builder.Services.AddScoped<IClanService, ClanService>();
+builder.Services.AddScoped<IRelicService, RelicService>();
+builder.Services.AddScoped<IRelicRecommendationService, RelicRecommendationService>();
 
 builder.Services.AddCors(options =>
 {
@@ -93,14 +95,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(config.GetJwtKey())
     };
 });
-
-if (config.AppEnvironment == "DEVELOPMENT")
-{
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        options.ListenLocalhost(5224);
-    });
-}
 
 builder.Services.AddHealthChecks();
 

@@ -1,21 +1,41 @@
 <template>
-    <section class="dashboard-section">
+    <section class="dashboard-section dashboard-chart-section">
         <div class="section-head">
             <div>
+                <p class="eyebrow">Mastery trend</p>
                 <h2>Mastery progress</h2>
                 <p>{{ rangeLabel }}, grouped by day</p>
             </div>
-            <div class="range-switch">
-                <button :class="{ active: selectedRange === 7 }" @click="setRange(7)">Week</button>
-                <button :class="{ active: selectedRange === 30 }" @click="setRange(30)">Month</button>
+            <div class="range-switch" aria-label="Chart range">
+                <button class="btn" type="button" :class="{ 'is-active': selectedRange === 7 }"
+                    @click="setRange(7)">Week</button>
+                <button class="btn" type="button" :class="{ 'is-active': selectedRange === 30 }"
+                    @click="setRange(30)">Month</button>
             </div>
         </div>
 
-        <p v-if="loading">Loading mastery progress...</p>
-        <p v-else-if="errorMessage" class="dashboard-error">{{ errorMessage }}</p>
-        <div v-else class="chart-wrap">
-            <Bar :data="chartData" :options="chartOptions" />
+        <div v-if="loading" class="dashboard-state-card">Loading mastery progress...</div>
+        <div v-else-if="errorMessage" class="dashboard-state-card dashboard-error" role="alert">
+            <strong>Mastery progress could not be loaded</strong>
+            <span>{{ errorMessage }}</span>
         </div>
+        <template v-else>
+            <div class="dashboard-metrics">
+                <div class="dashboard-metric dashboard-metric--xp">
+                    <span>{{ rangeLabel }}</span>
+                    <strong>{{ formatNumber(totalMasteryXp) }}</strong>
+                    <small>mastery XP gained</small>
+                </div>
+                <div class="dashboard-metric">
+                    <span>Active days</span>
+                    <strong>{{ activeDays }}</strong>
+                    <small>days with mastery gains</small>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <Bar :data="chartData" :options="chartOptions" />
+            </div>
+        </template>
     </section>
 </template>
 
@@ -43,11 +63,17 @@ export default {
             loading: true,
             errorMessage: '',
             dailyProgress: []
-        }
+        };
     },
     computed: {
         rangeLabel() {
             return this.selectedRange === 7 ? 'Last week' : 'Last month';
+        },
+        totalMasteryXp() {
+            return this.dailyProgress.reduce((total, day) => total + day.masteryXpGained, 0);
+        },
+        activeDays() {
+            return this.dailyProgress.filter(day => day.masteryXpGained > 0).length;
         },
         chartData() {
             return {
@@ -131,56 +157,5 @@ export default {
             return new Intl.NumberFormat().format(value || 0);
         }
     }
-}
+};
 </script>
-
-<style scoped>
-.dashboard-section {
-    margin-bottom: 36px;
-}
-
-.dashboard-section h2 {
-    margin-top: 0;
-}
-
-.section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-}
-
-.section-head p {
-    color: #666;
-}
-
-.range-switch button {
-    border: 1px solid #555;
-    background: #f2f2f2;
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.range-switch button.active {
-    background: #444;
-    color: #f2f2f2;
-}
-
-.chart-wrap {
-    border: 1px solid #ddd;
-    padding: 10px;
-    height: 300px;
-}
-
-.dashboard-error {
-    border: 1px solid #b00020;
-    color: #b00020;
-    padding: 12px;
-}
-
-@media screen and (max-width: 800px) {
-    .section-head {
-        display: block;
-    }
-}
-</style>

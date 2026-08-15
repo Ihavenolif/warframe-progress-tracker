@@ -58,6 +58,11 @@ const router = createRouter({
             component: () => import('@/routes/Progress/Import.vue')
         },
         {
+            path: '/relics',
+            name: 'relics',
+            component: () => import('@/routes/Relics/Index.vue')
+        },
+        {
             path: '/clans',
             name: 'clans',
             alias: ['/clans/index', '/clans/index.html'],

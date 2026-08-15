@@ -4,7 +4,7 @@ public class DashboardProgressEntryDTO
 {
     public int id { get; set; }
 
-    public DateTime createdAt { get; set; }
+    public long createdAt { get; set; }
 
     public int previousTotalMasteryXp { get; set; }
 

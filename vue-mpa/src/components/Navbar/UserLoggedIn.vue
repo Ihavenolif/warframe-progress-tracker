@@ -2,6 +2,7 @@
     <template v-if="shouldDisplayWarframe">
         <RouterLink to="/dashboard" active-class="active">Dashboard</RouterLink>
         <RouterLink to="/progress" active-class="active">Progress</RouterLink>
+        <RouterLink to="/relics" active-class="active">Relics</RouterLink>
         <RouterLink to="/clans" active-class="active">Clans</RouterLink>
     </template>
 

@@ -3,25 +3,31 @@ import ImportProgressForm from '@/components/Forms/ImportProgressForm.vue';
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
 
 export default {
-    name: "ImportPage",
+    name: 'ImportPage',
     components: {
         NavbarElement,
         ImportProgressForm
     }
-}
+};
 </script>
 
 <template>
     <NavbarElement></NavbarElement>
 
-    <div class="row">
-        <div class="column left">
+    <div class="three-column-layout">
+        <div class="three-column-layout__side">
         </div>
-        <div class="column middle">
+        <main class="three-column-layout__main">
             <h1>Import Progress</h1>
+            <p>
+                Download and run AlecaFrame parser, then upload generated <code>out.json</code> below.
+            </p>
+            <a class="btn btn-outline-secondary" href="/alecaframe-parser.exe" download>
+                Download AlecaFrame Parser
+            </a>
             <ImportProgressForm></ImportProgressForm>
-        </div>
-        <div class="column right">
+        </main>
+        <div class="three-column-layout__side">
         </div>
     </div>
 </template>

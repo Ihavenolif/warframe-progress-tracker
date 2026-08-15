@@ -3,20 +3,60 @@ name: Build
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    tags:
+      - "*"
+
+env:
+  IMAGE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
 
 permissions:
   contents: read
   packages: write
 
 jobs:
+  parser:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: ./alecaframe-parser
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install parser dependencies
+        run: python -m pip install pyinstaller pycryptodome
+
+      - name: Build parser
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Upload parser
+        uses: actions/upload-artifact@v6
+        with:
+          name: alecaframe-parser
+          path: ./alecaframe-parser/dist/alecaframe-parser.exe
+          if-no-files-found: error
+
   build:
+    needs: parser
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
+
+      - name: Add parser to frontend
+        uses: actions/download-artifact@v7
+        with:
+          name: alecaframe-parser
+          path: ./vue-mpa/public
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4.2.0
@@ -34,7 +74,7 @@ jobs:
           context: ./rest-api
           file: ./rest-api/Dockerfile
           push: true
-          tags: ghcr.io/ihavenolif/warframe-progress-tracker-backend:latest
+          tags: ghcr.io/ihavenolif/warframe-progress-tracker-backend:${{ env.IMAGE_TAG }}
 
       - name: Build frontend image
         uses: docker/build-push-action@v7.3.0
@@ -42,7 +82,7 @@ jobs:
           context: ./vue-mpa
           file: ./vue-mpa/Dockerfile
           push: true
-          tags: ghcr.io/ihavenolif/warframe-progress-tracker-frontend:latest
+          tags: ghcr.io/ihavenolif/warframe-progress-tracker-frontend:${{ env.IMAGE_TAG }}
 
       - name: Build data-update image
         uses: docker/build-push-action@v7.3.0
@@ -50,4 +90,4 @@ jobs:
           context: ./data-update
           file: ./data-update/Dockerfile
           push: true
-          tags: ghcr.io/ihavenolif/warframe-progress-tracker-data-update:latest
+          tags: ghcr.io/ihavenolif/warframe-progress-tracker-data-update:${{ env.IMAGE_TAG }}

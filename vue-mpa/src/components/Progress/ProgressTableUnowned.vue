@@ -1,23 +1,11 @@
 <template>
-    <div style="display: flex;">
-        <div v-if="item.recipeUniqueName !== null" :style="{
-            display: 'flex',
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '38px'
-        }" :class="[
+    <div class="d-flex">
+        <div v-if="item.recipeUniqueName !== null" class="progress-component-state" :class="[
             item[this.playerName]['blueprintOwned'] ? 'mastery-state-0' : 'mastery-state-2'
         ]">
             <ProgressTableComponentItem ref="componentItemBp" v-bind:item="blueprintItem"></ProgressTableComponentItem>
         </div>
-        <div v-for="(component, index) in sortedComponents" :key="index" :style="{
-            display: 'flex',
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '38px'
-        }" :class="[
+        <div v-for="(component, index) in sortedComponents" :key="index" class="progress-component-state" :class="[
             component['countOwned'] >= component['countRequired'] ? 'mastery-state-0' :
                 component['blueprintOwned'] ? 'mastery-state-1' : 'mastery-state-2'
         ]">

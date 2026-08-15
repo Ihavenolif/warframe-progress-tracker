@@ -3,6 +3,7 @@ __pycache__
 venv
 .vscode
 .vscode/*
+.playwright-mcp/
 database.ini
 temp
 out.json

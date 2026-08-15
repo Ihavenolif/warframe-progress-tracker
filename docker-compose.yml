@@ -23,8 +23,9 @@ services:
     image: mcr.microsoft.com/dotnet/sdk:9.0
     working_dir: /app
     command: >-
-      sh -c 'while true; do
-      dotnet watch run --no-launch-profile --urls http://0.0.0.0:8080;
+      sh -c 'dotnet restore --source https://www.nuget.org/api/v2/ --disable-parallel &&
+      while true; do
+      dotnet watch run --no-restore --no-launch-profile --urls http://0.0.0.0:8080;
       echo "dotnet watch exited; restarting in 1 second";
       sleep 1;
       done'
@@ -41,6 +42,8 @@ services:
       - "5224:8080"
     volumes:
       - ./rest-api:/app
+      - backend-build:/app/bin
+      - backend-obj:/app/obj
       - backend-nuget:/root/.nuget/packages
     depends_on:
       postgres:
@@ -88,7 +91,9 @@ services:
       start_period: 10s
 
 volumes:
+  backend-build:
   backend-nuget:
+  backend-obj:
   frontend-node-modules:
   postgres-data:
     name: warframe-tracker-postgres-data

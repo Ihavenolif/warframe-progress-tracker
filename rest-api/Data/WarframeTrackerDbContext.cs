@@ -48,6 +48,12 @@ public partial class WarframeTrackerDbContext : DbContext
 
     public virtual DbSet<MasteryProgressMission> mastery_progress_missions { get; set; }
 
+    public virtual DbSet<Relic> relics { get; set; }
+
+    public virtual DbSet<RelicVariant> relic_variants { get; set; }
+
+    public virtual DbSet<RelicReward> relic_rewards { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -177,7 +183,7 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.Property(e => e.PlayerId).HasColumnName("player_id");
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.PreviousTotalMasteryXp).HasColumnName("previous_total_mastery_xp");
             entity.Property(e => e.CurrentTotalMasteryXp).HasColumnName("current_total_mastery_xp");
@@ -418,6 +424,85 @@ public partial class WarframeTrackerDbContext : DbContext
                 .HasForeignKey(d => d.UniqueName)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("player_mission_completion_unique_name_fkey");
+        });
+
+        modelBuilder.Entity<Relic>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("relic_pkey");
+
+            entity.ToTable("relic");
+
+            entity.HasIndex(e => e.Name, "relic_name_key").IsUnique();
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(256)
+                .HasColumnName("name");
+            entity.Property(e => e.Era)
+                .HasConversion<string>()
+                .HasMaxLength(16)
+                .HasColumnName("era");
+        });
+
+        modelBuilder.Entity<RelicVariant>(entity =>
+        {
+            entity.HasKey(e => e.UniqueName).HasName("relic_variant_pkey");
+
+            entity.ToTable("relic_variant");
+
+            entity.HasIndex(e => new { e.RelicId, e.Refinement }, "IX_relic_variant_relic_id_refinement");
+
+            entity.Property(e => e.UniqueName)
+                .HasMaxLength(256)
+                .HasColumnName("unique_name");
+            entity.Property(e => e.RelicId).HasColumnName("relic_id");
+            entity.Property(e => e.Refinement)
+                .HasConversion<string>()
+                .HasMaxLength(16)
+                .HasColumnName("refinement");
+
+            entity.HasOne(e => e.Item).WithOne(e => e.RelicVariant)
+                .HasForeignKey<RelicVariant>(e => e.UniqueName)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("relic_variant_unique_name_fkey");
+
+            entity.HasOne(e => e.Relic).WithMany(e => e.Variants)
+                .HasForeignKey(e => e.RelicId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("relic_variant_relic_id_fkey");
+        });
+
+        modelBuilder.Entity<RelicReward>(entity =>
+        {
+            entity.HasKey(e => new { e.RelicId, e.RewardUniqueName }).HasName("relic_reward_pkey");
+
+            entity.ToTable("relic_reward");
+
+            entity.HasIndex(e => e.RewardUniqueName, "IX_relic_reward_reward_unique_name");
+
+            entity.Property(e => e.RelicId).HasColumnName("relic_id");
+            entity.Property(e => e.RewardUniqueName)
+                .HasMaxLength(256)
+                .HasColumnName("reward_unique_name");
+            entity.Property(e => e.Rarity)
+                .HasConversion<string>()
+                .HasMaxLength(16)
+                .HasColumnName("rarity");
+            entity.Property(e => e.ItemCount)
+                .HasDefaultValue(1)
+                .HasColumnName("item_count");
+
+            entity.HasOne(e => e.Relic).WithMany(e => e.Rewards)
+                .HasForeignKey(e => e.RelicId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("relic_reward_relic_id_fkey");
+
+            entity.HasOne(e => e.Reward).WithMany(e => e.RelicRewards)
+                .HasForeignKey(e => e.RewardUniqueName)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("relic_reward_reward_unique_name_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);
