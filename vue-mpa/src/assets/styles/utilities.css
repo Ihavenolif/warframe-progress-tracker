@@ -1,0 +1,9 @@
+@layer utilities {
+    .d-flex { display: flex !important; }
+    .text-danger { color: var(--color-danger) !important; }
+    .text-gold { color: var(--color-warning) !important; }
+    .text-end { text-align: right !important; }
+    .fw-normal { font-weight: 400 !important; }
+    .float-end { float: right !important; }
+    .muted { color: var(--color-muted) !important; }
+}

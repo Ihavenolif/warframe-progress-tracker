@@ -119,11 +119,3 @@ export default {
     }
 };
 </script>
-
-<style scoped>
-.relic-page { max-width: 1120px; margin: 0 auto; padding: 36px 24px 64px; }
-
-@media (max-width: 560px) {
-    .relic-page { padding: 24px 12px 48px; }
-}
-</style>

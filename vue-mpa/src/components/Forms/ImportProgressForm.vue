@@ -1,5 +1,5 @@
 <template>
-    <div style="width: 50%; margin-top: 10%; margin-left: 25%; margin-right: 25%;">
+    <div class="auth-form-shell">
         <form @submit.prevent="submitForm">
             <!--file upload form-->
             <label class="form-label" for="file">Select file to upload:</label>
@@ -8,9 +8,9 @@
 
             <LoadingIndicator v-if="responseLoading" />
 
-            <p style="color: red">{{ errorMessage }}</p>
+            <p class="text-danger">{{ errorMessage }}</p>
 
-            <button class="form-button" type="submit" :disabled="responseLoading">Upload</button>
+            <button class="btn btn-primary btn-block" type="submit" :disabled="responseLoading">Upload</button>
         </form>
     </div>
 </template>
@@ -66,29 +66,3 @@ export default {
     }
 }    
 </script>
-
-<style>
-/* Full-width input fields */
-/* For file form */
-input[type=file] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-
-/* Set a style for all buttons */
-.form-button {
-    font-family: Arial;
-    font-size: 105%;
-    background-color: var(--accent);
-    color: white;
-    padding: 14px 20px;
-    margin: 8px 0;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-}
-</style>

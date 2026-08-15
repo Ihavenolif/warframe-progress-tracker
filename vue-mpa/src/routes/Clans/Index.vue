@@ -2,21 +2,22 @@
     <NavbarElement></NavbarElement>
 
     <ThreeColumnLayout>
+        <section class="clan-page">
         <h2>Your Clans</h2>
 
         <div>
-            <div class="clan-container" v-for="clan in clans" :key="clan.id">
-                <div class="left">
+            <div class="clan-card" v-for="clan in clans" :key="clan.id">
+                <div class="clan-card__info">
                     <p>{{ clan["name"] }}</p>
                     {{ clan["memberCount"] }} members
                 </div>
 
 
-                <div class="button-right">
+                <div class="clan-card__actions">
                     <RouterLink :to="{ name: 'clan-progress', params: { clanName: clan.name } }">View progress</RouterLink>
                 </div>
 
-                <div class="button-right">
+                <div class="clan-card__actions">
                     <RouterLink :to="{ name: 'clan-details', params: { clanName: clan.name } }">Details</RouterLink>
                 </div>
 
@@ -27,16 +28,16 @@
 
         <h2>Pending invitations</h2>
         <div>
-            <div class="clan-container" v-for="invitation in invitations" :key="invitation.id">
-                <div class="left">
+            <div class="clan-card" v-for="invitation in invitations" :key="invitation.id">
+                <div class="clan-card__info">
                     <p>{{ invitation["clanName"] }}</p>
                 </div>
 
 
-                <div class="button-right">
+                <div class="clan-card__actions">
                     <a @click="acceptInvitation(invitation.id)">Accept</a>
                 </div>
-                <div class="button-right">
+                <div class="clan-card__actions">
                     <a @click="declineInvitation(invitation.id)">Decline</a>
                 </div>
 
@@ -50,13 +51,14 @@
         <div v-if="inputVisible">
 
             <input v-model="newClanName" placeholder="Enter new clan name" type="text" />
-            <p style="color: red">{{ errorMessage }}</p>
+            <p class="text-danger">{{ errorMessage }}</p>
         </div>
 
 
-        <div style="text-align: right;">
+        <div class="text-end">
             <SimpleButton @click="createClan">Create clan</SimpleButton>
         </div>
+        </section>
     </ThreeColumnLayout>
 
 </template>
@@ -173,58 +175,3 @@ export default {
     }
 };
 </script>
-
-<style>
-div.clan-container {
-    padding: 20px;
-    border: #ccc 1px solid;
-    border-bottom: none;
-    background-color: #f2f2f2;
-    height: calc(40px + 40px);
-    min-height: 20px;
-    display: block;
-
-    div.left {
-        float: left;
-        display: block;
-        width: fit-content;
-    }
-
-    p {
-        font-weight: bold;
-        margin: 0;
-        width: fit-content;
-    }
-
-    button,
-    a {
-        display: block;
-        float: right;
-        top: 10px;
-        padding: 10px;
-        border: #ccc 1px solid;
-        cursor: pointer;
-        text-decoration: none;
-        color: black;
-    }
-
-    div.button-right {
-        display: block;
-        float: right;
-    }
-}
-
-div.clan-container:last-child {
-    border-bottom: 1px solid #ccc;
-}
-
-input[type=text],
-input[type=password] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-</style>

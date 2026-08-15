@@ -8,7 +8,7 @@
         <template v-else-if="type === 'error'">
             <h2>Relics could not be loaded</h2>
             <p>{{ message }}</p>
-            <button type="button" @click="$emit('retry')">Try again</button>
+            <button class="btn btn-secondary" type="button" @click="$emit('retry')">Try again</button>
         </template>
         <template v-else>
             <h2>No relics found</h2>
@@ -27,9 +27,3 @@ export default {
     emits: ['retry']
 };
 </script>
-
-<style scoped>
-.state-card { padding: 40px; border: 1px solid #d5dde1; background: #f7f9fa; text-align: center; }
-.state-card button { padding: 9px 16px; border: 0; background: #263746; color: white; cursor: pointer; }
-.error-state { border-color: #c98b92; }
-</style>

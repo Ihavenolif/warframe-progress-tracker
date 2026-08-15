@@ -103,18 +103,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.progress-page {
-    height: calc(100vh - 49px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding: 0;
-}
-
-.progress-loading {
-    overflow-y: auto;
-    padding: 0 20px;
-}
-</style>

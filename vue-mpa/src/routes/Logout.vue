@@ -1,12 +1,12 @@
 <template>
     <NavbarElement></NavbarElement>
-    <div class="row">
-        <div class="column left">
+    <div class="three-column-layout">
+        <div class="three-column-layout__side">
         </div>
-        <div class="column middle">
+        <main class="three-column-layout__main">
             <h1> {{ header }} </h1>
-        </div>
-        <div class="column right">
+        </main>
+        <div class="three-column-layout__side">
 
         </div>
     </div>

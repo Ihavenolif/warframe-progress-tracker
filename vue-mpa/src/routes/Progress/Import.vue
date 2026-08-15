@@ -14,14 +14,14 @@ export default {
 <template>
     <NavbarElement></NavbarElement>
 
-    <div class="row">
-        <div class="column left">
+    <div class="three-column-layout">
+        <div class="three-column-layout__side">
         </div>
-        <div class="column middle">
+        <main class="three-column-layout__main">
             <h1>Import Progress</h1>
             <ImportProgressForm></ImportProgressForm>
-        </div>
-        <div class="column right">
+        </main>
+        <div class="three-column-layout__side">
         </div>
     </div>
 </template>

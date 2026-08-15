@@ -48,25 +48,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.dashboard-section {
-    margin-bottom: 24px;
-}
-
-.dashboard-section h2 {
-    margin-top: 0;
-}
-
-.dashboard-error {
-    border: 1px solid #b00020;
-    color: #b00020;
-    padding: 12px;
-}
-
-.empty-state {
-    border: 1px solid #ddd;
-    padding: 14px;
-    color: #666;
-}
-</style>

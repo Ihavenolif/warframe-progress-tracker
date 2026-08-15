@@ -1,14 +1,14 @@
 <template>
     <NavbarElement></NavbarElement>
 
-    <div class="row">
-        <div class="column left"></div>
-        <main class="column middle dashboard-page">
+    <div class="three-column-layout">
+        <div class="three-column-layout__side"></div>
+        <main class="three-column-layout__main dashboard-page">
             <h1>Dashboard</h1>
             <MasteryProgressChart />
             <LatestProgressEntries />
         </main>
-        <div class="column right"></div>
+        <div class="three-column-layout__side"></div>
     </div>
 </template>
 
@@ -26,10 +26,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.dashboard-page {
-    text-align: left;
-}
-
-</style>

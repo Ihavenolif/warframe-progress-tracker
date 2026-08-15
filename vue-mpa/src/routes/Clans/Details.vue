@@ -2,18 +2,19 @@
     <NavbarElement></NavbarElement>
 
     <ThreeColumnLayout>
+        <section class="clan-page">
         <h2>{{ clanName }}</h2>
 
         <h3>Clan members</h3>
         <div>
-            <div class="clan-container" v-for="member in clanMembers" :key="member.username">
-                <div class="left">
-                    <p>{{ member.username }} <font-awesome-icon icon="crown" style="color: gold;"
+            <div class="clan-card" v-for="member in clanMembers" :key="member.username">
+                <div class="clan-card__info">
+                    <p>{{ member.username }} <font-awesome-icon icon="crown" class="text-gold"
                             v-if="member.username == leaderName" /></p>
                     Mastery Rank: {{ member.masteryRank }}
                 </div>
 
-                <div class="button-right">
+                <div class="clan-card__actions">
                     <a v-if="!amLeader && member.username == userData.playerName" @click="leaveClan">Leave clan</a>
                     <a v-if="amLeader && member.username != leaderName" @click="removeMember(member.username)">Remove
                         member</a>
@@ -26,12 +27,12 @@
 
         <h3>Pending invitations</h3>
         <div>
-            <div class="clan-container" v-for="invitation in pendingInvitations" :key="invitation.id">
-                <div class="left">
+            <div class="clan-card" v-for="invitation in pendingInvitations" :key="invitation.id">
+                <div class="clan-card__info">
                     <p>{{ invitation.playerName }}</p>
                 </div>
 
-                <div class="button-right">
+                <div class="clan-card__actions">
                     <a @click="cancelInvitation(invitation.id)">Cancel invitation</a>
                 </div>
 
@@ -47,12 +48,13 @@
             <input v-model="invitePlayerName" placeholder="Enter player name to invite" type="text" />
         </div>
 
-        <p style="color: red">{{ errorMessage }}</p>
+        <p class="text-danger">{{ errorMessage }}</p>
 
-        <div style="text-align: right;">
+        <div class="text-end">
             <SimpleButton @click="invitePlayer" v-if="amLeader">Invite player
             </SimpleButton>
         </div>
+        </section>
     </ThreeColumnLayout>
 
 </template>
@@ -233,58 +235,3 @@ export default {
 }
 
 </script>
-
-<style>
-div.clan-container {
-    padding: 20px;
-    border: #ccc 1px solid;
-    border-bottom: none;
-    background-color: #f2f2f2;
-    height: calc(40px + 40px);
-    min-height: 20px;
-    display: block;
-
-    div.left {
-        float: left;
-        display: block;
-        width: fit-content;
-    }
-
-    p {
-        font-weight: bold;
-        margin: 0;
-        width: fit-content;
-    }
-
-    button,
-    a {
-        display: block;
-        float: right;
-        top: 10px;
-        padding: 10px;
-        border: #ccc 1px solid;
-        cursor: pointer;
-        text-decoration: none;
-        color: black;
-    }
-
-    div.button-right {
-        display: block;
-        float: right;
-    }
-}
-
-div.clan-container:last-child {
-    border-bottom: 1px solid #ccc;
-}
-
-input[type=text],
-input[type=password] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-</style>

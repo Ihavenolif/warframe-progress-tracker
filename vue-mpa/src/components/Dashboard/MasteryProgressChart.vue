@@ -6,8 +6,8 @@
                 <p>{{ rangeLabel }}, grouped by day</p>
             </div>
             <div class="range-switch">
-                <button :class="{ active: selectedRange === 7 }" @click="setRange(7)">Week</button>
-                <button :class="{ active: selectedRange === 30 }" @click="setRange(30)">Month</button>
+                <button class="btn" :class="{ 'is-active': selectedRange === 7 }" @click="setRange(7)">Week</button>
+                <button class="btn" :class="{ 'is-active': selectedRange === 30 }" @click="setRange(30)">Month</button>
             </div>
         </div>
 
@@ -133,54 +133,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.dashboard-section {
-    margin-bottom: 36px;
-}
-
-.dashboard-section h2 {
-    margin-top: 0;
-}
-
-.section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-}
-
-.section-head p {
-    color: #666;
-}
-
-.range-switch button {
-    border: 1px solid #555;
-    background: #f2f2f2;
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.range-switch button.active {
-    background: #444;
-    color: #f2f2f2;
-}
-
-.chart-wrap {
-    border: 1px solid #ddd;
-    padding: 10px;
-    height: 300px;
-}
-
-.dashboard-error {
-    border: 1px solid #b00020;
-    color: #b00020;
-    padding: 12px;
-}
-
-@media screen and (max-width: 800px) {
-    .section-head {
-        display: block;
-    }
-}
-</style>

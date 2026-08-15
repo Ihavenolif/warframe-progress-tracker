@@ -1,5 +1,5 @@
 <template>
-    <td style="padding: 0px" width="32px"><a :href="wikiLink" target="_blank"><img :src="item['imgSrc']" alt=""
+    <td class="progress-item-image-cell"><a :href="wikiLink" target="_blank"><img class="progress-item-image" :src="item['imgSrc']" alt=""
                 height="34px"></a>
     </td>
     <td>
@@ -35,9 +35,3 @@ export default {
 }
 
 </script>
-
-<style scoped>
-img {
-    cursor: pointer;
-}
-</style>

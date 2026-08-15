@@ -3,7 +3,7 @@
         <ProgressTableUnowned ref="progressTableUnowned" v-bind:item="item" v-bind:playerName="playerName">
         </ProgressTableUnowned>
     </td>
-    <td class="mastery-state-1" v-else-if="item[playerName]['xpGained'] < item['xpRequired']" style="padding: 0px">
+    <td class="mastery-state-1 progress-table-cell--flush" v-else-if="item[playerName]['xpGained'] < item['xpRequired']">
         <ProgressBar :progressPercent="(itemRank / itemMaxRank) * 100">
             Rank {{ itemRank }}
         </ProgressBar>
@@ -41,9 +41,3 @@ export default {
     }
 }
 </script>
-
-<style>
-td.mastery-state-2 {
-    padding: 0px !important;
-}
-</style>

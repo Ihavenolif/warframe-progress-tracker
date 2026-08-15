@@ -2,7 +2,7 @@
     <div :class="{
         'dropdown': true,
         'right-aligned': this.isRightAligned
-    }" ref="dropdown">
+        }" ref="dropdown">
         <button class="dropbtn">
             {{ title }}
             <i class="fa fa-caret-down"></i>
@@ -11,7 +11,7 @@
         <div :class="{
             'dropdown-content': true,
             'right-aligned': this.isRightAligned
-        }" ref="dropdownContent">
+        }" :style="dropdownProperties">
             <slot></slot>
         </div>
     </div>
@@ -37,15 +37,22 @@ export default {
     },
     data() {
         return {
-
+            dropdownOffset: '0px'
         };
+    },
+    computed: {
+        dropdownProperties() {
+            return this.isRightAligned
+                ? { '--dropdown-right': this.dropdownOffset }
+                : { '--dropdown-left': this.dropdownOffset };
+        }
     },
     mounted() {
         const rect = this.$refs.dropdown.getBoundingClientRect();
         if (this.isRightAligned) {
-            this.$refs.dropdownContent.style.right = window.innerWidth - rect.right + "px";
+            this.dropdownOffset = window.innerWidth - rect.right + "px";
         } else {
-            this.$refs.dropdownContent.style.left = rect.left + "px";
+            this.dropdownOffset = rect.left + "px";
         }
     },
     methods: {

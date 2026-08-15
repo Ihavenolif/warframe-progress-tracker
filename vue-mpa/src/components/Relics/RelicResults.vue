@@ -8,9 +8,9 @@
             :expanded="expandedId === relic.id" @toggle="toggleRelic(relic.id)" />
 
         <nav class="pagination" aria-label="Relic pages">
-            <button type="button" :disabled="page <= 1" @click="$emit('page-change', page - 1)">Previous</button>
+            <button class="btn btn-secondary" type="button" :disabled="page <= 1" @click="$emit('page-change', page - 1)">Previous</button>
             <span>{{ page }} / {{ safeTotalPages }}</span>
-            <button type="button" :disabled="page >= totalPages" @click="$emit('page-change', page + 1)">Next</button>
+            <button class="btn btn-secondary" type="button" :disabled="page >= totalPages" @click="$emit('page-change', page + 1)">Next</button>
         </nav>
     </section>
 </template>
@@ -49,10 +49,3 @@ export default {
     }
 };
 </script>
-
-<style scoped>
-.result-meta { display: flex; justify-content: space-between; margin: 0 2px 10px; color: #607080; }
-.pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
-.pagination button { padding: 9px 16px; border: 0; background: #263746; color: white; cursor: pointer; }
-.pagination button:disabled { opacity: .35; cursor: default; }
-</style>

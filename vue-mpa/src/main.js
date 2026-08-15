@@ -6,9 +6,7 @@ import AppShell from './AppShell.vue'
 import router from './router'
 import { store } from './store'
 
-import './assets/styles/global.css'
-import './assets/styles/three-column-layout.css'
-import './assets/styles/form.css'
+import './assets/styles/index.css'
 import 'font-awesome/css/font-awesome.min.css'
 
 library.add(faCaretDown, faCrown)

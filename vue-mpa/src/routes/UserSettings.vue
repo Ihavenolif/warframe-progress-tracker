@@ -1,17 +1,17 @@
 <template>
     <NavbarElement></NavbarElement>
 
-    <div class="row">
-        <div class="column left">
+    <div class="three-column-layout">
+        <div class="three-column-layout__side">
         </div>
-        <div class="column middle">
+        <main class="three-column-layout__main settings-page">
             <h2>
                 Account settings
-                <span style="font-weight: normal;"> - {{ username }}</span>
+                <span class="fw-normal"> - {{ username }}</span>
             </h2>
 
             <!-- Change Password Button -->
-            <button @click="changePassword" class="simple-btn">
+            <button @click="changePassword" class="btn btn-primary">
                 Change Password
             </button>
 
@@ -22,11 +22,11 @@
             <input type="text" name="warframeName" id="warframeName" v-if="inputVisible" v-model="playerNameInput"
                 placeholder="Enter your Warframe account name">
             <br v-if="inputVisible">
-            <button v-if="!playerName" class="simple-btn" @click="linkAccount">Link account</button>
-            <button v-else class="simple-btn" @click="unlinkAccount">Unlink account</button>
+            <button v-if="!playerName" class="btn btn-primary" @click="linkAccount">Link account</button>
+            <button v-else class="btn btn-primary" @click="unlinkAccount">Unlink account</button>
 
-        </div>
-        <div class="column right">
+        </main>
+        <div class="three-column-layout__side">
 
         </div>
     </div>
@@ -108,28 +108,3 @@ export default {
 }
 
 </script>
-
-<style>
-.simple-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-}
-
-input[type=text],
-input[type=password] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-</style>

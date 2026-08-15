@@ -148,17 +148,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.clan-progress-page {
-    height: calc(100vh - 49px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.clan-progress-loading {
-    overflow-y: auto;
-    padding: 0 20px;
-}
-</style>
