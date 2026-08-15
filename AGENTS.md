@@ -62,6 +62,10 @@
 ## Tests And Validation
 
 - Add or update focused tests when behavior changes. Match nearby test structure and use descriptive behavior names.
+- Before running a build or starting a development server, check for an existing local or Docker-hosted server. Reuse it when suitable; do not start a duplicate.
+- On Windows, inspect process command lines for `npm run serve`, `vue-cli-service serve`, `dotnet run`, `dotnet watch`, and `python -u server.py`. Ignore unrelated Node and .NET tooling such as language servers, Playwright MCP, and IDE build hosts.
+- Run `docker ps` and look for this repository's Compose services: `warframe-progress-tracker-frontend-1`, `warframe-progress-tracker-backend-1`, and `warframe-progress-tracker-data-update-1` (or equivalent names with Compose project/service labels).
+- Check listeners on the normal development ports: frontend `8080`, API `5224` (and local HTTPS `7245`), and updater `5000`. Vue CLI can automatically select `8081` or a higher port when `8080` is occupied, so process command lines must also be checked.
 - API or C# changes: run `dotnet test warframe-tracker.sln` from repository root.
 - Vue changes: run `npm run lint` and `npm run build` from `vue-mpa`.
 - Updater changes: run `python -m unittest discover -s tests` from `data-update`.
