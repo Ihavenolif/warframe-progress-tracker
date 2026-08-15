@@ -116,6 +116,11 @@ export default {
                 }
                 if (!response.ok) throw new Error((await response.text()) || `Request failed (${response.status})`);
                 const data = await response.json();
+                if (data.totalPages > 0 && this.page > data.totalPages) {
+                    this.page = data.totalPages;
+                    await this.updateRouteAndLoad();
+                    return;
+                }
                 this.relics = data.items;
                 this.page = data.page;
                 this.totalCount = data.totalCount;

@@ -156,6 +156,18 @@ public class MasteryService : IMasteryService
         return new(relicEntries, nonRelicEntries, staleEntries, unknownProjectionUniqueNames);
     }
 
+    internal static List<Player_item> FindStaleInventoryEntries(
+        IEnumerable<Player_item> snapshotEntries,
+        IEnumerable<Player_item> existingEntries)
+    {
+        HashSet<string> snapshotUniqueNames = snapshotEntries
+            .Select(item => item.unique_name)
+            .ToHashSet(StringComparer.Ordinal);
+        return existingEntries
+            .Where(item => !snapshotUniqueNames.Contains(item.unique_name))
+            .ToList();
+    }
+
     // TODO: Fuckton of validation
     // Also TODO: Write some tests
     public async Task UpdatePlayerMasteryAsync(Player player, string jsonData)
@@ -222,11 +234,15 @@ public class MasteryService : IMasteryService
                 JsonNode item = validateMiscItem(x!);
                 return (item["ItemType"]!.GetValue<string>(), item["ItemCount"]!.GetValue<int>());
             })];
-        List<Player_item> existingRelicEntries = await _dbContext.player_items
-            .Where(item => item.player_id == player.id && knownRelicUniqueNames.Contains(item.unique_name))
+        List<Player_item> existingInventoryEntries = await _dbContext.player_items
+            .Where(item => item.player_id == player.id)
             .ToListAsync();
         RelicSnapshotReconciliation relicSnapshot = ReconcileRelicSnapshot(
-            player.id, parsedMiscItems, knownRelicUniqueNames, allItems, existingRelicEntries);
+            player.id,
+            parsedMiscItems,
+            knownRelicUniqueNames,
+            allItems,
+            existingInventoryEntries.Where(item => knownRelicUniqueNames.Contains(item.unique_name)));
         foreach (string uniqueName in relicSnapshot.UnknownProjectionUniqueNames)
         {
             _logger.LogWarning("Skipping unknown relic projection {UniqueName} from MiscItems snapshot", uniqueName);
@@ -235,6 +251,9 @@ public class MasteryService : IMasteryService
         List<Player_item> miscItemEntries = [
             .. relicSnapshot.NonRelicEntries,
             .. relicSnapshot.RelicEntries];
+        List<Player_item> staleInventoryEntries = FindStaleInventoryEntries(
+            recipeItems.Concat(miscItemEntries),
+            existingInventoryEntries);
 
 
         var missingItems = xpInfo
@@ -317,7 +336,7 @@ public class MasteryService : IMasteryService
         player.railjack_skills = railjackSkills;
         try
         {
-            _dbContext.player_items.RemoveRange(relicSnapshot.StaleEntries);
+            _dbContext.player_items.RemoveRange(staleInventoryEntries);
             await _dbContext.SaveChangesAsync();
             await _dbContext.BulkInsertOrUpdateAsync(masteryItems, new BulkConfig
             {

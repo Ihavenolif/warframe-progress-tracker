@@ -62,6 +62,22 @@ public class MasteryServiceRelicSnapshotTest
         Assert.Equal(0, nonRelic.item_count);
     }
 
+    [Fact]
+    public void FullInventorySnapshotDeletesAbsentRecipesAndComponents()
+    {
+        Player_item retainedRecipe = PlayerItem("/Lotus/Recipe/Retained", 2);
+        Player_item retainedComponent = PlayerItem("/Lotus/Component/Retained", 3);
+        Player_item staleRecipe = PlayerItem("/Lotus/Recipe/Stale", 1);
+        Player_item staleComponent = PlayerItem("/Lotus/Component/Stale", 4);
+
+        List<Player_item> stale = MasteryService.FindStaleInventoryEntries(
+            [retainedRecipe, retainedComponent],
+            [retainedRecipe, retainedComponent, staleRecipe, staleComponent]);
+
+        Assert.True(new HashSet<string> { staleRecipe.unique_name, staleComponent.unique_name }
+            .SetEquals(stale.Select(item => item.unique_name)));
+    }
+
     private static Player_item PlayerItem(string uniqueName, int count) => new()
     {
         unique_name = uniqueName,
