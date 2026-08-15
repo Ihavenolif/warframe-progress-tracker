@@ -132,6 +132,18 @@
     .topnav a.active,
     .topnav .active-inverted { background: var(--color-primary); color: #fff; }
     .topnav .active-inverted:hover { background: var(--color-primary-light); color: var(--color-ink); }
+    .topnav .topnav-brand { font-weight: 800; line-height: 20px; letter-spacing: 0.04em; }
+
+    .topnav-brand__mark {
+        display: inline-block;
+        width: 13px;
+        height: 13px;
+        margin-right: 9px;
+        border: 2px solid #c99b35;
+        transform: rotate(45deg);
+        vertical-align: -1px;
+    }
+
     .topnav .icon { display: none; }
     .topnav-toggle { font-size: 15px !important; }
     .topnav .right-aligned { float: right; }

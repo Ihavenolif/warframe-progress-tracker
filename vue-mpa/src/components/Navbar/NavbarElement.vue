@@ -1,6 +1,9 @@
 <template>
     <div class="topnav" id="myTopnav">
-        <RouterLink to="/" exact-active-class="active">Home</RouterLink>
+        <RouterLink class="topnav-brand" to="/" exact-active-class="active">
+            <span class="topnav-brand__mark" aria-hidden="true"></span>
+            Orbitr
+        </RouterLink>
 
         <UserMenu></UserMenu>
 
