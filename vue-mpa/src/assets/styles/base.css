@@ -25,6 +25,8 @@
         font: inherit;
     }
 
+    button { border-radius: 0; }
+
     input[type="text"],
     input[type="password"],
     input[type="search"],
