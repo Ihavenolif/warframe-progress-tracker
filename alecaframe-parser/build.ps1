@@ -1,1 +1,1 @@
-pyinstaller --clean --onefile --windowed --add-data "transparent.ico;." --icon=.\transparent.ico app.py
+python -m PyInstaller --clean --onefile --windowed --name alecaframe-parser --specpath build --add-data "$PSScriptRoot\transparent.ico;." --icon="$PSScriptRoot\transparent.ico" app.py

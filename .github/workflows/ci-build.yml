@@ -11,12 +11,49 @@ permissions:
   packages: write
 
 jobs:
+  parser:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: ./alecaframe-parser
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install parser dependencies
+        run: python -m pip install pyinstaller pycryptodome
+
+      - name: Build parser
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Upload parser
+        uses: actions/upload-artifact@v6
+        with:
+          name: alecaframe-parser
+          path: ./alecaframe-parser/dist/alecaframe-parser.exe
+          if-no-files-found: error
+
   build:
+    needs: parser
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
+
+      - name: Add parser to frontend
+        uses: actions/download-artifact@v7
+        with:
+          name: alecaframe-parser
+          path: ./vue-mpa/public
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4.2.0
