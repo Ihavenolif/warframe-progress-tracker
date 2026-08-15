@@ -139,7 +139,7 @@
         width: 13px;
         height: 13px;
         margin-right: 9px;
-        border: 2px solid #c99b35;
+        border: 2px solid var(--color-orokin-gold);
         transform: rotate(45deg);
         vertical-align: -1px;
     }

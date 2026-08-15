@@ -1,23 +1,24 @@
 <template>
     <div @mousemove="updatePosition" @mouseleave="tooltipVisible = false">
-        <img :src="item['imgSrc']" :alt="item['name']" height="34px" width="34px" @mouseover="tooltipVisible = true">
+        <img :src="item['imgSrc']" :alt="item['name']" height="34px" width="34px" @mouseenter="showTooltip">
 
-        <div v-if="tooltipVisible" class="progress-tooltip" :style="tooltipProperties" ref="tooltip">
-            {{ item['name'] }}<br>
+        <Teleport to="body">
+            <div v-if="tooltipVisible" class="progress-tooltip" :style="tooltipProperties" ref="tooltip">
+                {{ item['name'] }}<br>
 
-            <span v-if="!item['name'].includes('Blueprint')">
-                <br>
-                <br>
-                {{ item['countOwned'] }} / {{ item['countRequired'] }}
-            </span>
+                <span v-if="!item['name'].includes('Blueprint')">
+                    <br>
+                    <br>
+                    {{ item['countOwned'] }} / {{ item['countRequired'] }}
+                </span>
 
-            <span v-if="item['blueprintOwned']">
-                <br>
-                <br>
-                Blueprint owned
-            </span>
-
-        </div>
+                <span v-if="item['blueprintOwned']">
+                    <br>
+                    <br>
+                    Blueprint owned
+                </span>
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -45,11 +46,22 @@ export default {
         }
     },
     methods: {
+        showTooltip(event) {
+            this.tooltipVisible = true;
+            this.$nextTick(() => this.updatePosition(event));
+        },
         updatePosition(event) {
-            const tooltipHeight = this.$refs.tooltip?.offsetHeight || 20;
+            if (!this.tooltipVisible) return;
 
-            this.tooltipTop = `${event.clientY - tooltipHeight}px`;
-            this.tooltipLeft = `${event.clientX}px`;
+            const gap = 12;
+            const tooltipWidth = this.$refs.tooltip?.offsetWidth || 160;
+            const tooltipHeight = this.$refs.tooltip?.offsetHeight || 20;
+            const maxLeft = Math.max(gap, window.innerWidth - tooltipWidth - gap);
+            const maxTop = Math.max(gap, window.innerHeight - tooltipHeight - gap);
+            const preferredTop = event.clientY - tooltipHeight - gap;
+
+            this.tooltipTop = `${Math.max(gap, Math.min(preferredTop >= gap ? preferredTop : event.clientY + gap, maxTop))}px`;
+            this.tooltipLeft = `${Math.max(gap, Math.min(event.clientX + gap, maxLeft))}px`;
         }
     }
 }

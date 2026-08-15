@@ -31,6 +31,7 @@
 
         <section class="table-pane">
             <div class="table-container">
+                <slot name="heading"></slot>
                 <table class="progress-table">
                     <thead>
                         <tr>

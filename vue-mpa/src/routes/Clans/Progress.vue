@@ -2,7 +2,19 @@
     <NavbarElement></NavbarElement>
 
     <main class="clan-progress-page">
-        <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList" :showImport="false"></ProgressTable>
+        <ProgressTable v-if="dataReady" :_playerNames="playerNames" :_itemList="itemList" :showImport="false">
+            <template #heading>
+                <header class="progress-page-heading">
+                    <div>
+                        <p class="progress-eyebrow">Clan mastery</p>
+                        <h1>{{ clanName }} progress</h1>
+                        <p>Compare mastered gear, unfinished ranks, and missing equipment across clan members.</p>
+                    </div>
+                    <RouterLink class="btn btn-secondary progress-import-link"
+                        :to="{ name: 'clan-details', params: { clanName } }">Manage clan</RouterLink>
+                </header>
+            </template>
+        </ProgressTable>
         <div v-else class="clan-progress-loading">
             <h2>Loading data. This may take a few seconds if this is loading for the first time, or after an
                 update.</h2>

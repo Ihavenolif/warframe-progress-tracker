@@ -1,6 +1,6 @@
 @layer pages {
     .home-page {
-        --home-gold: #c99b35;
+        --home-gold: var(--color-orokin-gold);
         --home-navy: #172733;
         min-height: calc(100vh - 49px);
         background:
@@ -376,8 +376,49 @@
         overflow: hidden;
     }
 
+    .progress-page,
+    .clan-progress-page { background: var(--color-surface-subtle); }
+
+    .progress-page-heading {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: end;
+        justify-content: space-between;
+        gap: var(--space-6);
+        padding: 24px 28px 20px;
+        background: var(--color-surface);
+    }
+
+    .progress-page-heading h1 {
+        margin: 2px 0 4px;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1;
+    }
+
+    .progress-page-heading p { max-width: 720px; margin: 0; color: var(--color-muted); }
+
+    .progress-page-heading .progress-eyebrow {
+        color: var(--color-primary);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .progress-page-heading .progress-import-link { padding: 11px 16px; white-space: nowrap; }
+
     .progress-loading,
-    .clan-progress-loading { padding: 0 var(--space-5); overflow-y: auto; }
+    .clan-progress-loading { padding: var(--space-5); overflow-y: auto; }
+
+    .progress-page .progress-loading,
+    .clan-progress-page .clan-progress-loading {
+        flex: 1;
+        margin: 0;
+        background: var(--color-surface-muted);
+    }
+
+    :is(.progress-page .progress-loading, .clan-progress-page .clan-progress-loading) h2 { margin-top: 0; font-size: 1.1rem; }
+    :is(.progress-page .progress-loading, .clan-progress-page .clan-progress-loading) p { margin: 6px 0; color: var(--color-muted); }
     body.progress-scroll-locked { overflow: hidden; }
 
     .progress-workspace {
@@ -388,6 +429,12 @@
         min-height: 0;
         overflow: hidden;
         border-top: 1px solid var(--progress-border);
+    }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace {
+        margin: 0;
+        border: 0;
+        background: var(--color-surface);
     }
 
     .progress-workspace .filter-sidebar {
@@ -407,6 +454,29 @@
     .progress-workspace .import-progress-link { display: block; margin-top: 10px; }
     .progress-workspace .search-filter { display: block; margin-bottom: var(--space-4); }
 
+    :is(.progress-page, .clan-progress-page) .progress-workspace .filter-sidebar { padding: var(--space-5); overflow-x: hidden; }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .filter-sidebar-head h2 {
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .search-filter input { background: var(--color-surface); }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible {
+        border-top: 1px solid var(--color-border-strong);
+        background: transparent;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+    }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible:hover,
+    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible-active { background: var(--color-border); }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible-content { padding: 8px 0 0; border: 0; background: transparent; }
+
     .progress-workspace .filter-bubble {
         position: absolute;
         z-index: 4;
@@ -425,6 +495,7 @@
     .progress-workspace .filter-bubble:hover { background: var(--color-nav-hover); }
     .progress-workspace .sidebar-resize-handle { position: absolute; top: 0; right: -4px; bottom: 0; width: 8px; cursor: col-resize; touch-action: none; }
     .progress-workspace .sidebar-resize-handle:hover { background: rgba(0, 123, 255, 0.15); }
+    :is(.progress-page, .clan-progress-page) .progress-workspace .sidebar-resize-handle { right: 0; }
     body.resizing-progress-sidebar,
     body.resizing-progress-sidebar * { cursor: col-resize !important; user-select: none !important; }
 
@@ -432,6 +503,16 @@
     .progress-workspace .checkbox-item { display: flex; align-items: center; padding: 14px 12px; margin: 0; border: 1px solid var(--progress-border); background: var(--color-surface); cursor: pointer; user-select: none; }
     .progress-workspace .checkbox-item input { margin: 0 8px 0 0; }
     .progress-workspace .checkbox-item.checked { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .checkbox-item {
+        min-width: 0;
+        padding: 9px 10px;
+        font-size: 0.78rem;
+    }
+
+    :is(.progress-page, .clan-progress-page) .progress-workspace .checkbox-item.checked { border-color: var(--color-nav); background: var(--color-nav); }
     .progress-workspace .table-pane { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
     .progress-workspace .table-container { flex: 1; min-height: 0; overflow: auto; border-bottom: 1px solid var(--progress-border); }
 
@@ -461,23 +542,47 @@
     .progress-table .progress-item-image-cell { width: 32px; }
     .progress-table .progress-item-image { cursor: pointer; }
 
+    :is(.progress-page, .clan-progress-page) .progress-workspace .table-container { border-bottom: 0; }
+    :is(.progress-page, .clan-progress-page) .progress-table { border-right: 0; line-height: 1.1 !important; }
+
+    :is(.progress-page, .clan-progress-page) .progress-table th {
+        height: 42px !important;
+        padding: 11px 12px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        box-shadow: inset 0 3px var(--color-orokin-gold);
+    }
+
+    :is(.progress-page, .clan-progress-page) .progress-table th:first-child { cursor: default; }
+    :is(.progress-page, .clan-progress-page) .progress-table tbody tr:hover { filter: brightness(0.96); }
+    :is(.progress-page, .clan-progress-page) .progress-table .mastery-state-0 { background: #b9dfc8; }
+    :is(.progress-page, .clan-progress-page) .progress-table tr:nth-child(even) .mastery-state-0 { background: #add4bd; }
+    :is(.progress-page, .clan-progress-page) .progress-table .mastery-state-1 { background: #eadba8; }
+    :is(.progress-page, .clan-progress-page) .progress-table tr:nth-child(even) .mastery-state-1 { background: #dfd09e; }
+    :is(.progress-page, .clan-progress-page) .progress-table .mastery-state-2 { background: #e2bdc0; }
+    :is(.progress-page, .clan-progress-page) .progress-table tr:nth-child(even) .mastery-state-2 { background: #d7b2b6; }
+
     .progress-container { width: 100%; padding: 0; margin: 0; overflow: hidden; }
     .progress-bar { width: var(--progress-percent, 0); height: 100%; padding: 0 0 0 10px; margin: 0; overflow: hidden; line-height: 38px !important; text-overflow: ellipsis; white-space: nowrap; }
     .progress-component-state { display: flex; flex: 1; align-items: center; justify-content: center; height: 38px; }
 
     .progress-tooltip {
-        position: absolute;
+        position: fixed;
         z-index: 10;
         top: var(--tooltip-top, 0);
         left: var(--tooltip-left, 0);
         padding: 12px;
-        border: 1px solid rgba(30, 30, 30, 0.15);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid var(--color-border);
+        border-top: 3px solid var(--color-orokin-gold);
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.94);
         color: #333;
-        white-space: nowrap;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(6px);
+        max-width: calc(100vw - 24px);
+        box-shadow: 0 3px 8px rgba(38, 55, 70, 0.14);
+        pointer-events: none;
+        backdrop-filter: blur(2px);
         transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
@@ -514,6 +619,8 @@
         .progress-table td { font-size: 70%; }
         .progress-workspace .filter-sidebar { position: absolute; z-index: 3; inset: 0 auto 0 0; max-width: 85vw; box-shadow: var(--shadow-popover); }
         .progress-workspace .sidebar-resize-handle { display: none; }
+        .progress-page-heading { align-items: start; flex-direction: column; gap: var(--space-4); padding: 18px 14px 16px; }
+        .progress-page-heading .progress-import-link { width: 100%; }
     }
 
     @media (max-width: 560px) {
