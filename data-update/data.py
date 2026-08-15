@@ -10,7 +10,6 @@ ITEM_CLASSES = {
     "LongGuns": "Primary",
     "Pistols": "Secondary",
     "Melee": "Melee",
-    "SpecialItems": "Warframe",
     "Suits": "Warframe",
     "Kdrive": "K-Drive",
     "MechSuits": "Necramech",
@@ -98,6 +97,9 @@ def get_warframes(index: dict[str, str], warframes: list) -> None:
     parsed = json.loads(req.text.replace("\r", "").replace("\n", ""))
 
     for warframe in parsed["ExportWarframes"]:
+        if warframe["productCategory"] == "SpecialItems":
+            continue
+
         name: str = warframe["name"]
         _class: str = ITEM_CLASSES[warframe["productCategory"]]
         _type: str = ""

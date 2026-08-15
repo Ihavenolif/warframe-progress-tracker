@@ -183,7 +183,7 @@ public partial class WarframeTrackerDbContext : DbContext
             entity.Property(e => e.PlayerId).HasColumnName("player_id");
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.PreviousTotalMasteryXp).HasColumnName("previous_total_mastery_xp");
             entity.Property(e => e.CurrentTotalMasteryXp).HasColumnName("current_total_mastery_xp");
