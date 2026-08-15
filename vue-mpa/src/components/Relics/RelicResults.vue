@@ -8,9 +8,23 @@
             :expanded="expandedId === relic.id" @toggle="toggleRelic(relic.id)" />
 
         <nav class="pagination" aria-label="Relic pages">
-            <button class="btn btn-secondary" type="button" :disabled="page <= 1" @click="$emit('page-change', page - 1)">Previous</button>
-            <span>{{ page }} / {{ safeTotalPages }}</span>
-            <button class="btn btn-secondary" type="button" :disabled="page >= totalPages" @click="$emit('page-change', page + 1)">Next</button>
+            <label class="pagination-size">
+                <span>Per page</span>
+                <select :value="pageSize" @change="$emit('page-size-change', Number($event.target.value))">
+                    <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }}</option>
+                </select>
+            </label>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary" type="button" :disabled="page <= 1"
+                    @click="$emit('page-change', 1)">First</button>
+                <button class="btn btn-secondary" type="button" :disabled="page <= 1"
+                    @click="$emit('page-change', page - 1)">Previous</button>
+                <span class="pagination-position">{{ page }} / {{ safeTotalPages }}</span>
+                <button class="btn btn-secondary" type="button" :disabled="page >= totalPages"
+                    @click="$emit('page-change', page + 1)">Next</button>
+                <button class="btn btn-secondary" type="button" :disabled="page >= totalPages"
+                    @click="$emit('page-change', safeTotalPages)">Last</button>
+            </div>
         </nav>
     </section>
 </template>
@@ -26,9 +40,11 @@ export default {
         refinements: { type: Array, required: true },
         totalCount: { type: Number, required: true },
         page: { type: Number, required: true },
+        pageSize: { type: Number, required: true },
+        pageSizeOptions: { type: Array, required: true },
         totalPages: { type: Number, required: true }
     },
-    emits: ['page-change'],
+    emits: ['page-change', 'page-size-change'],
     data() {
         return { expandedId: null };
     },

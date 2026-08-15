@@ -9,7 +9,8 @@
         <RelicStatus v-else-if="error" type="error" :message="error" @retry="loadRelics" />
         <RelicStatus v-else-if="relics.length === 0" type="empty" />
         <RelicResults v-else :relics="relics" :refinements="refinements" :total-count="totalCount"
-            :page="page" :total-pages="totalPages" @page-change="goToPage" />
+            :page="page" :page-size="pageSize" :page-size-options="pageSizeOptions" :total-pages="totalPages"
+            @page-change="goToPage" @page-size-change="changePageSize" />
     </main>
 </template>
 
@@ -40,6 +41,7 @@ export default {
             relics: [],
             page: 1,
             pageSize: 20,
+            pageSizeOptions: [10, 20, 50, 100],
             totalCount: 0,
             totalPages: 0,
             loading: true,
@@ -62,6 +64,8 @@ export default {
                 sort: ['name', 'era', 'owned'].includes(query.sort) ? query.sort : 'name'
             };
             this.page = Math.max(Number.parseInt(query.page, 10) || 1, 1);
+            const pageSize = Number.parseInt(query.pageSize, 10);
+            this.pageSize = this.pageSizeOptions.includes(pageSize) ? pageSize : 20;
         },
         filtersChanged(filters) {
             this.filters = filters;
@@ -73,12 +77,18 @@ export default {
             this.updateRouteAndLoad();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
+        changePageSize(pageSize) {
+            this.pageSize = pageSize;
+            this.page = 1;
+            this.updateRouteAndLoad();
+        },
         async updateRouteAndLoad() {
             const query = {};
             Object.entries(this.filters).forEach(([key, value]) => {
                 if (value && value !== 'all' && !(key === 'sort' && value === 'name')) query[key] = value;
             });
             if (this.page > 1) query.page = String(this.page);
+            if (this.pageSize !== 20) query.pageSize = String(this.pageSize);
             await this.$router.replace({ query });
             await this.loadRelics();
         },
