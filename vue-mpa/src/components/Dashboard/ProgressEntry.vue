@@ -1,48 +1,54 @@
 <template>
     <article class="progress-entry">
         <button class="entry-summary" type="button" :aria-expanded="expanded" @click="expanded = !expanded">
+            <span class="entry-date-mark" aria-hidden="true">{{ formatDay(entry.createdAt) }}</span>
             <div class="entry-title">
-                <span class="expand-indicator" aria-hidden="true">{{ expanded ? '−' : '+' }}</span>
                 <div>
+                    <span class="entry-label">Profile snapshot</span>
                     <h3>{{ formatDateTime(entry.createdAt) }}</h3>
                     <p>{{ formatNumber(entry.previousTotalMasteryXp) }} -> {{ formatNumber(entry.currentTotalMasteryXp) }} mastery XP</p>
                 </div>
             </div>
-            <strong>{{ signedNumber(entry.masteryXpGained) }} XP</strong>
+            <strong class="entry-xp-gain">{{ signedNumber(entry.masteryXpGained) }} XP</strong>
+            <span class="expand-indicator" aria-hidden="true">{{ expanded ? '−' : '+' }}</span>
         </button>
 
         <div v-if="expanded" class="entry-details">
             <div class="detail-column">
                 <h4>Leveled items</h4>
-                <table v-if="entry.leveledItems.length > 0">
-                    <thead>
-                        <tr><th>Item</th><th>Rank</th><th>XP</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in entry.leveledItems" :key="item.uniqueName">
-                            <td>{{ item.name || item.uniqueName }}</td>
-                            <td>{{ item.previousRank }} -> {{ item.currentRank }}</td>
-                            <td>{{ signedNumber(item.masteryXpGained) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div v-if="entry.leveledItems.length > 0" class="entry-table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Item</th><th>Rank</th><th>XP</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in entry.leveledItems" :key="item.uniqueName">
+                                <td>{{ item.name || item.uniqueName }}</td>
+                                <td>{{ item.previousRank }} -> {{ item.currentRank }}</td>
+                                <td>{{ signedNumber(item.masteryXpGained) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <p v-else class="muted">No item levels.</p>
             </div>
 
             <div class="detail-column">
                 <h4>Missions</h4>
-                <table v-if="missionRows.length > 0">
-                    <thead>
-                        <tr><th>Mission</th><th>Progress</th><th>XP</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="mission in missionRows" :key="`${mission.uniqueName}-${mission.progress}`">
-                            <td>{{ mission.name || mission.uniqueName }}<span v-if="mission.planet">, {{ mission.planet }}</span></td>
-                            <td>{{ mission.progress }}</td>
-                            <td>{{ signedNumber(mission.masteryXpGained) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div v-if="missionRows.length > 0" class="entry-table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Mission</th><th>Progress</th><th>XP</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="mission in missionRows" :key="`${mission.uniqueName}-${mission.progress}`">
+                                <td>{{ mission.name || mission.uniqueName }}<span v-if="mission.planet">, {{ mission.planet }}</span></td>
+                                <td>{{ mission.progress }}</td>
+                                <td>{{ signedNumber(mission.masteryXpGained) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <p v-else class="muted">No mission progress.</p>
             </div>
         </div>
@@ -61,7 +67,7 @@ export default {
     data() {
         return {
             expanded: false
-        }
+        };
     },
     computed: {
         missionRows() {
@@ -91,7 +97,10 @@ export default {
         },
         formatDateTime(value) {
             return new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+        },
+        formatDay(value) {
+            return new Date(value).toLocaleDateString(undefined, { day: '2-digit' });
         }
     }
-}
+};
 </script>

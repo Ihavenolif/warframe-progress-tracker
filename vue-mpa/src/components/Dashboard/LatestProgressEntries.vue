@@ -1,11 +1,26 @@
 <template>
     <section class="dashboard-section">
-        <h2>Latest progress entries</h2>
+        <div class="section-head">
+            <div>
+                <p class="eyebrow">Import history</p>
+                <h2>Recent snapshots</h2>
+                <p>Changes recorded by your latest profile imports.</p>
+            </div>
+            <span v-if="!loading && !errorMessage" class="dashboard-entry-count">{{ entries.length }}</span>
+        </div>
 
-        <p v-if="loading">Loading latest progress...</p>
-        <p v-else-if="errorMessage" class="dashboard-error">{{ errorMessage }}</p>
-        <div v-else-if="entries.length === 0" class="empty-state">No progress updates saved yet.</div>
-        <ProgressEntry v-for="entry in entries" v-else :key="entry.id" :entry="entry" />
+        <div v-if="loading" class="dashboard-state-card">Loading latest progress...</div>
+        <div v-else-if="errorMessage" class="dashboard-state-card dashboard-error" role="alert">
+            <strong>Recent snapshots could not be loaded</strong>
+            <span>{{ errorMessage }}</span>
+        </div>
+        <div v-else-if="entries.length === 0" class="dashboard-state-card empty-state">
+            <strong>No progress updates yet</strong>
+            <span>Import your profile to create first snapshot.</span>
+        </div>
+        <div v-else class="dashboard-entry-list">
+            <ProgressEntry v-for="entry in entries" :key="entry.id" :entry="entry" />
+        </div>
     </section>
 </template>
 
@@ -23,7 +38,7 @@ export default {
             loading: true,
             errorMessage: '',
             entries: []
-        }
+        };
     },
     mounted() {
         this.fetchEntries();
@@ -46,5 +61,5 @@ export default {
             this.entries = await res.json();
         }
     }
-}
+};
 </script>

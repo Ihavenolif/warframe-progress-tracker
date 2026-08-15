@@ -1,15 +1,19 @@
 <template>
-    <NavbarElement></NavbarElement>
+    <NavbarElement />
 
-    <div class="three-column-layout">
-        <div class="three-column-layout__side"></div>
-        <main class="three-column-layout__main dashboard-page">
-            <h1>Dashboard</h1>
-            <MasteryProgressChart />
-            <LatestProgressEntries />
-        </main>
-        <div class="three-column-layout__side"></div>
-    </div>
+    <main class="dashboard-page">
+        <header class="page-heading">
+            <div>
+                <p class="eyebrow">Tenno activity</p>
+                <h1>Dashboard</h1>
+                <p>Follow mastery gains and review changes from recent profile imports.</p>
+            </div>
+            <RouterLink class="btn btn-secondary dashboard-import-link" to="/progress/import">Import progress</RouterLink>
+        </header>
+
+        <MasteryProgressChart />
+        <LatestProgressEntries />
+    </main>
 </template>
 
 <script>
@@ -24,5 +28,5 @@ export default {
         MasteryProgressChart,
         LatestProgressEntries
     }
-}
+};
 </script>
