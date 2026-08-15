@@ -341,6 +341,7 @@ public class MasteryService : IMasteryService
             });
 
             var masteryItemsForXp = await _dbContext.player_items_masteries
+                .AsNoTracking()
                 .Where(pim => pim.player_id == player.id)
                 .Include(pim => pim.item)
                 .ToListAsync();

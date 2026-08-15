@@ -10,7 +10,7 @@
 
             <p style="color: red">{{ errorMessage }}</p>
 
-            <button class="form-button" type="submit">Upload</button>
+            <button class="form-button" type="submit" :disabled="responseLoading">Upload</button>
         </form>
     </div>
 </template>
@@ -37,6 +37,8 @@ export default {
     },
     methods: {
         async submitForm() {
+            if (this.responseLoading) return;
+
             this.responseLoading = true;
             const url = new URL(`${BASE_URL}/api/mastery/update`);
 
