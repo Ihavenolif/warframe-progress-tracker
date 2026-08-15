@@ -13,6 +13,7 @@
                     <RouterLink class="btn btn-secondary progress-import-link"
                         :to="{ name: 'clan-details', params: { clanName } }">Manage clan</RouterLink>
                 </header>
+                <RelicRecommendationPanel :clan-name="clanName" />
             </template>
         </ProgressTable>
         <div v-else class="clan-progress-loading">
@@ -33,6 +34,7 @@
 <script>
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
 import ProgressTable from '@/components/Progress/ProgressTable.vue';
+import RelicRecommendationPanel from '@/components/RelicRecommendations/RelicRecommendationPanel.vue';
 import { authFetch } from '@/util/util';
 import {
     getImage
@@ -49,7 +51,8 @@ export default {
     },
     components: {
         NavbarElement,
-        ProgressTable
+        ProgressTable,
+        RelicRecommendationPanel
     },
     computed: {
         encodedClanName() {
@@ -154,6 +157,11 @@ export default {
     async mounted() {
         this.addLoadingEventListeners();
         await this.loadData();
+    },
+    watch: {
+        clanName() {
+            this.loadData();
+        }
     },
     beforeUnmount() {
         this.unsubscribers.forEach(unsubscribe => unsubscribe());

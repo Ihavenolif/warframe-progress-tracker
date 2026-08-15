@@ -54,6 +54,7 @@ builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IWarframePublicExportService, WarframePublicExportService>();
 builder.Services.AddScoped<IClanService, ClanService>();
 builder.Services.AddScoped<IRelicService, RelicService>();
+builder.Services.AddScoped<IRelicRecommendationService, RelicRecommendationService>();
 
 builder.Services.AddCors(options =>
 {
