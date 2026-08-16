@@ -185,8 +185,6 @@ public class MasteryService : IMasteryService
         return completionCount > 0 ? masteryXp * (spComplete ? 2 : 1) : 0;
     }
 
-    // TODO: Fuckton of validation
-    // Also TODO: Write some tests
     public async Task UpdatePlayerMasteryAsync(Player player, string jsonData)
     {
         JsonNode root = JsonNode.Parse(jsonData) ?? throw new ArgumentException("Invalid JSON data");
@@ -536,6 +534,7 @@ public class MasteryService : IMasteryService
                 entry.PreviousTotalMasteryXp > 0 &&
                 entry.CurrentTotalMasteryXp > entry.PreviousTotalMasteryXp)
             .OrderByDescending(entry => entry.CreatedAt)
+            .ThenByDescending(entry => entry.Id)
             .Take(10)
             .Include(entry => entry.LeveledItems)
                 .ThenInclude(item => item.Item)

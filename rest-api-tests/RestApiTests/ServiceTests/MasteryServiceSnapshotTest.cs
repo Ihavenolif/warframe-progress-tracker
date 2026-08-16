@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using rest_api.Models;
 using rest_api.Services;
 using rest_api_testing.Dababase;
+using rest_api_testing.Fixtures;
 
 namespace rest_api_testing.ServiceTests;
 
@@ -84,6 +85,76 @@ public class MasteryServiceSnapshotTest
     }
 
     [Fact]
+    public async Task FullImportPersistsCurrentStateAndCalculatesAllMasteryXpSources()
+    {
+        await using var context = new WarframeTrackerDbContextTest();
+        Player player = new() { username = "full-import-player" };
+        AddImportCatalog(context, player);
+        await context.SaveChangesAsync();
+        MasteryService service = CreateService(
+            context,
+            MasteryImportFixture.WeaponUniqueName,
+            MasteryImportFixture.WarframeUniqueName,
+            MasteryImportFixture.StaleUniqueName);
+
+        await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.FullImport);
+
+        Assert.Equal(20, player.mastery_rank);
+        Assert.Equal(10, player.duviri_skills);
+        Assert.Equal(15, player.railjack_skills);
+        Assert.Equal(49000, player.TotalMasteryXp);
+        Assert.Equal(2, await context.player_items_masteries.CountAsync());
+        Assert.Equal(2, await context.mission_completions.CountAsync());
+        Assert.Empty(await context.mastery_progress_entries.ToListAsync());
+    }
+
+    [Fact]
+    public async Task ImportHistoryRecordsOnlyProgressAndPersistsCorrections()
+    {
+        await using var context = new WarframeTrackerDbContextTest();
+        Player player = new() { username = "history-player" };
+        AddImportCatalog(context, player);
+        await context.SaveChangesAsync();
+        MasteryService service = CreateService(
+            context,
+            MasteryImportFixture.WeaponUniqueName,
+            MasteryImportFixture.WarframeUniqueName,
+            MasteryImportFixture.StaleUniqueName);
+
+        await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.FirstImport);
+        Assert.Equal(4300, player.TotalMasteryXp);
+        Assert.Empty(await context.mastery_progress_entries.ToListAsync());
+
+        await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.RepeatedImport);
+        Assert.Empty(await context.mastery_progress_entries.ToListAsync());
+
+        await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.ProgressiveImport);
+        await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.UnchangedImport);
+
+        MasteryProgressEntry progress = await context.mastery_progress_entries
+            .Include(entry => entry.LeveledItems)
+            .Include(entry => entry.Missions)
+            .SingleAsync();
+        Assert.Equal(4300, progress.PreviousTotalMasteryXp);
+        Assert.Equal(8900, progress.CurrentTotalMasteryXp);
+        Assert.Equal(4600, progress.MasteryXpGained);
+        Assert.Equal(600, progress.LeveledItems.Sum(item => item.MasteryXpGained));
+        MasteryProgressMission mission = Assert.Single(progress.Missions);
+        Assert.False(mission.PreviousSPComplete);
+        Assert.True(mission.CurrentSPComplete);
+        Assert.Equal(1000, mission.MasteryXpGained);
+
+        await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.CorrectedImport);
+
+        Assert.Equal(1100, player.TotalMasteryXp);
+        Assert.Single(await context.mastery_progress_entries.ToListAsync());
+        Assert.Equal(500, await context.player_items_masteries
+            .Where(item => item.unique_name == MasteryImportFixture.WeaponUniqueName)
+            .Select(item => item.xp_gained)
+            .SingleAsync());
+    }
+
+    [Fact]
     public async Task FailedReconciliationRollsBackMasteryAndInventoryDeletes()
     {
         await using var context = new WarframeTrackerDbContextTest();
@@ -143,6 +214,43 @@ public class MasteryServiceSnapshotTest
         item_class = "LongGuns",
         xp_required = 450000
     };
+
+    internal static void AddImportCatalog(WarframeTrackerDbContextTest context, Player player)
+    {
+        context.AddRange(
+            player,
+            new Item
+            {
+                unique_name = MasteryImportFixture.WeaponUniqueName,
+                name = "Test Weapon",
+                type = "Weapon",
+                item_class = "LongGuns",
+                xp_required = 450000
+            },
+            new Item
+            {
+                unique_name = MasteryImportFixture.WarframeUniqueName,
+                name = "Test Warframe",
+                type = "Warframe",
+                item_class = "Warframes",
+                xp_required = 900000
+            },
+            Item(MasteryImportFixture.StaleUniqueName),
+            new Mission
+            {
+                UniqueName = MasteryImportFixture.MissionUniqueName,
+                Name = "Test Mission",
+                Planet = "Earth",
+                MasteryXp = 1000
+            },
+            new Mission
+            {
+                UniqueName = MasteryImportFixture.SecondMissionUniqueName,
+                Name = "Second Mission",
+                Planet = "Venus",
+                MasteryXp = 500
+            });
+    }
 
     private static MasteryService CreateService(WarframeTrackerDbContextTest context, params string[] itemUniqueNames)
     {
