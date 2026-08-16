@@ -672,9 +672,7 @@ public class MasteryService : IMasteryService
 
         return new DashboardSummaryDto
         {
-            MasteryRank = player.mastery_rank <= 30
-                ? player.mastery_rank
-                : player.mastery_rank - 30,
+            MasteryRank = player.mastery_rank,
             TotalMasteryXp = player.TotalMasteryXp,
             LatestImport = await GetLatestImportReceiptAsync(player),
             MasteryXpGained7Days = gains?.SevenDays ?? 0,

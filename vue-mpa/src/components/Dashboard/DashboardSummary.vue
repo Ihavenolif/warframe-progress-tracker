@@ -17,7 +17,7 @@
             <div class="dashboard-summary__headline">
                 <div class="dashboard-summary__rank">
                     <span>Current rank</span>
-                    <strong>{{ summary.masteryRank }}</strong>
+                    <strong>{{ formatRank(summary.masteryRank) }}</strong>
                     <small>mastery progression</small>
                 </div>
                 <div class="dashboard-summary__stat">
@@ -157,6 +157,9 @@ export default {
         },
         formatNumber(value) {
             return new Intl.NumberFormat().format(value || 0);
+        },
+        formatRank(rank) {
+            return rank > 30 ? `LR ${rank - 30}` : `MR ${rank}`;
         }
     }
 };

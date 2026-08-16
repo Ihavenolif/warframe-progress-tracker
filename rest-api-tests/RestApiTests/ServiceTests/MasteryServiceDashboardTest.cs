@@ -106,7 +106,7 @@ public class MasteryServiceDashboardTest
 
         var summary = await CreateService(context).GetDashboardSummaryAsync(player);
 
-        Assert.Equal(3, summary.MasteryRank);
+        Assert.Equal(33, summary.MasteryRank);
         Assert.Equal(123456, summary.TotalMasteryXp);
         Assert.Equal(33, summary.LatestImport?.ResultingMasteryRank);
         Assert.Equal(100, summary.MasteryXpGained7Days);
@@ -157,9 +157,9 @@ public class MasteryServiceDashboardTest
     }
 
     [Theory]
-    [InlineData(30, 30)]
-    [InlineData(31, 1)]
-    public async Task SummaryMapsCombinedRankToDisplayedRank(int combinedRank, int displayedRank)
+    [InlineData(30)]
+    [InlineData(31)]
+    public async Task SummaryReturnsCombinedRank(int combinedRank)
     {
         await using var context = new WarframeTrackerDbContextTest();
         Player player = new() { username = $"rank-{combinedRank}", mastery_rank = combinedRank };
@@ -168,7 +168,7 @@ public class MasteryServiceDashboardTest
 
         var summary = await CreateService(context).GetDashboardSummaryAsync(player);
 
-        Assert.Equal(displayedRank, summary.MasteryRank);
+        Assert.Equal(combinedRank, summary.MasteryRank);
     }
 
     [Fact]
