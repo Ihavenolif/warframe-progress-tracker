@@ -23,16 +23,18 @@
                         {{ summary.masteryRank - 30 }}
                     </strong>
                     <strong v-else :aria-label="`Mastery Rank ${summary.masteryRank}`">{{ summary.masteryRank }}</strong>
-                    <small>mastery progression</small>
                 </div>
-                <div class="dashboard-summary__stat">
-                    <span>Total mastery XP</span>
-                    <strong>{{ formatNumber(summary.totalMasteryXp) }}</strong>
+                <div class="dashboard-summary__stat dashboard-summary__next-rank">
+                    <span>XP to next rank</span>
+                    <strong>{{ formatNumber(rankProgress.remaining) }}</strong>
+                    <div class="dashboard-completion-track" role="progressbar" aria-label="Progress to next rank"
+                        :aria-valuenow="rankProgress.earned" aria-valuemin="0" :aria-valuemax="rankProgress.required">
+                        <span :style="{ width: `${rankProgress.percent}%` }"></span>
+                    </div>
                 </div>
                 <div class="dashboard-summary__stat">
                     <span>Latest import</span>
                     <strong>{{ formatImportDate(summary.latestImport) }}</strong>
-                    <small>{{ summary.latestImport ? 'successful profile import' : 'no profile imported' }}</small>
                 </div>
                 <div class="dashboard-summary__stat">
                     <span>Last 7 days</span>
@@ -179,6 +181,21 @@ export default {
                 .sort((first, second) =>
                     (second.total - second.mastered) - (first.total - first.mastered) ||
                     first.category.localeCompare(second.category));
+        },
+        rankProgress() {
+            if (!this.summary) return { earned: 0, required: 0, remaining: 0, percent: 0 };
+
+            const currentThreshold = this.masteryThreshold(this.summary.masteryRank);
+            const nextThreshold = this.masteryThreshold(this.summary.masteryRank + 1);
+            const required = nextThreshold - currentThreshold;
+            const earned = Math.min(required, Math.max(0, this.summary.totalMasteryXp - currentThreshold));
+
+            return {
+                earned,
+                required,
+                remaining: Math.max(0, nextThreshold - this.summary.totalMasteryXp),
+                percent: this.completionPercent(earned, required)
+            };
         }
     },
     methods: {
@@ -197,6 +214,11 @@ export default {
                 month: 'short',
                 day: 'numeric'
             });
+        },
+        masteryThreshold(rank) {
+            return rank <= 30
+                ? 2500 * rank * rank
+                : 2250000 + (rank - 30) * 147500;
         },
         formatNumber(value) {
             return new Intl.NumberFormat().format(value || 0);
