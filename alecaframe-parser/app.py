@@ -4,7 +4,6 @@ import sys
 import mimetypes
 import time
 import urllib.error
-import urllib.parse
 import urllib.request
 import uuid
 
@@ -119,8 +118,13 @@ def login():
 
     try:
         base_url = normalize_base_url()
-        query = urllib.parse.urlencode({"username": username, "password": password})
-        response = request_json(f"{base_url}/api/auth/login?{query}", method="POST") or {}
+        credentials = json.dumps({"username": username, "password": password}).encode("utf-8")
+        response = request_json(
+            f"{base_url}/api/auth/login",
+            method="POST",
+            headers={"Content-Type": "application/json"},
+            data=credentials,
+        ) or {}
         token = response.get("token") if response else None
         if not token:
             raise RuntimeError("Login response did not contain an auth token.")

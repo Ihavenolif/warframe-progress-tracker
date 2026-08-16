@@ -27,11 +27,11 @@ export function setup() {
         fail('Set ACCESS_TOKEN, or both USERNAME and PASSWORD.');
     }
 
-    const loginUrl =
-        `${baseUrl}/api/auth/login` +
-        `?username=${encodeURIComponent(__ENV.USERNAME)}` +
-        `&password=${encodeURIComponent(__ENV.PASSWORD)}`;
-    const response = http.post(loginUrl, null, {
+    const response = http.post(`${baseUrl}/api/auth/login`, JSON.stringify({
+        username: __ENV.USERNAME,
+        password: __ENV.PASSWORD,
+    }), {
+        headers: { 'Content-Type': 'application/json' },
         tags: { endpoint: 'auth-login' },
     });
 

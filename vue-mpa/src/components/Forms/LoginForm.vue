@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { BASE_URL } from "@/util/util.js"
+import { BASE_URL } from '@/util/util.js';
 
 export default {
     data() {
@@ -25,17 +25,18 @@ export default {
                 username: '',
                 password: ''
             },
-            errorMessage: ""
+            errorMessage: ''
         };
     },
     methods: {
         async submitForm() {
-            const url = new URL(`${BASE_URL}/api/auth/login`);
-            url.searchParams.append('username', this.form.username);
-            url.searchParams.append('password', this.form.password);
-
-            const response = await fetch(url, {
-                method: 'POST'
+            const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(this.form)
             });
 
             if (response.ok) {
@@ -47,5 +48,5 @@ export default {
             }
         }
     }
-}
+};
 </script>
