@@ -40,11 +40,11 @@
                     <span>Latest import</span>
                     <strong>{{ formatImportDate(summary.latestImport) }}</strong>
                 </div>
-                <div class="dashboard-summary__stat">
+                <div class="dashboard-summary__stat dashboard-summary__gain">
                     <span>Last 7 days</span>
                     <strong>+{{ formatNumber(summary.masteryXpGained7Days) }}</strong>
                 </div>
-                <div class="dashboard-summary__stat">
+                <div class="dashboard-summary__stat dashboard-summary__gain">
                     <span>Last 30 days</span>
                     <strong>+{{ formatNumber(summary.masteryXpGained30Days) }}</strong>
                 </div>
@@ -65,22 +65,22 @@
                         <span :style="{ width: `${completionPercent(summary.items.mastered, summary.items.total)}%` }"></span>
                     </div>
                     <div class="dashboard-summary__states">
-                        <div>
+                        <RouterLink :to="{ name: 'progress', query: { states: 'mastered' } }">
                             <strong>{{ summary.items.mastered }}</strong>
                             <span>Mastered</span>
-                        </div>
-                        <div>
+                        </RouterLink>
+                        <RouterLink :to="{ name: 'progress', query: { states: 'in-progress' } }">
                             <strong>{{ summary.items.started }}</strong>
                             <span>Started</span>
-                        </div>
-                        <div>
+                        </RouterLink>
+                        <RouterLink :to="{ name: 'progress', query: { states: 'unowned' } }">
                             <strong>{{ summary.items.unowned }}</strong>
                             <span>Unowned</span>
-                        </div>
-                        <div class="is-ready">
+                        </RouterLink>
+                        <RouterLink class="is-ready" :to="{ name: 'progress', query: { states: 'craft-ready' } }">
                             <strong>{{ summary.items.craftReady }}</strong>
                             <span>Craft-ready</span>
-                        </div>
+                        </RouterLink>
                     </div>
                 </article>
 
@@ -121,7 +121,6 @@
                             <span>Intrinsic skills</span>
                             <h3>Intrinsics</h3>
                         </div>
-                        <strong>{{ formatNumber(intrinsicMasteryXp) }} XP</strong>
                     </header>
                     <div class="dashboard-summary__progress-row dashboard-summary__progress-row--railjack">
                         <div>
@@ -209,10 +208,6 @@ export default {
         completedCategoryCount() {
             return this.summary?.categories.filter(category =>
                 category.category !== 'Plexus' && category.mastered >= category.total).length || 0;
-        },
-        intrinsicMasteryXp() {
-            if (!this.summary) return 0;
-            return (this.summary.intrinsics.railjack + this.summary.intrinsics.duviri) * 1500;
         },
         remainingCategories() {
             if (!this.summary) return [];
