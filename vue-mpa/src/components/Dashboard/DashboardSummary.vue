@@ -1,13 +1,5 @@
 <template>
-    <section class="dashboard-section dashboard-summary">
-        <div class="section-head">
-            <div>
-                <p class="eyebrow">Current state</p>
-                <h2>Progress overview</h2>
-                <p>Mastery, collection readiness, and mission completion.</p>
-            </div>
-        </div>
-
+    <section class="dashboard-section dashboard-summary" aria-label="Progress overview">
         <div v-if="loading" class="dashboard-state-card">Loading progress overview...</div>
         <div v-else-if="errorMessage" class="dashboard-state-card dashboard-error" role="alert">
             <strong>Progress overview could not be loaded</strong>
