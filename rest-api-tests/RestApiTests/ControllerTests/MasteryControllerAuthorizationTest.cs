@@ -1,0 +1,115 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using rest_api.Controllers;
+using rest_api.Data;
+using rest_api.DTO;
+using rest_api.Models;
+using rest_api.Services;
+using rest_api_testing.Dababase;
+
+namespace rest_api_testing.ControllerTests;
+
+public class MasteryControllerAuthorizationTest
+{
+    [Theory]
+    [InlineData("Viewer")]
+    [InlineData("ClanMember")]
+    public async Task SelfAndClanMemberAccessReturnsMastery(string targetUsername)
+    {
+        var fixture = await CreateFixtureAsync();
+        var controller = fixture.CreateController();
+
+        var result = await controller.GetMasteryInfoByPlayer(targetUsername);
+
+        Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(targetUsername, fixture.MasteryService.RequestedPlayer?.username);
+    }
+
+    [Fact]
+    public async Task AdminCanAccessUnrelatedPlayer()
+    {
+        var fixture = await CreateFixtureAsync(isAdmin: true);
+        var controller = fixture.CreateController();
+
+        var result = await controller.GetMasteryInfoByPlayer("Unrelated");
+
+        Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal("Unrelated", fixture.MasteryService.RequestedPlayer?.username);
+    }
+
+    [Theory]
+    [InlineData("Unrelated")]
+    [InlineData("Missing")]
+    public async Task UnrelatedAndMissingPlayersReturnSameNotFoundResponse(string targetUsername)
+    {
+        var fixture = await CreateFixtureAsync();
+        var controller = fixture.CreateController();
+
+        var result = await controller.GetMasteryInfoByPlayer(targetUsername);
+
+        var notFound = Assert.IsType<NotFoundObjectResult>(result.Result);
+        Assert.Equal("Player not found", notFound.Value);
+        Assert.Null(fixture.MasteryService.RequestedPlayer);
+    }
+
+    private static async Task<TestFixture> CreateFixtureAsync(bool isAdmin = false)
+    {
+        var dbContext = new WarframeTrackerDbContextTest();
+        var viewer = new Player("Viewer");
+        var clanMember = new Player("ClanMember");
+        var unrelated = new Player("Unrelated");
+        var clan = new Clan
+        {
+            name = "TestClan",
+            leader = viewer,
+            players = { viewer, clanMember }
+        };
+        var user = new Registered_user("Account", "hash") { player = viewer };
+        dbContext.AddRange(viewer, clanMember, unrelated, clan, user);
+        await dbContext.SaveChangesAsync();
+
+        return new TestFixture(dbContext, isAdmin);
+    }
+
+    private sealed class TestFixture(WarframeTrackerDbContext dbContext, bool isAdmin)
+    {
+        public FakeMasteryService MasteryService { get; } = new();
+
+        public MasteryController CreateController()
+        {
+            var claims = new List<Claim> { new(ClaimTypes.Name, "Account") };
+            if (isAdmin) claims.Add(new Claim(ClaimTypes.Role, "ADMIN"));
+
+            return new MasteryController(
+                MasteryService,
+                new PlayerService(dbContext),
+                new UserService(dbContext))
+            {
+                ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext
+                    {
+                        User = new ClaimsPrincipal(new ClaimsIdentity(claims, "Test"))
+                    }
+                }
+            };
+        }
+    }
+
+    private sealed class FakeMasteryService : IMasteryService
+    {
+        public Player? RequestedPlayer { get; private set; }
+
+        public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player)
+        {
+            RequestedPlayer = player;
+            return Task.FromResult<IEnumerable<MasteryItemDTO>>([]);
+        }
+
+        public Task UpdatePlayerMasteryAsync(Player player, string jsonData) => throw new NotImplementedException();
+        public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan) => throw new NotImplementedException();
+        public Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player) => throw new NotImplementedException();
+        public Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days) => throw new NotImplementedException();
+    }
+}
