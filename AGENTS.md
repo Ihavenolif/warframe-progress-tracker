@@ -30,7 +30,7 @@
 ## Linear Workflow
 
 - When the user supplies a Linear issue identifier, move the issue to `In Progress` before starting work.
-- Include the full issue identifier (for example, `ORB-123`) in every commit for that issue.
+- Format every commit for the issue as `ORB-X type(scope): message`, using the full issue identifier. Example: `ORB-123 feat(api): add relic lookup endpoint`.
 - After the work is finished and committed, ask the user before moving the issue to `Done`.
 
 ## C# Conventions
