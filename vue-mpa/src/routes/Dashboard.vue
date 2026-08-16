@@ -11,7 +11,8 @@
             <RouterLink class="btn btn-secondary dashboard-import-link" to="/progress/import">Import progress</RouterLink>
         </header>
 
-        <section class="dashboard-freshness" :class="`dashboard-freshness--${freshnessState}`">
+        <section v-if="showFreshnessNotice" class="dashboard-freshness"
+            :class="`dashboard-freshness--${freshnessState}`">
             <div>
                 <p class="eyebrow">Data freshness</p>
                 <strong>{{ freshnessTitle }}</strong>
@@ -67,6 +68,9 @@ export default {
         },
         showFreshnessCta() {
             return !this.freshnessLoading && !this.freshnessError && this.freshnessState !== 'fresh';
+        },
+        showFreshnessNotice() {
+            return !this.freshnessLoading && (this.freshnessError || this.freshnessState !== 'fresh');
         },
         freshnessState() {
             if (!this.latestReceipt) return 'unknown';

@@ -113,12 +113,15 @@
                     <header>
                         <div>
                             <span>Catalog</span>
-                            <h3>Category completion</h3>
+                            <h3>Mastery remaining</h3>
                         </div>
-                        <strong>{{ summary.categories.length }}</strong>
+                        <RouterLink class="dashboard-summary__view-all" :to="{ name: 'progress' }">View all</RouterLink>
                     </header>
-                    <div v-if="summary.categories.length" class="dashboard-summary__category-grid">
-                        <RouterLink v-for="category in summary.categories" :key="category.category"
+                    <p class="dashboard-summary__category-summary">
+                        {{ remainingCategories.length }} classes in progress / {{ completedCategoryCount }} complete
+                    </p>
+                    <div v-if="remainingCategories.length" class="dashboard-summary__category-grid">
+                        <RouterLink v-for="category in remainingCategories" :key="category.category"
                             class="dashboard-summary__category"
                             :to="{ name: 'progress', query: { classes: category.category } }"
                             :aria-label="`View ${formatCategory(category.category)} progress`">
@@ -133,7 +136,7 @@
                             </div>
                         </RouterLink>
                     </div>
-                    <p v-else class="dashboard-summary__empty">No mastery categories available.</p>
+                    <p v-else class="dashboard-summary__empty">All available categories mastered.</p>
                 </article>
             </div>
         </template>
@@ -162,6 +165,20 @@ export default {
         errorMessage: {
             type: String,
             default: ''
+        }
+    },
+    computed: {
+        completedCategoryCount() {
+            return this.summary?.categories.filter(category =>
+                category.category !== 'Plexus' && category.mastered >= category.total).length || 0;
+        },
+        remainingCategories() {
+            if (!this.summary) return [];
+            return this.summary.categories
+                .filter(category => category.category !== 'Plexus' && category.mastered < category.total)
+                .sort((first, second) =>
+                    (second.total - second.mastered) - (first.total - first.mastered) ||
+                    first.category.localeCompare(second.category));
         }
     },
     methods: {
