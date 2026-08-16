@@ -27,6 +27,12 @@
 - Add comments only when intent is not clear from code.
 - Do not introduce formatter, linter, framework, package manager, or dependency changes without task need.
 
+## Linear Workflow
+
+- When the user supplies a Linear issue identifier, move the issue to `In Progress` before starting work.
+- Include the full issue identifier (for example, `ORB-123`) in every commit for that issue.
+- After the work is finished and committed, ask the user before moving the issue to `Done`.
+
 ## C# Conventions
 
 - Keep API code in technical layers: `Controllers`, `Services`, `DTOs`, `Models`, and `Data`.
