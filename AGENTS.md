@@ -20,6 +20,7 @@
 ## General Conventions
 
 - Follow existing architecture and file placement. Prefer smallest correct change.
+- Treat identifiers matching `ORB-X` (for example, `ORB-123`) as Linear issues. Fetch them through Linear MCP tools before acting on them.
 - Preserve public contracts, persisted data, database schema, and deployment behavior unless task requires change.
 - Use ASCII for new text unless surrounding file requires Unicode.
 - Keep secrets and machine-local configuration out of Git. Never read, print, or commit `.env`, `database.ini`, certificates, or keys.
