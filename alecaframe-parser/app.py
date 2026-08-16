@@ -32,6 +32,17 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def read_app_version():
+    try:
+        with open(resource_path("version.txt"), encoding="utf-8") as version_file:
+            return version_file.read().strip() or "development"
+    except OSError:
+        return "development"
+
+
+APP_VERSION = read_app_version()
+
+
 def app_dir():
     if getattr(sys, "frozen", False):
         return os.path.dirname(sys.executable)
@@ -156,15 +167,30 @@ def parse_file(send_after_export=None):
         set_status("JSON parse error.")
         return None
 
-    try:
-        parsed["XPInfo"]
-        res_json = res
-    except KeyError:
-        try:
-            res_json = parsed["InventoryJson"]
-        except KeyError:
-            set_status("Invalid JSON file.")
-            return None
+    if not isinstance(parsed, dict):
+        set_status("Invalid JSON file.")
+        return None
+
+    if "XPInfo" in parsed:
+        inventory = parsed
+    elif "InventoryJson" in parsed:
+        inventory = parsed["InventoryJson"]
+        if isinstance(inventory, str):
+            try:
+                inventory = json.loads(inventory)
+            except json.JSONDecodeError:
+                set_status("Invalid JSON file.")
+                return None
+    else:
+        set_status("Invalid JSON file.")
+        return None
+
+    if not isinstance(inventory, dict):
+        set_status("Invalid JSON file.")
+        return None
+
+    inventory["SourceVersion"] = APP_VERSION
+    res_json = json.dumps(inventory)
 
     if not isinstance(res_json, str):
         res_json = json.dumps(res_json)

@@ -22,3 +22,4 @@ cache
 *.pfx
 BenchmarkDotNet.Artifacts
 /rest-api-tests/k6/results/
+/alecaframe-parser/version.txt

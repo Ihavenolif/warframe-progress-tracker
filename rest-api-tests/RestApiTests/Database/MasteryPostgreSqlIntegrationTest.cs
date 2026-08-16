@@ -54,6 +54,10 @@ public sealed class MasteryPostgreSqlIntegrationTest : IAsyncLifetime
             uniqueName => uniqueName == MasteryImportFixture.StaleUniqueName);
         Assert.Equal(2, await context.mission_completions.CountAsync());
         Assert.Single(await context.mastery_progress_entries.ToListAsync());
+        List<MasteryImportReceipt> receipts = await context.mastery_import_receipts.OrderBy(receipt => receipt.Id).ToListAsync();
+        Assert.Equal(2, receipts.Count);
+        Assert.True(receipts[0].Changed);
+        Assert.False(receipts[1].Changed);
         Assert.NotEmpty(await context.Database.GetAppliedMigrationsAsync());
     }
 

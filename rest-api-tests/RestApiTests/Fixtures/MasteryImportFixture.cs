@@ -4,6 +4,7 @@ namespace rest_api_testing.Fixtures;
 
 internal static class MasteryImportFixture
 {
+    public const string SourceVersion = "test-1.0";
     public const string WeaponUniqueName = "/Items/TestWeapon";
     public const string WarframeUniqueName = "/Items/TestWarframe";
     public const string StaleUniqueName = "/Items/Stale";
@@ -62,6 +63,7 @@ internal static class MasteryImportFixture
 
         return JsonSerializer.Serialize(new
         {
+            SourceVersion,
             XPInfo = new[]
             {
                 new { ItemType = WeaponUniqueName, XP = weaponXp },

@@ -53,6 +53,27 @@ public class MasteryControllerAuthorizationTest
         Assert.Null(fixture.MasteryService.RequestedPlayer);
     }
 
+    [Fact]
+    public async Task SuccessfulImportReturnsReceiptSummary()
+    {
+        var fixture = await CreateFixtureAsync();
+        var controller = fixture.CreateController();
+        var file = new FormFile(
+            new MemoryStream("{}"u8.ToArray()),
+            0,
+            2,
+            "jsonFile",
+            "out.json");
+
+        IActionResult result = await controller.UpdatePlayerMastery(file);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var receipt = Assert.IsType<MasteryImportReceiptDto>(ok.Value);
+        Assert.Equal(42, receipt.ProcessedCount);
+        Assert.Equal("{}", fixture.MasteryService.ImportedJson);
+        Assert.Equal("Viewer", fixture.MasteryService.RequestedPlayer?.username);
+    }
+
     private static async Task<TestFixture> CreateFixtureAsync(bool isAdmin = false)
     {
         var dbContext = new WarframeTrackerDbContextTest();
@@ -101,15 +122,23 @@ public class MasteryControllerAuthorizationTest
     {
         public Player? RequestedPlayer { get; private set; }
 
+        public string? ImportedJson { get; private set; }
+
         public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player)
         {
             RequestedPlayer = player;
             return Task.FromResult<IEnumerable<MasteryItemDTO>>([]);
         }
 
-        public Task UpdatePlayerMasteryAsync(Player player, string jsonData) => throw new NotImplementedException();
+        public Task<MasteryImportReceiptDto> UpdatePlayerMasteryAsync(Player player, string jsonData)
+        {
+            RequestedPlayer = player;
+            ImportedJson = jsonData;
+            return Task.FromResult(new MasteryImportReceiptDto { ProcessedCount = 42 });
+        }
         public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan) => throw new NotImplementedException();
         public Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player) => throw new NotImplementedException();
         public Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days) => throw new NotImplementedException();
+        public Task<MasteryImportReceiptDto?> GetLatestImportReceiptAsync(Player player) => throw new NotImplementedException();
     }
 }

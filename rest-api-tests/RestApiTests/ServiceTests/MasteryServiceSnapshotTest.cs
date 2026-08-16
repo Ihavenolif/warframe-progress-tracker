@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using rest_api.DTO;
 using rest_api.Models;
 using rest_api.Services;
 using rest_api_testing.Dababase;
@@ -73,15 +74,18 @@ public class MasteryServiceSnapshotTest
             }
             """;
 
-        await service.UpdatePlayerMasteryAsync(player, snapshot);
+        MasteryImportReceiptDto firstReceipt = await service.UpdatePlayerMasteryAsync(player, snapshot);
         int progressCount = await context.mastery_progress_entries.CountAsync();
-        await service.UpdatePlayerMasteryAsync(player, snapshot);
+        MasteryImportReceiptDto repeatedReceipt = await service.UpdatePlayerMasteryAsync(player, snapshot);
 
         Player_items_mastery mastery = Assert.Single(await context.player_items_masteries.ToListAsync());
         Assert.Equal(retained.unique_name, mastery.unique_name);
         Assert.Equal(3000, player.TotalMasteryXp);
         Assert.Equal(progressCount, await context.mastery_progress_entries.CountAsync());
         Assert.Single(await context.mission_completions.ToListAsync());
+        Assert.True(firstReceipt.Changed);
+        Assert.False(repeatedReceipt.Changed);
+        Assert.Equal(2, await context.mastery_import_receipts.CountAsync());
     }
 
     [Fact]
@@ -97,7 +101,7 @@ public class MasteryServiceSnapshotTest
             MasteryImportFixture.WarframeUniqueName,
             MasteryImportFixture.StaleUniqueName);
 
-        await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.FullImport);
+        MasteryImportReceiptDto receipt = await service.UpdatePlayerMasteryAsync(player, MasteryImportFixture.FullImport);
 
         Assert.Equal(20, player.mastery_rank);
         Assert.Equal(10, player.duviri_skills);
@@ -106,6 +110,45 @@ public class MasteryServiceSnapshotTest
         Assert.Equal(2, await context.player_items_masteries.CountAsync());
         Assert.Equal(2, await context.mission_completions.CountAsync());
         Assert.Empty(await context.mastery_progress_entries.ToListAsync());
+        Assert.True(receipt.Changed);
+        Assert.Equal(MasteryImportFixture.SourceVersion, receipt.SourceVersion);
+        Assert.Equal(4, receipt.ProcessedCount);
+        Assert.Equal(0, receipt.SkippedCount);
+        Assert.Equal(20, receipt.ResultingMasteryRank);
+        Assert.Equal(49000, receipt.ResultingTotalMasteryXp);
+    }
+
+    [Fact]
+    public async Task ZeroCountKnownRelicIsProcessedWithoutWarning()
+    {
+        await using var context = new WarframeTrackerDbContextTest();
+        const string uniqueName = "/Lotus/Types/Game/Projections/TestPrimeBronze";
+        Player player = new() { username = "zero-relic-player" };
+        Item item = Item(uniqueName);
+        Relic relic = new() { Name = "Test Relic", Era = RelicEra.Lith };
+        relic.Variants.Add(new RelicVariant
+        {
+            UniqueName = uniqueName,
+            Item = item,
+            Refinement = RelicRefinement.Intact
+        });
+        context.AddRange(player, item, relic);
+        await context.SaveChangesAsync();
+        MasteryService service = CreateService(context, uniqueName);
+
+        MasteryImportReceiptDto receipt = await service.UpdatePlayerMasteryAsync(player, $$"""
+            {
+              "XPInfo": [],
+              "Recipes": [],
+              "MiscItems": [{ "ItemType": "{{uniqueName}}", "ItemCount": 0 }],
+              "PlayerLevel": 0,
+              "PlayerSkills": {},
+              "Missions": []
+            }
+            """);
+
+        Assert.Equal(1, receipt.ProcessedCount);
+        Assert.Equal(0, receipt.SkippedCount);
     }
 
     [Fact]
@@ -152,6 +195,18 @@ public class MasteryServiceSnapshotTest
             .Where(item => item.unique_name == MasteryImportFixture.WeaponUniqueName)
             .Select(item => item.xp_gained)
             .SingleAsync());
+
+        List<MasteryImportReceipt> receipts = await context.mastery_import_receipts.OrderBy(receipt => receipt.Id).ToListAsync();
+        Assert.Equal(5, receipts.Count);
+        Assert.True(receipts[0].Changed);
+        Assert.False(receipts[1].Changed);
+        Assert.True(receipts[2].Changed);
+        Assert.False(receipts[3].Changed);
+        Assert.True(receipts[4].Changed);
+
+        MasteryImportReceiptDto? latestReceipt = await service.GetLatestImportReceiptAsync(player);
+        Assert.NotNull(latestReceipt);
+        Assert.Equal(receipts[4].Id, latestReceipt.Id);
     }
 
     [Fact]
@@ -190,6 +245,7 @@ public class MasteryServiceSnapshotTest
         Player storedPlayer = await context.players.SingleAsync();
         Assert.Equal(5, storedPlayer.mastery_rank);
         Assert.Equal(3000, storedPlayer.TotalMasteryXp);
+        Assert.Empty(await context.mastery_import_receipts.ToListAsync());
     }
 
     private static Player_items_mastery MasteryItem(string uniqueName, int xpGained) => new()

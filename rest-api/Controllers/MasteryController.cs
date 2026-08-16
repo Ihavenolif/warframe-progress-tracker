@@ -83,6 +83,19 @@ public class MasteryController : ControllerBase
         return Ok(await masteryService.GetDailyProgressAsync(player, days));
     }
 
+    [HttpGet("imports/latest")]
+    public async Task<ActionResult<MasteryImportReceiptDto>> GetLatestImportReceipt()
+    {
+        Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        MasteryImportReceiptDto? receipt = await masteryService.GetLatestImportReceiptAsync(player);
+        return receipt == null ? NoContent() : Ok(receipt);
+    }
+
     [HttpPost("update")]
     public async Task<IActionResult> UpdatePlayerMastery(IFormFile jsonFile)
     {
@@ -102,7 +115,8 @@ public class MasteryController : ControllerBase
 
         try
         {
-            await masteryService.UpdatePlayerMasteryAsync(player, jsonData);
+            MasteryImportReceiptDto receipt = await masteryService.UpdatePlayerMasteryAsync(player, jsonData);
+            return Ok(receipt);
         }
         catch (ArgumentException ex)
         {
@@ -112,12 +126,11 @@ public class MasteryController : ControllerBase
         {
             return BadRequest("Invalid JSON format");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Log the exception (not shown here for brevity)
             return StatusCode(500, "An error occurred while processing the request");
         }
 
-        return Ok();
     }
 }
