@@ -1,5 +1,57 @@
 namespace rest_api.DTO;
 
+public class DashboardSummaryDto
+{
+    public int MasteryRank { get; set; }
+
+    public int TotalMasteryXp { get; set; }
+
+    public MasteryImportReceiptDto? LatestImport { get; set; }
+
+    public int MasteryXpGained7Days { get; set; }
+
+    public int MasteryXpGained30Days { get; set; }
+
+    public DashboardItemCountsDto Items { get; set; } = new();
+
+    public List<DashboardCategoryCompletionDto> Categories { get; set; } = [];
+
+    public DashboardMissionTotalsDto Missions { get; set; } = new();
+}
+
+public class DashboardItemCountsDto
+{
+    public int Total { get; set; }
+
+    public int Mastered { get; set; }
+
+    public int Started { get; set; }
+
+    public int Unowned { get; set; }
+
+    public int CraftReady { get; set; }
+}
+
+public class DashboardCategoryCompletionDto
+{
+    public string Category { get; set; } = null!;
+
+    public int Mastered { get; set; }
+
+    public int Total { get; set; }
+}
+
+public class DashboardMissionTotalsDto
+{
+    public int NormalCompleted { get; set; }
+
+    public int NormalTotal { get; set; }
+
+    public int SteelPathCompleted { get; set; }
+
+    public int SteelPathTotal { get; set; }
+}
+
 public class DashboardProgressEntryDTO
 {
     public int id { get; set; }

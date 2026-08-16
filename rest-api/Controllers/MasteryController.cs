@@ -69,6 +69,18 @@ public class MasteryController : ControllerBase
         return Ok(await masteryService.GetLatestProgressEntriesAsync(player));
     }
 
+    [HttpGet("dashboard/summary")]
+    public async Task<ActionResult<DashboardSummaryDto>> GetDashboardSummary()
+    {
+        Registered_user? user = await userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        return Ok(await masteryService.GetDashboardSummaryAsync(player));
+    }
+
     [HttpGet("dashboard/daily")]
     public async Task<ActionResult<List<DashboardProgressDayDTO>>> GetDailyDashboardProgress([FromQuery] int days = 7)
     {

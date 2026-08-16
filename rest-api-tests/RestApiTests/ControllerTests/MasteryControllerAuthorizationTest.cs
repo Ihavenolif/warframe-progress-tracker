@@ -74,6 +74,31 @@ public class MasteryControllerAuthorizationTest
         Assert.Equal("Viewer", fixture.MasteryService.RequestedPlayer?.username);
     }
 
+    [Fact]
+    public async Task DashboardSummaryUsesCurrentUsersPlayer()
+    {
+        var fixture = await CreateFixtureAsync();
+        var controller = fixture.CreateController();
+
+        var result = await controller.GetDashboardSummary();
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.IsType<DashboardSummaryDto>(ok.Value);
+        Assert.Equal("Viewer", fixture.MasteryService.RequestedPlayer?.username);
+    }
+
+    [Fact]
+    public async Task DashboardSummaryReturnsUnauthorizedForMissingUser()
+    {
+        var fixture = await CreateFixtureAsync();
+        var controller = fixture.CreateController("Missing");
+
+        var result = await controller.GetDashboardSummary();
+
+        Assert.IsType<UnauthorizedResult>(result.Result);
+        Assert.Null(fixture.MasteryService.RequestedPlayer);
+    }
+
     private static async Task<TestFixture> CreateFixtureAsync(bool isAdmin = false)
     {
         var dbContext = new WarframeTrackerDbContextTest();
@@ -97,9 +122,9 @@ public class MasteryControllerAuthorizationTest
     {
         public FakeMasteryService MasteryService { get; } = new();
 
-        public MasteryController CreateController()
+        public MasteryController CreateController(string username = "Account")
         {
-            var claims = new List<Claim> { new(ClaimTypes.Name, "Account") };
+            var claims = new List<Claim> { new(ClaimTypes.Name, username) };
             if (isAdmin) claims.Add(new Claim(ClaimTypes.Role, "ADMIN"));
 
             return new MasteryController(
@@ -137,6 +162,11 @@ public class MasteryControllerAuthorizationTest
             return Task.FromResult(new MasteryImportReceiptDto { ProcessedCount = 42 });
         }
         public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan) => throw new NotImplementedException();
+        public Task<DashboardSummaryDto> GetDashboardSummaryAsync(Player player)
+        {
+            RequestedPlayer = player;
+            return Task.FromResult(new DashboardSummaryDto());
+        }
         public Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player) => throw new NotImplementedException();
         public Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days) => throw new NotImplementedException();
         public Task<MasteryImportReceiptDto?> GetLatestImportReceiptAsync(Player player) => throw new NotImplementedException();

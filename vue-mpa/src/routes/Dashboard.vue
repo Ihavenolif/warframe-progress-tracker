@@ -20,6 +20,7 @@
             <span v-if="latestReceipt" class="dashboard-freshness__status">{{ freshnessState }}</span>
         </section>
 
+        <DashboardSummary :summary="summary" :loading="summaryLoading" :error-message="summaryError" />
         <MasteryProgressChart />
         <LatestProgressEntries />
     </main>
@@ -27,6 +28,7 @@
 
 <script>
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
+import DashboardSummary from '@/components/Dashboard/DashboardSummary.vue';
 import MasteryProgressChart from '@/components/Dashboard/MasteryProgressChart.vue';
 import LatestProgressEntries from '@/components/Dashboard/LatestProgressEntries.vue';
 import { authFetch } from '@/util/util';
@@ -35,19 +37,29 @@ export default {
     name: 'DashboardPage',
     components: {
         NavbarElement,
+        DashboardSummary,
         MasteryProgressChart,
         LatestProgressEntries
     },
     data() {
         return {
-            latestReceipt: null,
-            freshnessLoading: true,
-            freshnessError: false,
+            summary: null,
+            summaryLoading: true,
+            summaryError: '',
             now: Date.now(),
             freshnessTimer: null
         };
     },
     computed: {
+        latestReceipt() {
+            return this.summary?.latestImport || null;
+        },
+        freshnessLoading() {
+            return this.summaryLoading;
+        },
+        freshnessError() {
+            return Boolean(this.summaryError);
+        },
         freshnessState() {
             if (!this.latestReceipt) return 'unknown';
             const staleAfter = 7 * 24 * 60 * 60 * 1000;
@@ -70,7 +82,7 @@ export default {
         }
     },
     mounted() {
-        this.fetchLatestReceipt();
+        this.fetchDashboardSummary();
         this.freshnessTimer = window.setInterval(() => {
             this.now = Date.now();
         }, 60000);
@@ -94,20 +106,22 @@ export default {
             const value = -Math.floor(elapsed / milliseconds);
             return new Intl.RelativeTimeFormat(undefined, { numeric: 'always' }).format(value, unit);
         },
-        async fetchLatestReceipt() {
+        async fetchDashboardSummary() {
             try {
-                const response = await authFetch('/api/mastery/imports/latest', { method: 'GET' });
+                const response = await authFetch('/api/mastery/dashboard/summary', { method: 'GET' });
                 if (!response) return;
-                if (response.status === 204) return;
-                if (!response.ok) {
-                    this.freshnessError = true;
+                if (response.status === 404) {
+                    this.$router.push({ name: 'settings' });
                     return;
                 }
-                this.latestReceipt = await response.json();
-            } catch {
-                this.freshnessError = true;
+                if (!response.ok) {
+                    throw new Error((await response.text()) || `Request failed (${response.status})`);
+                }
+                this.summary = await response.json();
+            } catch (error) {
+                this.summaryError = error.message || 'Dashboard summary could not be loaded.';
             } finally {
-                this.freshnessLoading = false;
+                this.summaryLoading = false;
             }
         }
     }

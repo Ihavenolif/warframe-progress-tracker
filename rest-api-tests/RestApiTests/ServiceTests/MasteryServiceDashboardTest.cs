@@ -9,6 +9,169 @@ namespace rest_api_testing.ServiceTests;
 public class MasteryServiceDashboardTest
 {
     [Fact]
+    public async Task SummaryAggregatesCurrentPlayerProgressWithoutIncludingIneligibleItems()
+    {
+        await using var context = new WarframeTrackerDbContextTest();
+        Player player = new()
+        {
+            username = "summary-player",
+            mastery_rank = 33,
+            TotalMasteryXp = 123456
+        };
+        Player otherPlayer = new() { username = "other-summary-player" };
+        Item mastered = Item("/Items/Mastered", "Weapon", 450000);
+        Item started = Item("/Items/Started", "Weapon", 450000);
+        Item craftReady = Item("/Items/CraftReady", "Warframe", 900000);
+        Item blueprint = Item("/Items/CraftReadyBlueprint", "Recipe");
+        Item component = Item("/Items/Component", "Resource");
+        Item ineligible = Item("/Items/Ineligible", "Weapon");
+        context.AddRange(player, otherPlayer, mastered, started, craftReady, blueprint, component, ineligible);
+        context.recipes.Add(new Recipe
+        {
+            unique_name = blueprint.unique_name,
+            result_item = craftReady.unique_name,
+            recipe_ingredients =
+            {
+                new Recipe_ingredient
+                {
+                    item_ingredient = component.unique_name,
+                    ingredient_count = 2
+                }
+            }
+        });
+        context.missions.AddRange(
+            new Mission { UniqueName = "/Missions/One", MasteryXp = 1000 },
+            new Mission { UniqueName = "/Missions/Two", MasteryXp = 1000 },
+            new Mission { UniqueName = "/Missions/Ineligible", MasteryXp = 0 });
+        await context.SaveChangesAsync();
+
+        context.player_items_masteries.AddRange(
+            new Player_items_mastery
+            {
+                player_id = player.id,
+                unique_name = mastered.unique_name,
+                xp_gained = mastered.xp_required!.Value
+            },
+            new Player_items_mastery
+            {
+                player_id = player.id,
+                unique_name = started.unique_name,
+                xp_gained = 0
+            },
+            new Player_items_mastery
+            {
+                player_id = otherPlayer.id,
+                unique_name = craftReady.unique_name,
+                xp_gained = craftReady.xp_required!.Value
+            });
+        context.player_items.AddRange(
+            new Player_item { player_id = player.id, unique_name = blueprint.unique_name, item_count = 1 },
+            new Player_item { player_id = player.id, unique_name = component.unique_name, item_count = 2 });
+        context.mission_completions.AddRange(
+            new MissionCompletion
+            {
+                PlayerId = player.id,
+                UniqueName = "/Missions/One",
+                CompletionCount = 1,
+                SPComplete = true
+            },
+            new MissionCompletion
+            {
+                PlayerId = player.id,
+                UniqueName = "/Missions/Ineligible",
+                CompletionCount = 1,
+                SPComplete = true
+            });
+        DateTime today = DateTime.UtcNow.Date;
+        context.mastery_progress_entries.AddRange(
+            ProgressEntry(player, today.AddHours(1), 100),
+            ProgressEntry(player, today.AddDays(-10), 300),
+            ProgressEntry(player, today.AddDays(-30), 900),
+            ProgressEntry(otherPlayer, today, 800));
+        context.mastery_import_receipts.AddRange(
+            new MasteryImportReceipt
+            {
+                PlayerId = player.id,
+                ImportedAt = today.AddDays(-2),
+                ResultingMasteryRank = 32
+            },
+            new MasteryImportReceipt
+            {
+                PlayerId = player.id,
+                ImportedAt = today.AddDays(-1),
+                ResultingMasteryRank = 33,
+                ResultingTotalMasteryXp = player.TotalMasteryXp
+            });
+        await context.SaveChangesAsync();
+
+        var summary = await CreateService(context).GetDashboardSummaryAsync(player);
+
+        Assert.Equal(3, summary.MasteryRank);
+        Assert.Equal(123456, summary.TotalMasteryXp);
+        Assert.Equal(33, summary.LatestImport?.ResultingMasteryRank);
+        Assert.Equal(100, summary.MasteryXpGained7Days);
+        Assert.Equal(400, summary.MasteryXpGained30Days);
+        Assert.Equal(3, summary.Items.Total);
+        Assert.Equal(1, summary.Items.Mastered);
+        Assert.Equal(1, summary.Items.Started);
+        Assert.Equal(1, summary.Items.Unowned);
+        Assert.Equal(1, summary.Items.CraftReady);
+        Assert.Collection(summary.Categories,
+            category =>
+            {
+                Assert.Equal("Warframe", category.Category);
+                Assert.Equal(0, category.Mastered);
+                Assert.Equal(1, category.Total);
+            },
+            category =>
+            {
+                Assert.Equal("Weapon", category.Category);
+                Assert.Equal(1, category.Mastered);
+                Assert.Equal(2, category.Total);
+            });
+        Assert.Equal(1, summary.Missions.NormalCompleted);
+        Assert.Equal(2, summary.Missions.NormalTotal);
+        Assert.Equal(1, summary.Missions.SteelPathCompleted);
+        Assert.Equal(2, summary.Missions.SteelPathTotal);
+    }
+
+    [Fact]
+    public async Task SummaryReturnsZeroStateForNewProfile()
+    {
+        await using var context = new WarframeTrackerDbContextTest();
+        Player player = new() { username = "new-profile" };
+        context.players.Add(player);
+        await context.SaveChangesAsync();
+
+        var summary = await CreateService(context).GetDashboardSummaryAsync(player);
+
+        Assert.Equal(0, summary.MasteryRank);
+        Assert.Equal(0, summary.TotalMasteryXp);
+        Assert.Null(summary.LatestImport);
+        Assert.Equal(0, summary.MasteryXpGained7Days);
+        Assert.Equal(0, summary.MasteryXpGained30Days);
+        Assert.Equal(0, summary.Items.Total);
+        Assert.Empty(summary.Categories);
+        Assert.Equal(0, summary.Missions.NormalTotal);
+        Assert.Equal(0, summary.Missions.SteelPathTotal);
+    }
+
+    [Theory]
+    [InlineData(30, 30)]
+    [InlineData(31, 1)]
+    public async Task SummaryMapsCombinedRankToDisplayedRank(int combinedRank, int displayedRank)
+    {
+        await using var context = new WarframeTrackerDbContextTest();
+        Player player = new() { username = $"rank-{combinedRank}", mastery_rank = combinedRank };
+        context.players.Add(player);
+        await context.SaveChangesAsync();
+
+        var summary = await CreateService(context).GetDashboardSummaryAsync(player);
+
+        Assert.Equal(displayedRank, summary.MasteryRank);
+    }
+
+    [Fact]
     public async Task LatestEntriesMapItemsAndMissionsInNewestFirstOrder()
     {
         await using var context = new WarframeTrackerDbContextTest();
@@ -132,6 +295,15 @@ public class MasteryServiceDashboardTest
         PreviousTotalMasteryXp = 1000,
         CurrentTotalMasteryXp = 1000 + gained,
         MasteryXpGained = gained
+    };
+
+    private static Item Item(string uniqueName, string itemClass, int? xpRequired = null) => new()
+    {
+        unique_name = uniqueName,
+        name = uniqueName,
+        type = "Test",
+        item_class = itemClass,
+        xp_required = xpRequired
     };
 
     private static MasteryService CreateService(WarframeTrackerDbContextTest context) => new(
