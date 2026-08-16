@@ -16,7 +16,9 @@ public class MasteryServiceDashboardTest
         {
             username = "summary-player",
             mastery_rank = 33,
-            TotalMasteryXp = 123456
+            TotalMasteryXp = 123456,
+            railjack_skills = 45,
+            duviri_skills = 34
         };
         Player otherPlayer = new() { username = "other-summary-player" };
         Item mastered = Item("/Items/Mastered", "Weapon", 450000);
@@ -133,6 +135,10 @@ public class MasteryServiceDashboardTest
         Assert.Equal(2, summary.Missions.NormalTotal);
         Assert.Equal(1, summary.Missions.SteelPathCompleted);
         Assert.Equal(2, summary.Missions.SteelPathTotal);
+        Assert.Equal(45, summary.Intrinsics.Railjack);
+        Assert.Equal(50, summary.Intrinsics.RailjackTotal);
+        Assert.Equal(34, summary.Intrinsics.Duviri);
+        Assert.Equal(40, summary.Intrinsics.DuviriTotal);
     }
 
     [Fact]
@@ -154,6 +160,10 @@ public class MasteryServiceDashboardTest
         Assert.Empty(summary.Categories);
         Assert.Equal(0, summary.Missions.NormalTotal);
         Assert.Equal(0, summary.Missions.SteelPathTotal);
+        Assert.Equal(0, summary.Intrinsics.Railjack);
+        Assert.Equal(50, summary.Intrinsics.RailjackTotal);
+        Assert.Equal(0, summary.Intrinsics.Duviri);
+        Assert.Equal(40, summary.Intrinsics.DuviriTotal);
     }
 
     [Theory]

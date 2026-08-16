@@ -697,6 +697,13 @@ public class MasteryService : IMasteryService
                 NormalTotal = missionTotal,
                 SteelPathCompleted = missionCompletions?.SteelPath ?? 0,
                 SteelPathTotal = missionTotal
+            },
+            Intrinsics = new DashboardIntrinsicTotalsDto
+            {
+                Railjack = player.railjack_skills,
+                RailjackTotal = 50,
+                Duviri = player.duviri_skills,
+                DuviriTotal = 40
             }
         };
     }

@@ -17,6 +17,8 @@ public class DashboardSummaryDto
     public List<DashboardCategoryCompletionDto> Categories { get; set; } = [];
 
     public DashboardMissionTotalsDto Missions { get; set; } = new();
+
+    public DashboardIntrinsicTotalsDto Intrinsics { get; set; } = new();
 }
 
 public class DashboardItemCountsDto
@@ -50,6 +52,17 @@ public class DashboardMissionTotalsDto
     public int SteelPathCompleted { get; set; }
 
     public int SteelPathTotal { get; set; }
+}
+
+public class DashboardIntrinsicTotalsDto
+{
+    public int Railjack { get; set; }
+
+    public int RailjackTotal { get; set; }
+
+    public int Duviri { get; set; }
+
+    public int DuviriTotal { get; set; }
 }
 
 public class DashboardProgressEntryDTO

@@ -91,7 +91,7 @@
                             <h3>Mission progress</h3>
                         </div>
                     </header>
-                    <div class="dashboard-summary__mission-row">
+                    <div class="dashboard-summary__progress-row">
                         <div>
                             <strong>Normal</strong>
                             <span>{{ summary.missions.normalCompleted }} / {{ summary.missions.normalTotal }}</span>
@@ -102,7 +102,7 @@
                             <span :style="{ width: `${completionPercent(summary.missions.normalCompleted, summary.missions.normalTotal)}%` }"></span>
                         </div>
                     </div>
-                    <div class="dashboard-summary__mission-row dashboard-summary__mission-row--steel-path">
+                    <div class="dashboard-summary__progress-row dashboard-summary__progress-row--steel-path">
                         <div>
                             <strong>Steel Path</strong>
                             <span>{{ summary.missions.steelPathCompleted }} / {{ summary.missions.steelPathTotal }}</span>
@@ -111,6 +111,38 @@
                             :aria-valuenow="summary.missions.steelPathCompleted" aria-valuemin="0"
                             :aria-valuemax="summary.missions.steelPathTotal">
                             <span :style="{ width: `${completionPercent(summary.missions.steelPathCompleted, summary.missions.steelPathTotal)}%` }"></span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="dashboard-summary__panel dashboard-summary__intrinsics">
+                    <header>
+                        <div>
+                            <span>Intrinsic skills</span>
+                            <h3>Intrinsics</h3>
+                        </div>
+                        <strong>{{ formatNumber(intrinsicMasteryXp) }} XP</strong>
+                    </header>
+                    <div class="dashboard-summary__progress-row dashboard-summary__progress-row--railjack">
+                        <div>
+                            <strong>Railjack</strong>
+                            <span>{{ summary.intrinsics.railjack }} / {{ summary.intrinsics.railjackTotal }}</span>
+                        </div>
+                        <div class="dashboard-completion-track" role="progressbar" aria-label="Railjack intrinsics"
+                            :aria-valuenow="summary.intrinsics.railjack" aria-valuemin="0"
+                            :aria-valuemax="summary.intrinsics.railjackTotal">
+                            <span :style="{ width: `${completionPercent(summary.intrinsics.railjack, summary.intrinsics.railjackTotal)}%` }"></span>
+                        </div>
+                    </div>
+                    <div class="dashboard-summary__progress-row dashboard-summary__progress-row--duviri">
+                        <div>
+                            <strong>Duviri</strong>
+                            <span>{{ summary.intrinsics.duviri }} / {{ summary.intrinsics.duviriTotal }}</span>
+                        </div>
+                        <div class="dashboard-completion-track" role="progressbar" aria-label="Duviri intrinsics"
+                            :aria-valuenow="summary.intrinsics.duviri" aria-valuemin="0"
+                            :aria-valuemax="summary.intrinsics.duviriTotal">
+                            <span :style="{ width: `${completionPercent(summary.intrinsics.duviri, summary.intrinsics.duviriTotal)}%` }"></span>
                         </div>
                     </div>
                 </article>
@@ -177,6 +209,10 @@ export default {
         completedCategoryCount() {
             return this.summary?.categories.filter(category =>
                 category.category !== 'Plexus' && category.mastered >= category.total).length || 0;
+        },
+        intrinsicMasteryXp() {
+            if (!this.summary) return 0;
+            return (this.summary.intrinsics.railjack + this.summary.intrinsics.duviri) * 1500;
         },
         remainingCategories() {
             if (!this.summary) return [];

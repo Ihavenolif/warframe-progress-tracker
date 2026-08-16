@@ -275,7 +275,7 @@
     .dashboard-summary__stat strong { font-size: clamp(1.35rem, 2.6vw, 2rem); line-height: 1; }
     .dashboard-summary__rank > .dashboard-completion-track > span { background: var(--color-orokin-gold); }
     .dashboard-summary__stat:nth-child(n + 4) strong { color: var(--color-success); }
-    .dashboard-summary__details { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 10px; }
+    .dashboard-summary__details { display: grid; grid-template-columns: 1.2fr 0.8fr 0.8fr; gap: 10px; }
 
     .dashboard-summary__panel {
         padding: var(--space-5);
@@ -296,11 +296,13 @@
     .dashboard-summary__states strong { font-size: 1.35rem; }
     .dashboard-summary__states span { color: var(--color-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
     .dashboard-summary__states .is-ready strong { color: var(--color-success); }
-    .dashboard-summary__missions { display: grid; align-content: start; gap: var(--space-5); }
-    .dashboard-summary__mission-row { display: grid; gap: var(--space-2); }
-    .dashboard-summary__mission-row > div:first-child { display: flex; justify-content: space-between; gap: var(--space-4); font-size: 0.86rem; }
-    .dashboard-summary__mission-row > div:first-child span { color: var(--color-muted); }
-    .dashboard-summary__mission-row--steel-path .dashboard-completion-track > span { background: var(--color-nav); }
+    .dashboard-summary__missions,
+    .dashboard-summary__intrinsics { display: grid; align-content: start; gap: var(--space-5); }
+    .dashboard-summary__progress-row { display: grid; gap: var(--space-2); }
+    .dashboard-summary__progress-row > div:first-child { display: flex; justify-content: space-between; gap: var(--space-4); font-size: 0.86rem; }
+    .dashboard-summary__progress-row > div:first-child span { color: var(--color-muted); }
+    .dashboard-summary__progress-row--steel-path .dashboard-completion-track > span { background: var(--color-nav); }
+    .dashboard-summary__progress-row--duviri .dashboard-completion-track > span { background: var(--color-orokin-gold); }
     .dashboard-summary__categories { grid-column: 1 / -1; }
     .dashboard-summary__view-all { color: var(--color-primary); font-size: 0.78rem; font-weight: 800; text-decoration: none; }
     .dashboard-summary__view-all:hover { text-decoration: underline; }
