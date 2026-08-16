@@ -8,6 +8,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rest-api-tests", "rest-api-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestApiTests", "rest-api-tests\RestApiTests\RestApiTests.csproj", "{1E4266CE-6E40-443A-AFA7-AF3473F63563}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rest-api-benchmarks", "rest-api-benchmarks", "{593F91F5-3D0E-450D-BE78-EBC966F05D48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestApiBenchmarks", "rest-api-benchmarks\RestApiBenchmarks\RestApiBenchmarks.csproj", "{E1A0C901-D423-4A18-A6A7-6E204D70A6DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestApiPostgreSqlBenchmarks", "rest-api-benchmarks\RestApiPostgreSqlBenchmarks\RestApiPostgreSqlBenchmarks.csproj", "{C2E7618D-8772-405B-9C0C-90AC39561986}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +28,14 @@ Global
 		{1E4266CE-6E40-443A-AFA7-AF3473F63563}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E4266CE-6E40-443A-AFA7-AF3473F63563}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E4266CE-6E40-443A-AFA7-AF3473F63563}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1A0C901-D423-4A18-A6A7-6E204D70A6DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1A0C901-D423-4A18-A6A7-6E204D70A6DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1A0C901-D423-4A18-A6A7-6E204D70A6DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1A0C901-D423-4A18-A6A7-6E204D70A6DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2E7618D-8772-405B-9C0C-90AC39561986}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2E7618D-8772-405B-9C0C-90AC39561986}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2E7618D-8772-405B-9C0C-90AC39561986}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2E7618D-8772-405B-9C0C-90AC39561986}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -31,5 +45,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1E4266CE-6E40-443A-AFA7-AF3473F63563} = {B59FE6DF-089F-4AEF-AA05-DA18B2AA1E38}
+		{E1A0C901-D423-4A18-A6A7-6E204D70A6DF} = {593F91F5-3D0E-450D-BE78-EBC966F05D48}
+		{C2E7618D-8772-405B-9C0C-90AC39561986} = {593F91F5-3D0E-450D-BE78-EBC966F05D48}
 	EndGlobalSection
 EndGlobal

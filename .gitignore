@@ -20,3 +20,5 @@ rest-api/out
 cache
 *.csr
 *.pfx
+BenchmarkDotNet.Artifacts
+/rest-api-tests/k6/results/
