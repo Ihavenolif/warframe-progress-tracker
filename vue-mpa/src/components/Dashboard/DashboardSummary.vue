@@ -16,17 +16,21 @@
         <template v-else-if="summary">
             <div class="dashboard-summary__headline">
                 <div class="dashboard-summary__rank">
-                    <span>Current rank</span>
-                    <strong v-if="summary.masteryRank > 30" class="dashboard-summary__legendary-rank"
-                        :aria-label="`Legendary Rank ${summary.masteryRank - 30}`">
-                        <img :src="legendaryRankIcon" alt="" aria-hidden="true">
-                        {{ summary.masteryRank - 30 }}
-                    </strong>
-                    <strong v-else :aria-label="`Mastery Rank ${summary.masteryRank}`">{{ summary.masteryRank }}</strong>
-                </div>
-                <div class="dashboard-summary__stat dashboard-summary__next-rank">
-                    <span>XP to next rank</span>
-                    <strong>{{ formatNumber(rankProgress.remaining) }}</strong>
+                    <div class="dashboard-summary__rank-metric">
+                        <span>Current rank</span>
+                        <strong v-if="summary.masteryRank > 30" class="dashboard-summary__legendary-rank"
+                            :aria-label="`Legendary Rank ${summary.masteryRank - 30}`">
+                            <img :src="legendaryRankIcon" alt="" aria-hidden="true">
+                            {{ summary.masteryRank - 30 }}
+                        </strong>
+                        <strong v-else :aria-label="`Mastery Rank ${summary.masteryRank}`">
+                            {{ summary.masteryRank }}
+                        </strong>
+                    </div>
+                    <div class="dashboard-summary__rank-metric dashboard-summary__rank-metric--xp">
+                        <span>XP to next rank</span>
+                        <strong>{{ formatNumber(rankProgress.remaining) }}</strong>
+                    </div>
                     <div class="dashboard-completion-track" role="progressbar" aria-label="Progress to next rank"
                         :aria-valuenow="rankProgress.earned" aria-valuemin="0" :aria-valuemax="rankProgress.required">
                         <span :style="{ width: `${rankProgress.percent}%` }"></span>
