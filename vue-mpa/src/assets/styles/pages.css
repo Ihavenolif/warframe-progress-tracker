@@ -811,8 +811,12 @@
     }
 
     .progress-page .progress-workspace .checkbox-item.checked { border-color: var(--color-nav); background: var(--color-nav); }
+    .progress-page .progress-workspace .mastery-filter-grid { grid-template-columns: 1fr; }
     .progress-workspace .table-pane { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
     .progress-workspace .table-container { flex: 1; min-height: 0; overflow: auto; border-bottom: 1px solid var(--progress-border); }
+    .progress-result-meta { padding: 9px 12px; border-top: 1px solid var(--progress-border); color: var(--color-muted); font-size: 0.78rem; }
+    .progress-empty-state { display: grid; gap: 8px; justify-items: center; padding: 64px 24px; color: var(--color-muted); text-align: center; }
+    .progress-empty-state strong { color: var(--color-ink); font-size: 1.05rem; }
 
     .progress-table {
         width: 100%;

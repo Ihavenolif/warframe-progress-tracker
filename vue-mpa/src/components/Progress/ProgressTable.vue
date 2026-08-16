@@ -21,6 +21,17 @@
                 </div>
             </CollapsibleContainer>
 
+            <CollapsibleContainer title="Mastery state">
+                <div class="checkbox-grid mastery-filter-grid">
+                    <label v-for="state in masteryStates" :key="state.value"
+                        :class="['checkbox-item', selectedMasteryStates.includes(state.value) ? 'checked' : '']">
+                        <input type="checkbox" :value="state.value" v-model="selectedMasteryStates"
+                            @change="updateRouteQuery" />
+                        <span>{{ state.label }}</span>
+                    </label>
+                </div>
+            </CollapsibleContainer>
+
             <button v-if="hasActiveFilters" type="button" class="btn btn-outline-secondary clear-filters" @click="clearFilters">Clear filters</button>
             <RouterLink v-if="showImport" class="btn btn-outline-secondary import-progress-link" to="/progress/import">Import progress</RouterLink>
 
@@ -32,7 +43,14 @@
         <section class="table-pane">
             <div class="table-container">
                 <slot name="heading"></slot>
-                <table class="progress-table">
+                <div class="progress-result-meta" aria-live="polite">
+                    Showing {{ filteredItems.length }} of {{ itemList.length }} items
+                </div>
+                <div v-if="filteredItems.length === 0" class="progress-empty-state">
+                    <strong>{{ hasActiveFilters ? 'No items match active filters.' : 'No mastery items available.' }}</strong>
+                    <span v-if="hasActiveFilters">Change search, item class, or mastery state filters to see results.</span>
+                </div>
+                <table v-else class="progress-table">
                     <thead>
                         <tr>
                             <th></th>
@@ -78,10 +96,11 @@ export default {
             return this.$store.state.token;
         },
         filteredItems() {
-            return this.itemList.filter(item => this.filterItem(item));
+            return this.itemList.filter(item => this.filterItem(item)).sort(this.compareItems);
         },
         hasActiveFilters() {
-            return this.itemNameFilter.length > 0 || this.selectedItemClasses.length > 0;
+            return this.itemNameFilter.length > 0 || this.selectedItemClasses.length > 0 ||
+                this.selectedMasteryStates.length > 0;
         },
         sidebarProperties() {
             return {
@@ -113,7 +132,7 @@ export default {
         return {
             playerNames: this._playerNames,
             itemList: this._itemList,
-            sorting: { key: "", asc: true },
+            sorting: { key: 'itemName', asc: true },
             allItemClasses: [
                 "Amp",
                 "Archgun",
@@ -134,7 +153,15 @@ export default {
                 "Zaw"
             ],
             selectedItemClasses: [],
-            itemNameFilter: "",
+            masteryStates: [
+                { value: 'mastered', label: 'Mastered' },
+                { value: 'in-progress', label: 'In progress' },
+                { value: 'unowned', label: 'Unowned' },
+                { value: 'blueprint-owned', label: 'Blueprint owned' },
+                { value: 'craft-ready', label: 'Craft ready' }
+            ],
+            selectedMasteryStates: [],
+            itemNameFilter: '',
             filtersVisible: true,
             sidebarWidth: Number.isFinite(storedSidebarWidth) && storedSidebarWidth > 0 ? storedSidebarWidth : 280,
             sidebarResizeStartX: 0,
@@ -146,45 +173,79 @@ export default {
             if (this.sorting.key == sortKey) this.sorting.asc = !this.sorting.asc;
             else {
                 this.sorting.key = sortKey;
-                this.sorting.asc = true;
+                this.sorting.asc = ['itemName', 'itemClass'].includes(sortKey);
             }
-
-            if (this.playerNames.includes(this.sorting.key)) {
-                this.itemList.sort((a, b) => {
-                    // IF both are mastered, keep original order
-                    if (a[this.sorting.key]["xpGained"] >= a["xpRequired"] && b[this.sorting.key]["xpGained"] >= b["xpRequired"]) return 0;
-
-                    const maxRankA = getMaxRank(a["xpRequired"]);
-                    const maxRankB = getMaxRank(b["xpRequired"]);
-
-                    const masteredRateA = getRank(a["xpRequired"], a[this.sorting.key]["xpGained"]) / getMaxRank(a["xpRequired"]) //a[this.sorting.key]["xpGained"] / a["xpRequired"]
-                    const masteredRateB = getRank(b["xpRequired"], b[this.sorting.key]["xpGained"]) / getMaxRank(b["xpRequired"]) //b[this.sorting.key]["xpGained"] / b["xpRequired"]
-
-                    if (masteredRateA == masteredRateB) return 0;
-
-                    if (masteredRateA > 0 && masteredRateB > 0 && masteredRateA < 1 && masteredRateB < 1) {
-                        if (maxRankA != maxRankB) {
-                            return (maxRankB < maxRankA ? -1 : 1) * (this.sorting.asc ? 1 : -1);
-                        }
-                    }
-
-                    return (masteredRateB < masteredRateA ? -1 : 1) * (this.sorting.asc ? 1 : -1);
-                })
+            this.updateRouteQuery();
+        },
+        compareItems(a, b) {
+            let comparison;
+            if (this.sorting.key === 'closest') {
+                comparison = this.getClosestMasteryRate(a) - this.getClosestMasteryRate(b);
+            } else if (this.playerNames.includes(this.sorting.key)) {
+                comparison = this.getMasteryRate(a, this.sorting.key) - this.getMasteryRate(b, this.sorting.key);
+            } else {
+                comparison = String(a[this.sorting.key] || '').localeCompare(String(b[this.sorting.key] || ''));
             }
-            else {
-                this.itemList.sort((a, b) => {
-                    return (a[this.sorting.key] < b[this.sorting.key] ? -1 : 1) * (this.sorting.asc ? 1 : -1);
-                })
-            }
+            if (comparison !== 0) return comparison * (this.sorting.asc ? 1 : -1);
+            return a.itemName.localeCompare(b.itemName);
+        },
+        getMasteryRate(item, playerName) {
+            const player = item[playerName];
+            if (!player || player.xpGained == null) return -1;
+            return getRank(item.xpRequired, player.xpGained) / getMaxRank(item.xpRequired);
+        },
+        getClosestMasteryRate(item) {
+            return Math.max(...this.playerNames.map(name => this.getMasteryRate(item, name)), -1);
         },
         filterItem(item) {
             const validClass = this.selectedItemClasses.length === 0 || this.selectedItemClasses.includes(item.itemClass);
             const validName = item.itemName.toLowerCase().includes(this.itemNameFilter.toLowerCase());
-            return validClass && validName;
+            const validState = this.selectedMasteryStates.length === 0 || this.playerNames.some(name =>
+                this.selectedMasteryStates.includes(this.getMasteryState(item, name)));
+            return validClass && validName && validState;
+        },
+        getMasteryState(item, playerName) {
+            const player = item[playerName];
+            if (!player || player.xpGained == null) {
+                if (this.isCraftReady(item, player)) return 'craft-ready';
+                if (item.recipeUniqueName && player?.blueprintOwned === true) return 'blueprint-owned';
+                return 'unowned';
+            }
+            return player.xpGained >= item.xpRequired ? 'mastered' : 'in-progress';
+        },
+        isCraftReady(item, player) {
+            return Boolean(item.recipeUniqueName) && player?.blueprintOwned === true &&
+                Array.isArray(player.components) && player.components.every(component =>
+                    (component.countOwned || 0) >= (component.countRequired || 0));
         },
         clearFilters() {
-            this.itemNameFilter = "";
+            this.itemNameFilter = '';
             this.selectedItemClasses = [];
+            this.selectedMasteryStates = [];
+            this.updateRouteQuery();
+        },
+        readRouteQuery() {
+            const query = this.$route.query;
+            const parseList = value => typeof value === 'string' ? value.split(',').filter(Boolean) : [];
+            const validStates = this.masteryStates.map(state => state.value);
+            const validSortKeys = ['itemName', 'itemClass', 'closest', ...this.playerNames];
+            this.itemNameFilter = typeof query.search === 'string' ? query.search : '';
+            this.selectedItemClasses = parseList(query.classes).filter(itemClass => this.allItemClasses.includes(itemClass));
+            this.selectedMasteryStates = parseList(query.states).filter(state => validStates.includes(state));
+            this.sorting.key = validSortKeys.includes(query.sort) ? query.sort : 'itemName';
+            const defaultAscending = ['itemName', 'itemClass'].includes(this.sorting.key);
+            this.sorting.asc = query.order === 'asc' ? true : query.order === 'desc' ? false : defaultAscending;
+        },
+        updateRouteQuery() {
+            const query = {};
+            if (this.itemNameFilter) query.search = this.itemNameFilter;
+            if (this.selectedItemClasses.length) query.classes = [...this.selectedItemClasses].sort().join(',');
+            if (this.selectedMasteryStates.length) query.states = [...this.selectedMasteryStates].sort().join(',');
+            if (this.sorting.key !== 'itemName') query.sort = this.sorting.key;
+            if (this.sorting.asc !== ['itemName', 'itemClass'].includes(this.sorting.key)) {
+                query.order = this.sorting.asc ? 'asc' : 'desc';
+            }
+            this.$router.replace({ query });
         },
         startSidebarResize(event) {
             event.preventDefault();
@@ -210,11 +271,24 @@ export default {
     },
     async mounted() {
         document.body.classList.add("progress-scroll-locked");
-        this.sortTable("itemName");
-        this.sortTable("itemClass");
-        this.playerNames.forEach(name => {
-            this.sortTable(name);
-        });
+        this.readRouteQuery();
+    },
+    watch: {
+        '$route.query': {
+            handler() {
+                this.readRouteQuery();
+            },
+            deep: true
+        },
+        itemNameFilter() {
+            this.updateRouteQuery();
+        },
+        selectedItemClasses: {
+            handler() {
+                this.updateRouteQuery();
+            },
+            deep: true
+        }
     },
     beforeUnmount() {
         document.body.classList.remove("progress-scroll-locked");
