@@ -17,7 +17,12 @@
             <div class="dashboard-summary__headline">
                 <div class="dashboard-summary__rank">
                     <span>Current rank</span>
-                    <strong>{{ formatRank(summary.masteryRank) }}</strong>
+                    <strong v-if="summary.masteryRank > 30" class="dashboard-summary__legendary-rank"
+                        :aria-label="`Legendary Rank ${summary.masteryRank - 30}`">
+                        <img :src="legendaryRankIcon" alt="" aria-hidden="true">
+                        {{ summary.masteryRank - 30 }}
+                    </strong>
+                    <strong v-else :aria-label="`Mastery Rank ${summary.masteryRank}`">{{ summary.masteryRank }}</strong>
                     <small>mastery progression</small>
                 </div>
                 <div class="dashboard-summary__stat">
@@ -136,8 +141,15 @@
 </template>
 
 <script>
+import legendaryRankIcon from '@/assets/legendary-rank.png';
+
 export default {
     name: 'DashboardSummary',
+    data() {
+        return {
+            legendaryRankIcon
+        };
+    },
     props: {
         summary: {
             type: Object,
@@ -171,9 +183,6 @@ export default {
         },
         formatNumber(value) {
             return new Intl.NumberFormat().format(value || 0);
-        },
-        formatRank(rank) {
-            return rank > 30 ? `LR ${rank - 30}` : `MR ${rank}`;
         }
     }
 };

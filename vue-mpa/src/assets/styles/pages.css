@@ -266,6 +266,8 @@
     .dashboard-summary__stat span,
     .dashboard-summary__panel header span { color: var(--color-muted); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
     .dashboard-summary__rank strong { grid-row: 1 / span 2; grid-column: 2; color: var(--color-orokin-gold); font-size: 3.4rem; line-height: 0.9; }
+    .dashboard-summary__rank .dashboard-summary__legendary-rank { display: inline-flex; align-items: center; gap: 6px; }
+    .dashboard-summary__legendary-rank img { width: 42px; height: 42px; object-fit: contain; }
     .dashboard-summary__rank small { align-self: end; color: var(--color-muted); }
     .dashboard-summary__stat { gap: var(--space-3); border-top: 4px solid var(--color-nav); }
     .dashboard-summary__stat strong { font-size: clamp(1.35rem, 2.6vw, 2rem); line-height: 1; }
