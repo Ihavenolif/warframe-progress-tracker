@@ -1,7 +1,7 @@
 <template>
     <NavbarElement />
 
-    <main class="clan-management-page">
+    <main class="content-page clan-management-page">
         <header class="page-heading">
             <div>
                 <p class="eyebrow">Clan management</p>

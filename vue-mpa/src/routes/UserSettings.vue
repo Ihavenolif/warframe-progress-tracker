@@ -1,7 +1,7 @@
 <template>
     <NavbarElement />
 
-    <main class="settings-page">
+    <main class="content-page settings-page">
         <header class="page-heading">
             <div>
                 <p class="eyebrow">Account</p>

@@ -1,7 +1,7 @@
 <template>
     <NavbarElement />
 
-    <main class="clan-index-page">
+    <main class="content-page clan-index-page">
         <header class="page-heading">
             <div>
                 <p class="eyebrow">Tenno network</p>

@@ -1,7 +1,7 @@
 <template>
     <NavbarElement />
 
-    <main class="dashboard-page">
+    <main class="content-page dashboard-page">
         <header class="page-heading">
             <div>
                 <p class="eyebrow">Tenno activity</p>
