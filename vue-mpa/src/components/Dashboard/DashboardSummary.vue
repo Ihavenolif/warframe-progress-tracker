@@ -25,6 +25,11 @@
                     <strong>{{ formatNumber(summary.totalMasteryXp) }}</strong>
                 </div>
                 <div class="dashboard-summary__stat">
+                    <span>Latest import</span>
+                    <strong>{{ formatImportDate(summary.latestImport) }}</strong>
+                    <small>{{ summary.latestImport ? 'successful profile import' : 'no profile imported' }}</small>
+                </div>
+                <div class="dashboard-summary__stat">
                     <span>Last 7 days</span>
                     <strong>+{{ formatNumber(summary.masteryXpGained7Days) }}</strong>
                 </div>
@@ -108,18 +113,20 @@
                         <strong>{{ summary.categories.length }}</strong>
                     </header>
                     <div v-if="summary.categories.length" class="dashboard-summary__category-grid">
-                        <div v-for="category in summary.categories" :key="category.category"
-                            class="dashboard-summary__category">
+                        <RouterLink v-for="category in summary.categories" :key="category.category"
+                            class="dashboard-summary__category"
+                            :to="{ name: 'progress', query: { classes: category.category } }"
+                            :aria-label="`View ${formatCategory(category.category)} progress`">
                             <div>
                                 <strong>{{ formatCategory(category.category) }}</strong>
-                                <span>{{ category.mastered }} / {{ category.total }}</span>
+                                <span>{{ category.mastered }} / {{ category.total }} &gt;</span>
                             </div>
                             <div class="dashboard-completion-track" role="progressbar"
                                 :aria-label="`${formatCategory(category.category)} mastery`"
                                 :aria-valuenow="category.mastered" aria-valuemin="0" :aria-valuemax="category.total">
                                 <span :style="{ width: `${completionPercent(category.mastered, category.total)}%` }"></span>
                             </div>
-                        </div>
+                        </RouterLink>
                     </div>
                     <p v-else class="dashboard-summary__empty">No mastery categories available.</p>
                 </article>
@@ -154,6 +161,13 @@ export default {
             return value
                 .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
                 .replace(/[_-]+/g, ' ');
+        },
+        formatImportDate(receipt) {
+            if (!receipt) return 'Never';
+            return new Date(receipt.importedAt).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric'
+            });
         },
         formatNumber(value) {
             return new Intl.NumberFormat().format(value || 0);

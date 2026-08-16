@@ -17,7 +17,12 @@
                 <strong>{{ freshnessTitle }}</strong>
                 <p>{{ freshnessMessage }}</p>
             </div>
-            <span v-if="latestReceipt" class="dashboard-freshness__status">{{ freshnessState }}</span>
+            <div class="dashboard-freshness__actions">
+                <span v-if="latestReceipt" class="dashboard-freshness__status">{{ freshnessState }}</span>
+                <RouterLink v-if="showFreshnessCta" class="btn btn-primary" to="/progress/import">
+                    {{ latestReceipt ? 'Import again' : 'Import progress' }}
+                </RouterLink>
+            </div>
         </section>
 
         <DashboardSummary :summary="summary" :loading="summaryLoading" :error-message="summaryError" />
@@ -59,6 +64,9 @@ export default {
         },
         freshnessError() {
             return Boolean(this.summaryError);
+        },
+        showFreshnessCta() {
+            return !this.freshnessLoading && !this.freshnessError && this.freshnessState !== 'fresh';
         },
         freshnessState() {
             if (!this.latestReceipt) return 'unknown';
