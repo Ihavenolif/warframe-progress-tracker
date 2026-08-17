@@ -26,21 +26,51 @@ public class MasteryServiceDashboardTest
         Item craftReady = Item("/Items/CraftReady", "Warframe", 900000);
         Item blueprint = Item("/Items/CraftReadyBlueprint", "Recipe");
         Item component = Item("/Items/Component", "Resource");
+        Item blueprintOnly = Item("/Items/BlueprintOnly", "Warframe", 900000);
+        Item blueprintOnlyRecipe = Item("/Items/BlueprintOnlyRecipe", "Recipe");
+        Item missingComponent = Item("/Items/MissingComponent", "Resource");
+        Item unowned = Item("/Items/Unowned", "Warframe", 900000);
         Item ineligible = Item("/Items/Ineligible", "Weapon");
-        context.AddRange(player, otherPlayer, mastered, started, craftReady, blueprint, component, ineligible);
-        context.recipes.Add(new Recipe
-        {
-            unique_name = blueprint.unique_name,
-            result_item = craftReady.unique_name,
-            recipe_ingredients =
+        context.AddRange(
+            player,
+            otherPlayer,
+            mastered,
+            started,
+            craftReady,
+            blueprint,
+            component,
+            blueprintOnly,
+            blueprintOnlyRecipe,
+            missingComponent,
+            unowned,
+            ineligible);
+        context.recipes.AddRange(
+            new Recipe
             {
-                new Recipe_ingredient
+                unique_name = blueprint.unique_name,
+                result_item = craftReady.unique_name,
+                recipe_ingredients =
                 {
-                    item_ingredient = component.unique_name,
-                    ingredient_count = 2
+                    new Recipe_ingredient
+                    {
+                        item_ingredient = component.unique_name,
+                        ingredient_count = 2
+                    }
                 }
-            }
-        });
+            },
+            new Recipe
+            {
+                unique_name = blueprintOnlyRecipe.unique_name,
+                result_item = blueprintOnly.unique_name,
+                recipe_ingredients =
+                {
+                    new Recipe_ingredient
+                    {
+                        item_ingredient = missingComponent.unique_name,
+                        ingredient_count = 1
+                    }
+                }
+            });
         context.missions.AddRange(
             new Mission { UniqueName = "/Missions/One", MasteryXp = 1000 },
             new Mission { UniqueName = "/Missions/Two", MasteryXp = 1000 },
@@ -68,7 +98,8 @@ public class MasteryServiceDashboardTest
             });
         context.player_items.AddRange(
             new Player_item { player_id = player.id, unique_name = blueprint.unique_name, item_count = 1 },
-            new Player_item { player_id = player.id, unique_name = component.unique_name, item_count = 2 });
+            new Player_item { player_id = player.id, unique_name = component.unique_name, item_count = 2 },
+            new Player_item { player_id = player.id, unique_name = blueprintOnlyRecipe.unique_name, item_count = 1 });
         context.mission_completions.AddRange(
             new MissionCompletion
             {
@@ -113,17 +144,17 @@ public class MasteryServiceDashboardTest
         Assert.Equal(33, summary.LatestImport?.ResultingMasteryRank);
         Assert.Equal(100, summary.MasteryXpGained7Days);
         Assert.Equal(400, summary.MasteryXpGained30Days);
-        Assert.Equal(3, summary.Items.Total);
+        Assert.Equal(5, summary.Items.Total);
         Assert.Equal(1, summary.Items.Mastered);
         Assert.Equal(1, summary.Items.Started);
-        Assert.Equal(1, summary.Items.Unowned);
+        Assert.Equal(2, summary.Items.Unowned);
         Assert.Equal(1, summary.Items.CraftReady);
         Assert.Collection(summary.Categories,
             category =>
             {
                 Assert.Equal("Warframe", category.Category);
                 Assert.Equal(0, category.Mastered);
-                Assert.Equal(1, category.Total);
+                Assert.Equal(3, category.Total);
             },
             category =>
             {

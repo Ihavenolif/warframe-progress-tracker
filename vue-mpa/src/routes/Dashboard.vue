@@ -8,7 +8,12 @@
                 <h1>Dashboard</h1>
                 <p>Follow mastery gains and review changes from recent profile imports.</p>
             </div>
-            <RouterLink class="btn btn-secondary dashboard-import-link" to="/progress/import">Import progress</RouterLink>
+            <div class="dashboard-page-actions">
+                <span v-if="latestReceipt" class="dashboard-updated">
+                    Updated {{ formatCompactRelativeTime(latestReceipt.importedAt) }}
+                </span>
+                <RouterLink class="btn btn-secondary dashboard-import-link" to="/progress/import">Import progress</RouterLink>
+            </div>
         </header>
 
         <section v-if="showFreshnessNotice" class="dashboard-freshness"
@@ -103,6 +108,19 @@ export default {
         window.clearInterval(this.freshnessTimer);
     },
     methods: {
+        formatCompactRelativeTime(timestamp) {
+            const elapsed = Math.max(0, this.now - timestamp);
+            const units = [
+                ['y', 365 * 24 * 60 * 60 * 1000],
+                ['mo', 30 * 24 * 60 * 60 * 1000],
+                ['w', 7 * 24 * 60 * 60 * 1000],
+                ['d', 24 * 60 * 60 * 1000],
+                ['h', 60 * 60 * 1000],
+                ['m', 60 * 1000]
+            ];
+            const unit = units.find(([, size]) => elapsed >= size);
+            return unit ? `${Math.floor(elapsed / unit[1])}${unit[0]} ago` : 'now';
+        },
         formatRelativeTime(timestamp) {
             const elapsed = Math.max(0, this.now - timestamp);
             const units = [

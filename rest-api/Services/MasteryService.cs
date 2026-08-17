@@ -682,7 +682,7 @@ public class MasteryService : IMasteryService
                 Total = totalItems,
                 Mastered = masteredItems,
                 Started = startedItems,
-                Unowned = totalItems - masteredItems - startedItems,
+                Unowned = totalItems - masteredItems - startedItems - craftReady,
                 CraftReady = craftReady
             },
             Categories = [.. categories.Select(category => new DashboardCategoryCompletionDto

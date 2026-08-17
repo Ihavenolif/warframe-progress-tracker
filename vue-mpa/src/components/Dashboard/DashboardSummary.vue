@@ -23,14 +23,16 @@
                         <span>XP to next rank</span>
                         <strong>{{ formatNumber(rankProgress.remaining) }}</strong>
                     </div>
-                    <div class="dashboard-completion-track" role="progressbar" aria-label="Progress to next rank"
-                        :aria-valuenow="rankProgress.earned" aria-valuemin="0" :aria-valuemax="rankProgress.required">
-                        <span :style="{ width: `${rankProgress.percent}%` }"></span>
+                    <div class="dashboard-summary__rank-progress" @mousemove="updateRankTooltipPosition"
+                        @mouseleave="rankTooltipVisible = false">
+                        <div class="dashboard-completion-track" role="progressbar" tabindex="0"
+                            aria-label="Progress to next rank" :aria-valuenow="rankProgress.earned" aria-valuemin="0"
+                            :aria-valuemax="rankProgress.required"
+                            :aria-valuetext="`${formatNumber(rankProgress.earned)} of ${formatNumber(rankProgress.required)} XP`"
+                            @mouseenter="showRankTooltip" @focus="showRankTooltip" @blur="rankTooltipVisible = false">
+                            <span :style="{ width: `${rankProgress.percent}%` }"></span>
+                        </div>
                     </div>
-                </div>
-                <div class="dashboard-summary__stat">
-                    <span>Latest import</span>
-                    <strong>{{ formatImportDate(summary.latestImport) }}</strong>
                 </div>
                 <div class="dashboard-summary__stat dashboard-summary__gain">
                     <span>Last 7 days</span>
@@ -169,6 +171,14 @@
                 </article>
             </div>
         </template>
+
+        <Teleport to="body">
+            <div v-if="rankTooltipVisible" ref="rankTooltip" class="progress-tooltip dashboard-rank-tooltip"
+                :style="rankTooltipProperties">
+                <span>Rank progress</span>
+                <strong>{{ formatNumber(rankProgress.earned) }} / {{ formatNumber(rankProgress.required) }} XP</strong>
+            </div>
+        </Teleport>
     </section>
 </template>
 
@@ -179,7 +189,10 @@ export default {
     name: 'DashboardSummary',
     data() {
         return {
-            legendaryRankIcon
+            legendaryRankIcon,
+            rankTooltipVisible: false,
+            rankTooltipTop: '0px',
+            rankTooltipLeft: '0px'
         };
     },
     props: {
@@ -223,6 +236,12 @@ export default {
                 remaining: Math.max(0, nextThreshold - this.summary.totalMasteryXp),
                 percent: this.completionPercent(earned, required)
             };
+        },
+        rankTooltipProperties() {
+            return {
+                '--tooltip-top': this.rankTooltipTop,
+                '--tooltip-left': this.rankTooltipLeft
+            };
         }
     },
     methods: {
@@ -235,17 +254,37 @@ export default {
                 .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
                 .replace(/[_-]+/g, ' ');
         },
-        formatImportDate(receipt) {
-            if (!receipt) return 'Never';
-            return new Date(receipt.importedAt).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric'
-            });
-        },
         masteryThreshold(rank) {
             return rank <= 30
                 ? 2500 * rank * rank
                 : 2250000 + (rank - 30) * 147500;
+        },
+        showRankTooltip(event) {
+            const targetRect = event.currentTarget.getBoundingClientRect();
+            const clientX = event.clientX;
+            const clientY = event.clientY;
+            this.rankTooltipVisible = true;
+            this.$nextTick(() => this.positionRankTooltip(clientX, clientY, targetRect));
+        },
+        updateRankTooltipPosition(event) {
+            if (!this.rankTooltipVisible) return;
+
+            this.positionRankTooltip(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
+        },
+        positionRankTooltip(pointerX, pointerY, targetRect) {
+            if (!this.rankTooltipVisible) return;
+
+            const gap = 12;
+            const tooltipWidth = this.$refs.rankTooltip?.offsetWidth || 180;
+            const tooltipHeight = this.$refs.rankTooltip?.offsetHeight || 48;
+            const clientX = Number.isFinite(pointerX) ? pointerX : targetRect.left + targetRect.width / 2;
+            const clientY = Number.isFinite(pointerY) ? pointerY : targetRect.top;
+            const maxLeft = Math.max(gap, window.innerWidth - tooltipWidth - gap);
+            const maxTop = Math.max(gap, window.innerHeight - tooltipHeight - gap);
+            const preferredTop = clientY - tooltipHeight - gap;
+
+            this.rankTooltipTop = `${Math.max(gap, Math.min(preferredTop >= gap ? preferredTop : clientY + gap, maxTop))}px`;
+            this.rankTooltipLeft = `${Math.max(gap, Math.min(clientX + gap, maxLeft))}px`;
         },
         formatNumber(value) {
             return new Intl.NumberFormat().format(value || 0);

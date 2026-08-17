@@ -157,7 +157,6 @@ export default {
                 { value: 'mastered', label: 'Mastered' },
                 { value: 'in-progress', label: 'In progress' },
                 { value: 'unowned', label: 'Unowned' },
-                { value: 'blueprint-owned', label: 'Blueprint owned' },
                 { value: 'craft-ready', label: 'Craft ready' }
             ],
             selectedMasteryStates: [],
@@ -208,7 +207,6 @@ export default {
             const player = item[playerName];
             if (!player || player.xpGained == null) {
                 if (this.isCraftReady(item, player)) return 'craft-ready';
-                if (item.recipeUniqueName && player?.blueprintOwned === true) return 'blueprint-owned';
                 return 'unowned';
             }
             return player.xpGained >= item.xpRequired ? 'mastered' : 'in-progress';
