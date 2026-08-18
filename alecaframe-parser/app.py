@@ -239,34 +239,45 @@ def ensure_logged_in():
 
 
 def send_json(json_content):
+    global auth_token
+
     token = ensure_logged_in()
     if not token:
         return False
 
-    try:
-        base_url = normalize_base_url()
-        body, content_type = build_multipart_form_data("jsonFile", "out.json", json_content)
-        request = urllib.request.Request(
-            f"{base_url}/api/mastery/update",
-            data=body,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Content-Type": content_type,
-                "Content-Length": str(len(body)),
-            },
-            method="POST",
-        )
-        with urllib.request.urlopen(request, timeout=60) as response:
-            response.read()
-        set_status(f"Data sent successfully at {time.strftime('%H:%M:%S')}.")
-        return True
-    except urllib.error.HTTPError as error:
-        message = error.read().decode("utf-8", errors="replace")
-        set_status(f"Send failed: server returned {error.code}: {message or error.reason}")
-    except urllib.error.URLError as error:
-        set_status(f"Send failed: connection failed: {error.reason}")
-    except Exception as error:
-        set_status(f"Send failed: {error}")
+    for attempt in range(2):
+        try:
+            base_url = normalize_base_url()
+            body, content_type = build_multipart_form_data("jsonFile", "out.json", json_content)
+            request = urllib.request.Request(
+                f"{base_url}/api/mastery/update",
+                data=body,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": content_type,
+                    "Content-Length": str(len(body)),
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(request, timeout=60) as response:
+                response.read()
+            set_status(f"Data sent successfully at {time.strftime('%H:%M:%S')}.")
+            return True
+        except urllib.error.HTTPError as error:
+            if attempt == 0 and error.code in (401, 403):
+                auth_token = None
+                login()
+                token = auth_token
+                if not token:
+                    return False
+                continue
+            message = error.read().decode("utf-8", errors="replace")
+            set_status(f"Send failed: server returned {error.code}: {message or error.reason}")
+        except urllib.error.URLError as error:
+            set_status(f"Send failed: connection failed: {error.reason}")
+        except Exception as error:
+            set_status(f"Send failed: {error}")
+        return False
     return False
 
 
