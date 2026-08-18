@@ -142,40 +142,15 @@
     .auth-form-shell .btn { margin-top: var(--space-2); }
 
     .settings-page,
-    .dashboard-page,
-    .clan-page { text-align: left; }
+    .dashboard-page { text-align: left; }
 
-    .clan-card {
-        display: flex;
-        min-height: 80px;
-        padding: var(--space-5);
-        border: 1px solid var(--color-border);
-        border-bottom: 0;
-        background: var(--color-surface-subtle);
-    }
-
-    .clan-card:last-child { border-bottom: 1px solid var(--color-border); }
-    .clan-card__info { width: fit-content; }
-    .clan-card__info p { width: fit-content; margin: 0; font-weight: 700; }
-    .clan-card__actions { margin-left: auto; }
-    .clan-card__actions + .clan-card__actions { margin-left: 0; }
-
-    .clan-card__actions a {
-        display: block;
-        padding: 10px;
-        border: 1px solid var(--color-border);
-        color: var(--color-ink);
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .settings-page {
+    .content-page {
         max-width: 1120px;
         margin: 0 auto;
         padding: 36px 24px 64px;
     }
 
-    .settings-page .page-heading {
+    .content-page .page-heading {
         display: flex;
         align-items: end;
         justify-content: space-between;
@@ -183,10 +158,11 @@
         margin-bottom: 28px;
     }
 
-    .settings-page .page-heading h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1; }
-    .settings-page .page-heading p { margin: 0; color: var(--color-muted); }
+    .content-page .page-heading h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1; }
 
-    .settings-page .eyebrow {
+    .content-page .page-heading p { margin: 0; color: var(--color-muted); }
+
+    .content-page .eyebrow {
         margin: 0;
         color: var(--color-primary) !important;
         font-size: 0.75rem;
@@ -239,38 +215,115 @@
     .settings-link-actions { display: flex; justify-content: end; gap: var(--space-2); }
     .settings-error { padding: 10px 12px; margin: var(--space-3) 0 0; border: 1px solid var(--color-danger); color: var(--color-danger); }
 
-    .settings-danger-button { border-color: var(--color-danger); background: var(--color-surface); color: var(--color-danger); }
-    .settings-danger-button:not(:disabled):hover { background: var(--color-danger); color: #fff; }
+    .settings-danger-button,
+    .clan-danger-button { border-color: var(--color-danger); background: var(--color-surface); color: var(--color-danger); }
 
-    .dashboard-page {
-        max-width: 1120px;
-        margin: 0 auto;
-        padding: 36px 24px 64px;
-    }
+    .settings-danger-button:not(:disabled):hover,
+    .clan-danger-button:not(:disabled):hover { background: var(--color-danger); color: #fff; }
 
-    .dashboard-page .page-heading {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: var(--space-6);
-        margin-bottom: 28px;
-    }
-
-    .dashboard-page .page-heading h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1; }
-    .dashboard-page .page-heading p { margin: 0; color: var(--color-muted); }
-
-    .dashboard-page .eyebrow {
-        margin: 0;
-        color: var(--color-primary) !important;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-    }
-
-    .dashboard-page .dashboard-import-link { padding: 11px 16px; white-space: nowrap; }
+    .dashboard-page .dashboard-import-link,
+    .relic-page .import-link,
+    .clan-index-page .create-clan-link,
+    .progress-page-heading .progress-import-link { padding: 11px 16px; white-space: nowrap; }
+    .dashboard-page-actions { display: grid; justify-items: end; gap: 6px; }
+    .dashboard-updated { color: var(--color-muted); font-size: 0.75rem; font-weight: 700; }
     .dashboard-page .dashboard-section { margin-bottom: 44px; }
     .dashboard-page .dashboard-section h2 { margin: 3px 0 4px; font-size: 1.5rem; }
+
+    .dashboard-page .dashboard-freshness,
+    .import-summary {
+        padding: 18px;
+        margin-bottom: var(--space-5);
+        border: 1px solid var(--color-border);
+        border-left: 5px solid var(--color-border-strong);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
+    }
+
+    .dashboard-page .dashboard-freshness { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+    .dashboard-page .dashboard-freshness--fresh { border-left-color: var(--color-success); }
+    .dashboard-page .dashboard-freshness--stale { border-left-color: var(--color-warning); }
+    .dashboard-page .dashboard-freshness strong,
+    .import-summary h2 { color: var(--color-ink); font-size: 1.2rem; }
+    .dashboard-page .dashboard-freshness p,
+    .import-summary p { margin: 4px 0; color: var(--color-muted); }
+    .dashboard-page .dashboard-freshness__status { font-size: 0.72rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+    .dashboard-freshness__actions { display: flex; align-items: center; gap: var(--space-3); }
+    .dashboard-freshness__actions .btn { white-space: nowrap; }
+    .dashboard-summary__headline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+
+    .dashboard-summary__rank,
+    .dashboard-summary__stat {
+        display: grid;
+        align-content: center;
+        min-height: 126px;
+        padding: 18px;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
+    }
+
+    .dashboard-summary__rank { grid-column: span 2; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto; gap: var(--space-4); border-top: 4px solid var(--color-orokin-gold); }
+    .dashboard-summary__rank span,
+    .dashboard-summary__stat span,
+    .dashboard-summary__panel header span { color: var(--color-muted); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+    .dashboard-summary__rank-metric { display: grid; align-content: center; gap: var(--space-3); min-width: 0; }
+    .dashboard-summary__rank-metric--xp { padding-left: var(--space-4); border-left: 1px solid var(--color-border); }
+    .dashboard-summary__rank strong { color: var(--color-orokin-gold); font-size: clamp(1.6rem, 3vw, 2.7rem); line-height: 0.9; }
+    .dashboard-summary__rank .dashboard-summary__legendary-rank { display: inline-flex; align-items: center; gap: 6px; }
+    .dashboard-summary__legendary-rank img { width: 42px; height: 42px; object-fit: contain; }
+    .dashboard-summary__rank-progress { position: relative; grid-column: 1 / -1; }
+    .dashboard-summary__stat { gap: var(--space-3); border-top: 4px solid var(--color-nav); }
+    .dashboard-summary__stat strong { font-size: clamp(1.35rem, 2.6vw, 2rem); line-height: 1; }
+    .dashboard-summary__rank-progress .dashboard-completion-track > span { background: var(--color-orokin-gold); }
+    .dashboard-rank-tooltip { display: grid; gap: 4px; min-width: 180px; }
+    .dashboard-rank-tooltip span { color: var(--color-muted); font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+    .dashboard-rank-tooltip strong { color: var(--color-ink); font-size: 0.9rem; }
+    .dashboard-summary__gain strong { color: var(--color-success); }
+    .dashboard-summary__details { display: grid; grid-template-columns: 1.2fr 0.8fr 0.8fr; gap: 10px; }
+
+    .dashboard-summary__panel {
+        padding: var(--space-5);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
+    }
+
+    .dashboard-summary__panel header { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); }
+    .dashboard-summary__panel h3 { margin: 2px 0 0; font-size: 1.08rem; }
+    .dashboard-summary__panel header > strong { font-size: 1.35rem; }
+    .dashboard-completion-track { height: 7px; overflow: hidden; background: var(--color-surface-muted); }
+    .dashboard-completion-track > span { display: block; width: 0; height: 100%; background: var(--color-primary); }
+    .dashboard-summary__items > .dashboard-completion-track { margin: var(--space-5) 0; }
+    .dashboard-summary__states { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--color-border); }
+    .dashboard-summary__states > a { display: grid; gap: 3px; padding: 13px 10px; border-right: 1px solid var(--color-border); color: inherit; text-decoration: none; transition: background 150ms ease; }
+    .dashboard-summary__states > a:hover,
+    .dashboard-summary__states > a:focus-visible { background: var(--color-surface-muted); }
+    .dashboard-summary__states > a:last-child { border-right: 0; }
+    .dashboard-summary__states strong { font-size: 1.35rem; }
+    .dashboard-summary__states span { color: var(--color-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+    .dashboard-summary__states .is-ready strong { color: var(--color-success); }
+    .dashboard-summary__missions,
+    .dashboard-summary__intrinsics { display: grid; align-content: start; gap: var(--space-5); }
+    .dashboard-summary__progress-row { display: grid; gap: var(--space-2); }
+    .dashboard-summary__progress-row > div:first-child { display: flex; justify-content: space-between; gap: var(--space-4); font-size: 0.86rem; }
+    .dashboard-summary__progress-row > div:first-child span { color: var(--color-muted); }
+    .dashboard-summary__progress-row--steel-path .dashboard-completion-track > span { background: var(--color-nav); }
+    .dashboard-summary__progress-row--duviri .dashboard-completion-track > span { background: var(--color-orokin-gold); }
+    .dashboard-summary__categories { grid-column: 1 / -1; }
+    .dashboard-summary__view-all { color: var(--color-primary); font-size: 0.78rem; font-weight: 800; text-decoration: none; }
+    .dashboard-summary__view-all:hover { text-decoration: underline; }
+    .dashboard-summary__category-summary { margin: var(--space-3) 0 0; color: var(--color-muted); font-size: 0.8rem; }
+    .dashboard-summary__category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2) var(--space-4); padding-top: var(--space-3); }
+    .dashboard-summary__category { display: grid; gap: 6px; padding: 6px; color: inherit; text-decoration: none; transition: background 150ms ease; }
+    .dashboard-summary__category:hover,
+    .dashboard-summary__category:focus-visible { background: var(--color-surface-muted); }
+    .dashboard-summary__category > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); font-size: 0.82rem; }
+    .dashboard-summary__category > div:first-child span { color: var(--color-muted); white-space: nowrap; }
+    .dashboard-summary__empty { margin: var(--space-3) 0 0; color: var(--color-muted); }
+    .import-summary { margin-top: var(--space-4); }
+    .import-summary .import-warning { color: var(--color-danger); }
+    .import-summary .btn { margin-top: var(--space-3); }
 
     .dashboard-page .section-head {
         display: flex;
@@ -283,6 +336,8 @@
     }
 
     .dashboard-page .section-head p { margin: 0; color: var(--color-muted); }
+    .dashboard-chart-tools { display: flex; align-items: center; gap: var(--space-3); }
+    .dashboard-active-days { color: var(--color-muted); font-size: 0.78rem; font-weight: 800; white-space: nowrap; }
     .dashboard-page .range-switch { display: flex; }
 
     .dashboard-page .range-switch .btn {
@@ -298,33 +353,8 @@
         color: #fff;
     }
 
-    .dashboard-page .dashboard-metrics {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .dashboard-page .dashboard-metric {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: end;
-        gap: 2px var(--space-4);
-        min-height: 92px;
-        padding: 16px 18px;
-        border: 1px solid var(--color-border);
-        border-left: 5px solid var(--color-border-strong);
-        background: var(--color-surface);
-        box-shadow: var(--shadow-card);
-    }
-
-    .dashboard-page .dashboard-metric--xp { border-left-color: var(--color-success); }
-    .dashboard-page .dashboard-metric span { color: var(--color-muted); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-    .dashboard-page .dashboard-metric strong { grid-row: 1 / span 2; grid-column: 2; color: var(--color-ink); font-size: 2rem; line-height: 1; }
-    .dashboard-page .dashboard-metric small { color: var(--color-muted); }
-
     .dashboard-page .chart-wrap {
-        height: 320px;
+        height: 260px;
         padding: 18px;
         border: 1px solid var(--color-border);
         border-top: 4px solid var(--color-nav);
@@ -343,8 +373,9 @@
     }
 
     .dashboard-page .dashboard-state-card strong { color: var(--color-ink); font-size: 1.05rem; }
-    .dashboard-page .dashboard-error { border-color: #c98b92; color: var(--color-danger); }
-    .dashboard-page .dashboard-entry-count { min-width: 36px; padding: 6px 10px; background: var(--color-nav); color: #fff; font-size: 0.8rem; font-weight: 800; text-align: center; }
+    .dashboard-page .dashboard-error { color: var(--color-danger); }
+    .dashboard-page .dashboard-entry-count,
+    .clan-count { min-width: 36px; padding: 6px 10px; background: var(--color-nav); color: #fff; font-size: 0.8rem; font-weight: 800; text-align: center; }
     .dashboard-page .dashboard-entry-list { display: grid; gap: 10px; }
 
     .dashboard-page .progress-entry {
@@ -384,33 +415,6 @@
     .dashboard-page .entry-details th { padding: 9px; background: var(--color-nav); color: #fff; font-size: 0.72rem; letter-spacing: 0.04em; text-align: left; text-transform: uppercase; }
     .dashboard-page .entry-details td { padding: 9px; border: 1px solid var(--color-border); font-size: 0.85rem; }
     .dashboard-page .entry-details tr:nth-child(even) { background: var(--color-surface-muted); }
-
-    .relic-page {
-        max-width: 1120px;
-        margin: 0 auto;
-        padding: 36px 24px 64px;
-    }
-
-    .relic-page .page-heading {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: var(--space-6);
-        margin-bottom: 28px;
-    }
-
-    .relic-page .page-heading h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1; }
-    .relic-page .page-heading p { margin: 0; color: var(--color-muted); }
-
-    .relic-page .eyebrow {
-        color: var(--color-primary) !important;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-    }
-
-    .relic-page .import-link { padding: 11px 16px; white-space: nowrap; }
 
     .relic-filters {
         display: grid;
@@ -457,10 +461,14 @@
         box-shadow: var(--shadow-card);
     }
 
-    .relic-card.era-lith { --era-color: #9d7454; }
-    .relic-card.era-meso { --era-color: #4b89a7; }
-    .relic-card.era-neo { --era-color: #789047; }
-    .relic-card.era-axi { --era-color: #9a5f9e; }
+    .relic-card.era-lith,
+    .recommendation-card.era-lith { --era-color: #9d7454; }
+    .relic-card.era-meso,
+    .recommendation-card.era-meso { --era-color: #4b89a7; }
+    .relic-card.era-neo,
+    .recommendation-card.era-neo { --era-color: #789047; }
+    .relic-card.era-axi,
+    .recommendation-card.era-axi { --era-color: #9a5f9e; }
 
     .relic-card .relic-summary {
         display: grid;
@@ -498,42 +506,21 @@
     .relic-details .reward-list { display: grid; gap: 6px; }
     .relic-details .reward-row { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; background: var(--color-surface-subtle); font-size: 0.9rem; }
     .relic-details .rarity { padding: 3px 6px; color: #fff; font-size: 0.68rem; font-weight: 800; text-align: center; text-transform: uppercase; }
-    .relic-details .rarity.common { background: #8b765f; }
-    .relic-details .rarity.uncommon { background: #8b9399; }
-    .relic-details .rarity.rare { background: var(--color-warning); }
+    .relic-details .rarity.common,
+    .recommendation-reward .rarity.common { background: #8b765f; }
+    .relic-details .rarity.uncommon,
+    .recommendation-reward .rarity.uncommon { background: #8b9399; }
+    .relic-details .rarity.rare,
+    .recommendation-reward .rarity.rare { background: var(--color-warning); }
 
     .relic-page .state-card { padding: 40px; border: 1px solid var(--color-border); background: var(--color-surface-subtle); text-align: center; }
+    .dashboard-page .dashboard-error,
     .relic-page .state-card.error-state { border-color: #c98b92; }
 
     .clan-index-page {
         --clan-accent: #4b89a7;
-        max-width: 1120px;
-        margin: 0 auto;
-        padding: 36px 24px 64px;
         text-align: left;
     }
-
-    .clan-index-page .page-heading {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: var(--space-6);
-        margin-bottom: 28px;
-    }
-
-    .clan-index-page .page-heading h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1; }
-    .clan-index-page .page-heading p { margin: 0; color: var(--color-muted); }
-
-    .clan-index-page .eyebrow {
-        margin: 0;
-        color: var(--color-primary) !important;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-    }
-
-    .clan-index-page .create-clan-link { padding: 11px 16px; white-space: nowrap; }
 
     .clan-create-panel {
         display: grid;
@@ -563,44 +550,35 @@
 
     .clan-section-heading h2 { margin: 3px 0 0; font-size: 1.5rem; }
 
-    .clan-count {
-        min-width: 36px;
-        padding: 6px 10px;
-        background: var(--color-nav);
-        color: #fff;
-        font-size: 0.8rem;
-        font-weight: 800;
-        text-align: center;
-    }
-
     .clan-count--invites { background: var(--color-warning); }
     .clan-list { display: grid; gap: 10px; }
 
-    .clan-overview-card {
+    .clan-overview-card,
+    .clan-member-card {
         display: grid;
         grid-template-columns: 58px minmax(0, 1fr) auto;
         align-items: center;
         gap: var(--space-5);
-        min-height: 108px;
-        padding: 18px 20px 18px 16px;
         border: 1px solid var(--color-border);
-        border-left: 5px solid var(--clan-accent);
         background: var(--color-surface);
         box-shadow: var(--shadow-card);
     }
 
+    .clan-overview-card { min-height: 108px; padding: 18px 20px 18px 16px; border-left: 5px solid var(--clan-accent); }
+
     .clan-overview-card--invitation { --clan-accent: var(--color-warning); }
 
-    .clan-card-mark {
+    .clan-card-mark,
+    .clan-member-mark {
         display: grid;
         width: 52px;
         height: 52px;
         place-items: center;
-        border: 1px solid var(--clan-accent);
-        color: var(--clan-accent);
         font-size: 1.4rem;
         font-weight: 900;
     }
+
+    .clan-card-mark { border: 1px solid var(--clan-accent); color: var(--clan-accent); }
 
     .clan-overview-card__info > span { color: var(--clan-accent); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
     .clan-overview-card__info h3 { margin: 2px 0 4px; font-size: 1.15rem; }
@@ -622,35 +600,11 @@
     .clan-state-card .btn { margin-top: var(--space-4); }
     .clan-state-card--compact { padding: 22px; }
     .clan-state-card--error { border-color: #c98b92; }
-
     .clan-management-page {
         --member-accent: #4b89a7;
-        max-width: 1120px;
-        margin: 0 auto;
-        padding: 36px 24px 64px;
         text-align: left;
     }
-
-    .clan-management-page .page-heading {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: var(--space-6);
-        margin-bottom: 28px;
-    }
-
-    .clan-management-page .page-heading h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1; }
-    .clan-management-page .page-heading p { margin: 0; color: var(--color-muted); }
     .clan-management-page .page-heading p strong { color: var(--color-ink); }
-
-    .clan-management-page .eyebrow {
-        margin: 0;
-        color: var(--color-primary) !important;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-    }
 
     .clan-page-actions,
     .clan-section-tools,
@@ -675,30 +629,17 @@
     .clan-member-list { display: grid; gap: 10px; }
 
     .clan-member-card {
-        display: grid;
-        grid-template-columns: 58px minmax(0, 1fr) auto;
-        align-items: center;
-        gap: var(--space-5);
         min-height: 94px;
         padding: 16px 20px 16px 16px;
-        border: 1px solid var(--color-border);
         border-left: 5px solid var(--member-accent);
-        background: var(--color-surface);
-        box-shadow: var(--shadow-card);
     }
 
     .clan-member-card--leader { --member-accent: var(--color-warning); }
     .clan-member-card--invitation { --member-accent: var(--color-border-strong); }
 
     .clan-member-mark {
-        display: grid;
-        width: 52px;
-        height: 52px;
-        place-items: center;
         border: 1px solid var(--member-accent);
         color: var(--member-accent);
-        font-size: 1.4rem;
-        font-weight: 900;
     }
 
     .clan-member-info > span { color: var(--color-muted); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
@@ -722,25 +663,14 @@
     .clan-member-badge--leader { background: #f3ead2; color: #866511; }
     .clan-member-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: var(--space-2); }
 
-    .clan-danger-button {
-        border-color: var(--color-danger);
-        background: var(--color-surface);
-        color: var(--color-danger);
-    }
-
-    .clan-danger-button:not(:disabled):hover { background: var(--color-danger); color: #fff; }
-
-    .progress-page,
-    .clan-progress-page {
+    .progress-page {
         display: flex;
         flex-direction: column;
         height: calc(100vh - 49px);
         padding: 0;
         overflow: hidden;
+        background: var(--color-surface-subtle);
     }
-
-    .progress-page,
-    .clan-progress-page { background: var(--color-surface-subtle); }
 
     .progress-page-heading {
         display: flex;
@@ -767,8 +697,6 @@
         letter-spacing: 0.14em;
         text-transform: uppercase;
     }
-
-    .progress-page-heading .progress-import-link { padding: 11px 16px; white-space: nowrap; }
 
     .recommendation-panel {
         padding: 20px 28px 24px;
@@ -823,11 +751,6 @@
         box-shadow: var(--shadow-card);
     }
 
-    .recommendation-card.era-lith { --era-color: #9d7454; }
-    .recommendation-card.era-meso { --era-color: #4b89a7; }
-    .recommendation-card.era-neo { --era-color: #789047; }
-    .recommendation-card.era-axi { --era-color: #9a5f9e; }
-
     .recommendation-summary {
         display: grid;
         grid-template-columns: 48px minmax(150px, 1fr) auto minmax(160px, auto) 22px;
@@ -857,24 +780,19 @@
     .recommendation-reward { padding: 10px; background: var(--color-surface-subtle); }
     .recommendation-reward__head { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
     .recommendation-reward .rarity { padding: 3px 6px; color: #fff; font-size: 0.65rem; font-weight: 800; text-align: center; text-transform: uppercase; }
-    .recommendation-reward .rarity.common { background: #8b765f; }
-    .recommendation-reward .rarity.uncommon { background: #8b9399; }
-    .recommendation-reward .rarity.rare { background: var(--color-warning); }
     .recommendation-reward p { margin: 7px 0 0 82px; color: var(--color-muted); font-size: 0.8rem; }
     .recommendation-explanation { grid-column: 1 / -1; margin: 0; color: var(--color-muted); font-size: 0.78rem; }
 
-    .progress-loading,
-    .clan-progress-loading { padding: var(--space-5); overflow-y: auto; }
+    .progress-loading { padding: var(--space-5); overflow-y: auto; }
 
-    .progress-page .progress-loading,
-    .clan-progress-page .clan-progress-loading {
+    .progress-page .progress-loading {
         flex: 1;
         margin: 0;
         background: var(--color-surface-muted);
     }
 
-    :is(.progress-page .progress-loading, .clan-progress-page .clan-progress-loading) h2 { margin-top: 0; font-size: 1.1rem; }
-    :is(.progress-page .progress-loading, .clan-progress-page .clan-progress-loading) p { margin: 6px 0; color: var(--color-muted); }
+    .progress-page .progress-loading h2 { margin-top: 0; font-size: 1.1rem; }
+    .progress-page .progress-loading p { margin: 6px 0; color: var(--color-muted); }
     body.progress-scroll-locked { overflow: hidden; }
 
     .progress-workspace {
@@ -887,7 +805,7 @@
         border-top: 1px solid var(--progress-border);
     }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace {
+    .progress-page .progress-workspace {
         margin: 0;
         border: 0;
         background: var(--color-surface);
@@ -910,28 +828,26 @@
     .progress-workspace .import-progress-link { display: block; margin-top: 10px; }
     .progress-workspace .search-filter { display: block; margin-bottom: var(--space-4); }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .filter-sidebar { padding: var(--space-5); overflow-x: hidden; }
+    .progress-page .progress-workspace .filter-sidebar { padding: var(--space-5); overflow-x: hidden; }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .filter-sidebar-head h2 {
+    .progress-page .progress-workspace .filter-sidebar-head h2 {
         font-size: 0.8rem;
         font-weight: 800;
         letter-spacing: 0.12em;
         text-transform: uppercase;
     }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .search-filter input { background: var(--color-surface); }
-
-    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible {
+    .progress-page .progress-workspace .collapsible {
         border-top: 1px solid var(--color-border-strong);
         background: transparent;
         font-size: 0.8rem;
         letter-spacing: 0.04em;
     }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible:hover,
-    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible-active { background: var(--color-border); }
+    .progress-page .progress-workspace .collapsible:hover,
+    .progress-page .progress-workspace .collapsible-active { background: var(--color-border); }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .collapsible-content { padding: 8px 0 0; border: 0; background: transparent; }
+    .progress-page .progress-workspace .collapsible-content { padding: 8px 0 0; border: 0; background: transparent; }
 
     .progress-workspace .filter-bubble {
         position: absolute;
@@ -951,7 +867,7 @@
     .progress-workspace .filter-bubble:hover { background: var(--color-nav-hover); }
     .progress-workspace .sidebar-resize-handle { position: absolute; top: 0; right: -4px; bottom: 0; width: 8px; cursor: col-resize; touch-action: none; }
     .progress-workspace .sidebar-resize-handle:hover { background: rgba(0, 123, 255, 0.15); }
-    :is(.progress-page, .clan-progress-page) .progress-workspace .sidebar-resize-handle { right: 0; }
+    .progress-page .progress-workspace .sidebar-resize-handle { right: 0; }
     body.resizing-progress-sidebar,
     body.resizing-progress-sidebar * { cursor: col-resize !important; user-select: none !important; }
 
@@ -960,17 +876,21 @@
     .progress-workspace .checkbox-item input { margin: 0 8px 0 0; }
     .progress-workspace .checkbox-item.checked { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .progress-page .progress-workspace .checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .checkbox-item {
+    .progress-page .progress-workspace .checkbox-item {
         min-width: 0;
         padding: 9px 10px;
         font-size: 0.78rem;
     }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .checkbox-item.checked { border-color: var(--color-nav); background: var(--color-nav); }
+    .progress-page .progress-workspace .checkbox-item.checked { border-color: var(--color-nav); background: var(--color-nav); }
+    .progress-page .progress-workspace .mastery-filter-grid { grid-template-columns: 1fr; }
     .progress-workspace .table-pane { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
     .progress-workspace .table-container { flex: 1; min-height: 0; overflow: auto; border-bottom: 1px solid var(--progress-border); }
+    .progress-result-meta { padding: 9px 12px; border-top: 1px solid var(--progress-border); color: var(--color-muted); font-size: 0.78rem; }
+    .progress-empty-state { display: grid; gap: 8px; justify-items: center; padding: 64px 24px; color: var(--color-muted); text-align: center; }
+    .progress-empty-state strong { color: var(--color-ink); font-size: 1.05rem; }
 
     .progress-table {
         width: 100%;
@@ -998,10 +918,10 @@
     .progress-table .progress-item-image-cell { width: 32px; }
     .progress-table .progress-item-image { cursor: pointer; }
 
-    :is(.progress-page, .clan-progress-page) .progress-workspace .table-container { border-bottom: 0; }
-    :is(.progress-page, .clan-progress-page) .progress-table { border-right: 0; line-height: 1.1 !important; }
+    .progress-page .progress-workspace .table-container { border-bottom: 0; }
+    .progress-page .progress-table { border-right: 0; line-height: 1.1 !important; }
 
-    :is(.progress-page, .clan-progress-page) .progress-table th {
+    .progress-page .progress-table th {
         height: 42px !important;
         padding: 11px 12px;
         font-size: 0.72rem;
@@ -1011,14 +931,14 @@
         box-shadow: inset 0 3px var(--color-orokin-gold);
     }
 
-    :is(.progress-page, .clan-progress-page) .progress-table th:first-child { cursor: default; }
-    :is(.progress-page, .clan-progress-page) .progress-table tbody tr:hover { filter: brightness(0.96); }
-    :is(.progress-page, .clan-progress-page) .progress-table .mastery-state-0 { background: #b9dfc8; }
-    :is(.progress-page, .clan-progress-page) .progress-table tr:nth-child(even) .mastery-state-0 { background: #add4bd; }
-    :is(.progress-page, .clan-progress-page) .progress-table .mastery-state-1 { background: #eadba8; }
-    :is(.progress-page, .clan-progress-page) .progress-table tr:nth-child(even) .mastery-state-1 { background: #dfd09e; }
-    :is(.progress-page, .clan-progress-page) .progress-table .mastery-state-2 { background: #e2bdc0; }
-    :is(.progress-page, .clan-progress-page) .progress-table tr:nth-child(even) .mastery-state-2 { background: #d7b2b6; }
+    .progress-page .progress-table th:first-child { cursor: default; }
+    .progress-page .progress-table tbody tr:hover { filter: brightness(0.96); }
+    .progress-page .progress-table .mastery-state-0 { background: #b9dfc8; }
+    .progress-page .progress-table tr:nth-child(even) .mastery-state-0 { background: #add4bd; }
+    .progress-page .progress-table .mastery-state-1 { background: #eadba8; }
+    .progress-page .progress-table tr:nth-child(even) .mastery-state-1 { background: #dfd09e; }
+    .progress-page .progress-table .mastery-state-2 { background: #e2bdc0; }
+    .progress-page .progress-table tr:nth-child(even) .mastery-state-2 { background: #d7b2b6; }
 
     .progress-container { width: 100%; padding: 0; margin: 0; overflow: hidden; }
     .progress-bar { width: var(--progress-percent, 0); height: 100%; padding: 0 0 0 10px; margin: 0; overflow: hidden; line-height: 38px !important; text-overflow: ellipsis; white-space: nowrap; }
@@ -1050,6 +970,11 @@
         .home-capability:nth-child(3) { border-right: 0; }
         .settings-grid { grid-template-columns: 1fr; }
         .dashboard-page .entry-details { grid-template-columns: 1fr; padding-left: 24px; }
+        .dashboard-summary__headline { grid-template-columns: 1fr 1fr; }
+        .dashboard-summary__rank { grid-column: 1 / -1; }
+        .dashboard-summary__details { grid-template-columns: 1fr; }
+        .dashboard-summary__categories { grid-column: auto; }
+        .dashboard-summary__category-grid { grid-template-columns: 1fr 1fr; }
         .relic-search-field { grid-column: 1 / -1; }
         .relic-era-filter,
         .relic-ownership-filter,
@@ -1058,11 +983,11 @@
         .recommendation-summary { grid-template-columns: 48px minmax(120px, 1fr) auto 22px; }
         .recommendation-owners { grid-column: 2 / 4; }
         .recommendation-details { grid-template-columns: 1fr; padding-left: 24px; }
-        .clan-overview-card { grid-template-columns: 52px minmax(0, 1fr); }
+        .clan-overview-card,
+        .clan-member-card { grid-template-columns: 52px minmax(0, 1fr); }
         .clan-overview-card__actions { grid-column: 2; }
         .clan-invite-panel { grid-template-columns: 1fr 1fr; }
         .clan-invite-panel > div:first-child { grid-column: 1 / -1; }
-        .clan-member-card { grid-template-columns: 52px minmax(0, 1fr); }
         .clan-member-actions { grid-column: 2; justify-content: start; }
     }
 
@@ -1077,8 +1002,6 @@
         .home-capability { min-height: 205px; border-right: 0; border-bottom: 1px solid var(--color-border); }
         .home-capability:last-child { border-bottom: 0; }
         .auth-form-shell { width: calc(100% - 24px); margin-top: 24px; }
-        .clan-card { flex-direction: column; gap: var(--space-3); }
-        .clan-card__actions { width: 100%; margin-left: 0; }
         .progress-table th,
         .progress-table td { font-size: 70%; }
         .progress-workspace .filter-sidebar { position: absolute; z-index: 3; inset: 0 auto 0 0; max-width: 85vw; box-shadow: var(--shadow-popover); }
@@ -1103,31 +1026,39 @@
     }
 
     @media (max-width: 560px) {
-        .settings-page { padding: 24px 12px 48px; }
-        .settings-page .page-heading { align-items: start; flex-direction: column; }
+        .content-page { padding: 24px 12px 48px; }
+
+        .content-page .page-heading { align-items: start; flex-direction: column; }
         .settings-card { min-height: 0; padding: var(--space-4); }
         .settings-card-heading { grid-template-columns: 42px minmax(0, 1fr); }
         .settings-card-mark { width: 40px; height: 40px; font-size: 1.1rem; }
         .settings-status { grid-column: 2; justify-self: start; }
         .settings-card-actions .btn { width: 100%; }
         .settings-link-actions .btn { flex: 1; }
-        .dashboard-page { padding: 24px 12px 48px; }
-        .dashboard-page .page-heading { align-items: start; flex-direction: column; }
         .dashboard-page .dashboard-import-link { width: 100%; }
+        .dashboard-page-actions { justify-items: start; width: 100%; }
         .dashboard-page .section-head { align-items: start; }
         .dashboard-page .dashboard-chart-section .section-head { display: block; }
+        .dashboard-chart-tools { align-items: stretch; flex-direction: column; margin-top: var(--space-3); }
         .dashboard-page .range-switch { width: 100%; margin-top: var(--space-3); }
         .dashboard-page .range-switch .btn { flex: 1; }
-        .dashboard-page .dashboard-metrics { grid-template-columns: 1fr; }
-        .dashboard-page .dashboard-metric { min-height: 82px; }
-        .dashboard-page .chart-wrap { height: 280px; padding: 12px 8px; }
+        .dashboard-summary__headline { grid-template-columns: 1fr 1fr; }
+        .dashboard-summary__rank,
+        .dashboard-summary__stat { min-height: 94px; }
+        .dashboard-summary__states { grid-template-columns: 1fr 1fr; }
+        .dashboard-summary__states > a:nth-child(2) { border-right: 0; }
+        .dashboard-summary__states > a:nth-child(-n + 2) { border-bottom: 1px solid var(--color-border); }
+        .dashboard-summary__category-grid { grid-template-columns: 1fr 1fr; }
+        .dashboard-summary__category > div:first-child { display: grid; gap: 2px; }
+        .dashboard-page .dashboard-freshness { align-items: start; flex-direction: column; }
+        .dashboard-freshness__actions { justify-content: space-between; width: 100%; }
+        .dashboard-freshness__actions .btn { flex: 1; }
+        .dashboard-page .chart-wrap { height: 240px; padding: 12px 8px; }
         .dashboard-page .entry-summary { grid-template-columns: 42px minmax(0, 1fr) 22px; gap: 10px; padding: 14px 12px; }
         .dashboard-page .entry-date-mark { width: 40px; height: 40px; font-size: 1rem; }
         .dashboard-page .entry-xp-gain { grid-column: 2; grid-row: 2; }
         .dashboard-page .expand-indicator { grid-column: 3; grid-row: 1 / span 2; }
         .dashboard-page .entry-details { padding: 14px; }
-        .relic-page { padding: 24px 12px 48px; }
-        .relic-page .page-heading { align-items: start; flex-direction: column; }
         .relic-filters { padding: 14px; }
         .relic-era-filter,
         .relic-ownership-filter,
@@ -1142,24 +1073,21 @@
         .relic-page .pagination-size { justify-content: center; }
         .relic-page .pagination-controls { justify-content: center; gap: 6px; }
         .relic-page .pagination-controls .btn { min-width: 0; padding-right: 9px; padding-left: 9px; }
-        .clan-index-page { padding: 24px 12px 48px; }
-        .clan-index-page .page-heading { align-items: start; flex-direction: column; }
         .clan-create-panel { grid-template-columns: 1fr; padding: 14px; }
         .clan-create-actions .btn { flex: 1; }
-        .clan-overview-card { grid-template-columns: 42px minmax(0, 1fr); gap: 12px; padding: 14px 12px; }
-        .clan-card-mark { width: 40px; height: 40px; font-size: 1.1rem; }
+        .clan-overview-card,
+        .clan-member-card { grid-template-columns: 42px minmax(0, 1fr); gap: 12px; padding: 14px 12px; }
+
+        .clan-card-mark,
+        .clan-member-mark { width: 40px; height: 40px; font-size: 1.1rem; }
         .clan-overview-card__actions { grid-column: 1 / -1; }
         .clan-overview-card__actions .btn { flex: 1; min-width: 0; }
-        .clan-management-page { padding: 24px 12px 48px; }
-        .clan-management-page .page-heading { align-items: start; flex-direction: column; }
         .clan-page-actions { width: 100%; }
         .clan-page-actions .btn { flex: 1; }
         .clan-invite-panel { grid-template-columns: 1fr; padding: 14px; }
         .clan-invite-panel > div:first-child { grid-column: auto; }
         .clan-invite-actions .btn { flex: 1; }
         .clan-section-tools .clan-count { display: none; }
-        .clan-member-card { grid-template-columns: 42px minmax(0, 1fr); gap: 12px; padding: 14px 12px; }
-        .clan-member-mark { width: 40px; height: 40px; font-size: 1.1rem; }
         .clan-member-actions { grid-column: 1 / -1; }
         .clan-member-actions .btn { flex: 1; }
     }

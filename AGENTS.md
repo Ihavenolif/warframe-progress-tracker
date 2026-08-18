@@ -20,11 +20,19 @@
 ## General Conventions
 
 - Follow existing architecture and file placement. Prefer smallest correct change.
+- Treat identifiers matching `ORB-X` (for example, `ORB-123`) as Linear issues. Fetch them through Linear MCP tools before acting on them.
 - Preserve public contracts, persisted data, database schema, and deployment behavior unless task requires change.
 - Use ASCII for new text unless surrounding file requires Unicode.
 - Keep secrets and machine-local configuration out of Git. Never read, print, or commit `.env`, `database.ini`, certificates, or keys.
 - Add comments only when intent is not clear from code.
 - Do not introduce formatter, linter, framework, package manager, or dependency changes without task need.
+
+## Linear Workflow
+
+- When creating a Linear issue, set relevant metadata immediately: matching labels, priority, estimate, and any applicable project, cycle, assignee, or parent. Also add known issue relations, including related issues, blockers, blocked issues, and duplicates. Inspect similar issues and task context for workspace conventions instead of leaving relevant fields unset by default.
+- When the user supplies a Linear issue identifier, move the issue to `In Progress` before starting work.
+- Format every commit for the issue as `ORB-X type(scope): message`, using the full issue identifier. Example: `ORB-123 feat(api): add relic lookup endpoint`.
+- After the work is finished and committed, ask the user before moving the issue to `Done`.
 
 ## C# Conventions
 

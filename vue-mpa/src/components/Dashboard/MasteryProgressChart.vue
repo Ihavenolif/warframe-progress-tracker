@@ -6,11 +6,16 @@
                 <h2>Mastery progress</h2>
                 <p>{{ rangeLabel }}, grouped by day</p>
             </div>
-            <div class="range-switch" aria-label="Chart range">
-                <button class="btn" type="button" :class="{ 'is-active': selectedRange === 7 }"
-                    @click="setRange(7)">Week</button>
-                <button class="btn" type="button" :class="{ 'is-active': selectedRange === 30 }"
-                    @click="setRange(30)">Month</button>
+            <div class="dashboard-chart-tools">
+                <span v-if="!loading && !errorMessage" class="dashboard-active-days">
+                    {{ activeDays }} active {{ activeDays === 1 ? 'day' : 'days' }}
+                </span>
+                <div class="range-switch" aria-label="Chart range">
+                    <button class="btn" type="button" :class="{ 'is-active': selectedRange === 7 }"
+                        @click="setRange(7)">Week</button>
+                    <button class="btn" type="button" :class="{ 'is-active': selectedRange === 30 }"
+                        @click="setRange(30)">Month</button>
+                </div>
             </div>
         </div>
 
@@ -20,18 +25,6 @@
             <span>{{ errorMessage }}</span>
         </div>
         <template v-else>
-            <div class="dashboard-metrics">
-                <div class="dashboard-metric dashboard-metric--xp">
-                    <span>{{ rangeLabel }}</span>
-                    <strong>{{ formatNumber(totalMasteryXp) }}</strong>
-                    <small>mastery XP gained</small>
-                </div>
-                <div class="dashboard-metric">
-                    <span>Active days</span>
-                    <strong>{{ activeDays }}</strong>
-                    <small>days with mastery gains</small>
-                </div>
-            </div>
             <div class="chart-wrap">
                 <Bar :data="chartData" :options="chartOptions" />
             </div>
@@ -68,9 +61,6 @@ export default {
     computed: {
         rangeLabel() {
             return this.selectedRange === 7 ? 'Last week' : 'Last month';
-        },
-        totalMasteryXp() {
-            return this.dailyProgress.reduce((total, day) => total + day.masteryXpGained, 0);
         },
         activeDays() {
             return this.dailyProgress.filter(day => day.masteryXpGained > 0).length;

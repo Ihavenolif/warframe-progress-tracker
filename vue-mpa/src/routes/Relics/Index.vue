@@ -1,6 +1,6 @@
 <template>
     <NavbarElement />
-    <main class="relic-page">
+    <main class="content-page relic-page">
         <RelicPageHeader />
         <RelicFilters :filters="filters" :eras="eras" @change="filtersChanged" />
 

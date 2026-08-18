@@ -1,27 +1,21 @@
 <template>
     <NavbarElement></NavbarElement>
 
-    <div class="three-column-layout">
-        <div class="three-column-layout__side">
-        </div>
-        <main class="three-column-layout__main">
-            <RegisterForm></RegisterForm>
-
-        </main>
-        <div class="three-column-layout__side">
-
-        </div>
-    </div>
+    <ThreeColumnLayout>
+        <RegisterForm></RegisterForm>
+    </ThreeColumnLayout>
 </template>
 
 <script>
 import RegisterForm from '@/components/Forms/RegisterForm.vue';
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
+import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
 
 export default {
     components: {
         NavbarElement,
-        RegisterForm
+        RegisterForm,
+        ThreeColumnLayout
     },
     name: "RegisterPage"
 };

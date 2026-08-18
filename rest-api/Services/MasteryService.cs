@@ -21,11 +21,13 @@ public interface IMasteryService
     /// <throws cref="ArgumentException">Invalid JSON data</throws>
     /// <throws cref="System.Text.Json.JsonReaderException">Invalid JSON format</throws>
     /// <returns></returns>
-    public Task UpdatePlayerMasteryAsync(Player player, string jsonData);
+    public Task<MasteryImportReceiptDto> UpdatePlayerMasteryAsync(Player player, string jsonData);
     public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByPlayerAsync(Player player);
     public Task<IEnumerable<MasteryItemDTO>> GetMasteryInfoByClanAsync(Clan clan);
+    public Task<DashboardSummaryDto> GetDashboardSummaryAsync(Player player);
     public Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player);
     public Task<List<DashboardProgressDayDTO>> GetDailyProgressAsync(Player player, int days);
+    public Task<MasteryImportReceiptDto?> GetLatestImportReceiptAsync(Player player);
 }
 
 public class MasteryService : IMasteryService
@@ -168,9 +170,24 @@ public class MasteryService : IMasteryService
             .ToList();
     }
 
-    // TODO: Fuckton of validation
-    // Also TODO: Write some tests
-    public async Task UpdatePlayerMasteryAsync(Player player, string jsonData)
+    internal static List<Player_items_mastery> FindStaleMasteryEntries(
+        IEnumerable<Player_items_mastery> snapshotEntries,
+        IEnumerable<Player_items_mastery> existingEntries)
+    {
+        HashSet<string> snapshotUniqueNames = snapshotEntries
+            .Select(item => item.unique_name)
+            .ToHashSet(StringComparer.Ordinal);
+        return existingEntries
+            .Where(item => !snapshotUniqueNames.Contains(item.unique_name))
+            .ToList();
+    }
+
+    internal static int CalculateMissionMasteryXp(int completionCount, bool spComplete, int masteryXp)
+    {
+        return completionCount > 0 ? masteryXp * (spComplete ? 2 : 1) : 0;
+    }
+
+    public async Task<MasteryImportReceiptDto> UpdatePlayerMasteryAsync(Player player, string jsonData)
     {
         JsonNode root = JsonNode.Parse(jsonData) ?? throw new ArgumentException("Invalid JSON data");
 
@@ -184,6 +201,8 @@ public class MasteryService : IMasteryService
         JsonArray recipes = (root["Recipes"] ?? throw new ArgumentException("Invalid JSON data: Missing Recipes")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid Recipes");
         JsonArray miscItems = (root["MiscItems"] ?? throw new ArgumentException("Invalid JSON data: Missing MiscItems")).AsArray() ?? throw new ArgumentException("Invalid JSON data: Invalid MiscItems");
         int masteryRank = (root["PlayerLevel"] ?? throw new ArgumentException("Invalid JSON data: Missing PlayerLevel")).GetValue<int>();
+        string? sourceVersion = root["SourceVersion"]?.GetValue<string>();
+        if (sourceVersion?.Length > 64) throw new ArgumentException("Invalid JSON data: SourceVersion is too long");
 
         List<Player_items_mastery> masteryItems = [.. xpInfo
             .Where(x => allItems.Contains(validateMasteryItem(x!)["ItemType"]!.GetValue<string>()))
@@ -195,9 +214,14 @@ public class MasteryService : IMasteryService
             })];
 
         List<string> masteryItemUniqueNames = masteryItems.Select(item => item.unique_name).Distinct().ToList();
+        List<Player_items_mastery> existingMasteryItems = await _dbContext.player_items_masteries
+            .Where(item => item.player_id == player.id)
+            .ToListAsync();
         var previousMasteryItems = await _dbContext.player_items_masteries
             .Where(item => item.player_id == player.id && masteryItemUniqueNames.Contains(item.unique_name))
+            .Select(item => new { item.unique_name, item.xp_gained })
             .ToDictionaryAsync(item => item.unique_name, item => item.xp_gained);
+        List<Player_items_mastery> staleMasteryItems = FindStaleMasteryEntries(masteryItems, existingMasteryItems);
         var itemInfo = await _dbContext.items
             .Where(item => masteryItemUniqueNames.Contains(item.unique_name))
             .ToDictionaryAsync(item => item.unique_name);
@@ -237,6 +261,10 @@ public class MasteryService : IMasteryService
         List<Player_item> existingInventoryEntries = await _dbContext.player_items
             .Where(item => item.player_id == player.id)
             .ToListAsync();
+        var previousInventoryEntries = await _dbContext.player_items
+            .Where(item => item.player_id == player.id)
+            .Select(item => new { item.unique_name, item.item_count })
+            .ToDictionaryAsync(item => item.unique_name, item => item.item_count);
         RelicSnapshotReconciliation relicSnapshot = ReconcileRelicSnapshot(
             player.id,
             parsedMiscItems,
@@ -251,9 +279,15 @@ public class MasteryService : IMasteryService
         List<Player_item> miscItemEntries = [
             .. relicSnapshot.NonRelicEntries,
             .. relicSnapshot.RelicEntries];
+        int recognizedMiscItemCount = parsedMiscItems.Count(item =>
+            knownRelicUniqueNames.Contains(item.UniqueName)
+            || (!item.UniqueName.Contains("/Projections/", StringComparison.OrdinalIgnoreCase)
+                && allItems.Contains(item.UniqueName)));
         List<Player_item> staleInventoryEntries = FindStaleInventoryEntries(
             recipeItems.Concat(miscItemEntries),
             existingInventoryEntries);
+
+        List<Player_item> inventoryEntries = [.. recipeItems, .. miscItemEntries];
 
 
         var missingItems = xpInfo
@@ -294,25 +328,25 @@ public class MasteryService : IMasteryService
         List<string> missionUniqueNames = missionEntries.Select(mission => mission.UniqueName!).Distinct().ToList();
         var previousMissionCompletions = await _dbContext.mission_completions
             .Where(mission => mission.PlayerId == player.id && missionUniqueNames.Contains(mission.UniqueName!))
+            .Select(mission => new { mission.UniqueName, mission.CompletionCount, mission.SPComplete })
             .ToDictionaryAsync(mission => mission.UniqueName!);
 
         List<MasteryProgressMission> missionProgress = [.. missionEntries
             .Select(mission =>
             {
                 var info = missionInfo[mission.UniqueName!];
-                previousMissionCompletions.TryGetValue(mission.UniqueName!, out MissionCompletion? previous);
+                previousMissionCompletions.TryGetValue(mission.UniqueName!, out var previous);
 
                 int previousCompletionCount = previous?.CompletionCount ?? 0;
                 bool previousSPComplete = previous?.SPComplete ?? false;
-                int masteryXpGained = 0;
-                if (previousCompletionCount == 0 && mission.CompletionCount > 0)
-                {
-                    masteryXpGained += info.MasteryXp;
-                }
-                if (!previousSPComplete && mission.SPComplete)
-                {
-                    masteryXpGained += info.MasteryXp;
-                }
+                int previousMasteryXp = CalculateMissionMasteryXp(
+                    previousCompletionCount,
+                    previousSPComplete,
+                    info.MasteryXp);
+                int currentMasteryXp = CalculateMissionMasteryXp(
+                    mission.CompletionCount,
+                    mission.SPComplete,
+                    info.MasteryXp);
 
                 return new MasteryProgressMission
                 {
@@ -323,19 +357,35 @@ public class MasteryService : IMasteryService
                     CurrentCompletionCount = mission.CompletionCount,
                     PreviousSPComplete = previousSPComplete,
                     CurrentSPComplete = mission.SPComplete,
-                    MasteryXpGained = masteryXpGained
+                    MasteryXpGained = currentMasteryXp - previousMasteryXp
                 };
             })
-            .Where(mission =>
-                mission.PreviousCompletionCount == 0 && mission.CurrentCompletionCount > 0 ||
-                !mission.PreviousSPComplete && mission.CurrentSPComplete)];
+            .Where(mission => mission.MasteryXpGained > 0)];
 
-        using var transaction = _dbContext.Database.BeginTransaction();
-        player.mastery_rank = masteryRank;
-        player.duviri_skills = duviriSkills;
-        player.railjack_skills = railjackSkills;
+        bool changed = player.mastery_rank != masteryRank
+            || player.duviri_skills != duviriSkills
+            || player.railjack_skills != railjackSkills
+            || staleMasteryItems.Count > 0
+            || masteryItems.Any(item => !previousMasteryItems.TryGetValue(item.unique_name, out int xp) || xp != item.xp_gained)
+            || staleInventoryEntries.Count > 0
+            || inventoryEntries.Any(item => !previousInventoryEntries.TryGetValue(item.unique_name, out int itemCount)
+                || itemCount != item.item_count)
+            || missionEntries.Any(mission => !previousMissionCompletions.TryGetValue(mission.UniqueName!, out var previous)
+                || previous.CompletionCount != mission.CompletionCount
+                || previous.SPComplete != mission.SPComplete);
+        int processedCount = masteryItems.Count + recipeItems.Count + recognizedMiscItemCount + missionEntries.Count;
+        int skippedCount = xpInfo.Count - masteryItems.Count
+            + recipes.Count - recipeItems.Count
+            + miscItems.Count - recognizedMiscItemCount
+            + missions.Count - missionEntries.Count;
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
         {
+            player.mastery_rank = masteryRank;
+            player.duviri_skills = duviriSkills;
+            player.railjack_skills = railjackSkills;
+            _dbContext.player_items_masteries.RemoveRange(staleMasteryItems);
             _dbContext.player_items.RemoveRange(staleInventoryEntries);
             await _dbContext.SaveChangesAsync();
             await _dbContext.BulkInsertOrUpdateAsync(masteryItems, new BulkConfig
@@ -370,20 +420,23 @@ public class MasteryService : IMasteryService
                 .Join(_dbContext.missions,
                     mc => mc.UniqueName,
                     m => m.UniqueName,
-                    (mc, m) => new { mc.SPComplete, m.MasteryXp })
-                .SumAsync(mc => mc.SPComplete ? mc.MasteryXp * 2 : mc.MasteryXp);
+                    (mc, m) => new { mc.CompletionCount, mc.SPComplete, m.MasteryXp })
+                .SumAsync(mc => mc.CompletionCount > 0
+                    ? mc.MasteryXp * (mc.SPComplete ? 2 : 1)
+                    : 0);
 
 
             int totalXp = masteryXp + missionXp + (duviriSkills * 1500) + (railjackSkills * 1500);
 
             player.TotalMasteryXp = totalXp;
 
+            DateTime importedAt = DateTime.UtcNow;
             if (previousTotalMasteryXp > 0 && totalXp > previousTotalMasteryXp)
             {
                 _dbContext.mastery_progress_entries.Add(new MasteryProgressEntry
                 {
                     PlayerId = player.id,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = importedAt,
                     PreviousTotalMasteryXp = previousTotalMasteryXp,
                     CurrentTotalMasteryXp = totalXp,
                     MasteryXpGained = totalXp - previousTotalMasteryXp,
@@ -392,8 +445,22 @@ public class MasteryService : IMasteryService
                 });
             }
 
+            MasteryImportReceipt receipt = new()
+            {
+                PlayerId = player.id,
+                ImportedAt = importedAt,
+                ResultingMasteryRank = masteryRank,
+                ResultingTotalMasteryXp = totalXp,
+                Changed = changed,
+                SourceVersion = sourceVersion,
+                ProcessedCount = processedCount,
+                SkippedCount = skippedCount
+            };
+            _dbContext.mastery_import_receipts.Add(receipt);
+
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
+            return ToDto(receipt);
         }
         catch (Exception ex)
         {
@@ -402,6 +469,30 @@ public class MasteryService : IMasteryService
             throw;
         }
     }
+
+    public async Task<MasteryImportReceiptDto?> GetLatestImportReceiptAsync(Player player)
+    {
+        MasteryImportReceipt? receipt = await _dbContext.mastery_import_receipts
+            .AsNoTracking()
+            .Where(receipt => receipt.PlayerId == player.id)
+            .OrderByDescending(receipt => receipt.ImportedAt)
+            .ThenByDescending(receipt => receipt.Id)
+            .FirstOrDefaultAsync();
+
+        return receipt == null ? null : ToDto(receipt);
+    }
+
+    private static MasteryImportReceiptDto ToDto(MasteryImportReceipt receipt) => new()
+    {
+        Id = receipt.Id,
+        ImportedAt = new DateTimeOffset(receipt.ImportedAt).ToUnixTimeMilliseconds(),
+        ResultingMasteryRank = receipt.ResultingMasteryRank,
+        ResultingTotalMasteryXp = receipt.ResultingTotalMasteryXp,
+        Changed = receipt.Changed,
+        SourceVersion = receipt.SourceVersion,
+        ProcessedCount = receipt.ProcessedCount,
+        SkippedCount = receipt.SkippedCount
+    };
 
     private async Task<Dictionary<string, MasteryItemDTO>> GetRawItems()
     {
@@ -508,6 +599,115 @@ public class MasteryService : IMasteryService
         return rawItems.Values;
     }
 
+    public async Task<DashboardSummaryDto> GetDashboardSummaryAsync(Player player)
+    {
+        DateTime today = DateTime.UtcNow.Date;
+        DateTime sevenDayStart = today.AddDays(-6);
+        DateTime thirtyDayStart = today.AddDays(-29);
+
+        var categories = await _dbContext.items
+            .AsNoTracking()
+            .Where(item => item.xp_required != null)
+            .GroupBy(item => item.item_class)
+            .Select(group => new
+            {
+                Category = group.Key,
+                Total = group.Count(),
+                Mastered = group.Count(item => item.player_items_masteries.Any(mastery =>
+                    mastery.player_id == player.id && mastery.xp_gained >= item.xp_required)),
+                Started = group.Count(item => item.player_items_masteries.Any(mastery =>
+                    mastery.player_id == player.id && mastery.xp_gained < item.xp_required))
+            })
+            .OrderBy(category => category.Category)
+            .ToListAsync();
+
+        int craftReady = await _dbContext.items
+            .AsNoTracking()
+            .Where(item => item.xp_required != null &&
+                !item.player_items_masteries.Any(mastery => mastery.player_id == player.id) &&
+                item.reciperesult_itemNavigations.Any(recipe =>
+                    _dbContext.player_items.Any(inventory =>
+                        inventory.player_id == player.id &&
+                        inventory.unique_name == recipe.unique_name &&
+                        inventory.item_count > 0) &&
+                    recipe.recipe_ingredients.All(ingredient =>
+                        _dbContext.player_items.Any(inventory =>
+                            inventory.player_id == player.id &&
+                            inventory.unique_name == ingredient.item_ingredient &&
+                            inventory.item_count >= ingredient.ingredient_count))))
+            .CountAsync();
+
+        var gains = await _dbContext.mastery_progress_entries
+            .AsNoTracking()
+            .Where(entry => entry.PlayerId == player.id &&
+                entry.PreviousTotalMasteryXp > 0 &&
+                entry.CurrentTotalMasteryXp > entry.PreviousTotalMasteryXp &&
+                entry.CreatedAt.Date >= thirtyDayStart)
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                SevenDays = group.Where(entry => entry.CreatedAt.Date >= sevenDayStart)
+                    .Sum(entry => entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp),
+                ThirtyDays = group.Sum(entry => entry.CurrentTotalMasteryXp - entry.PreviousTotalMasteryXp)
+            })
+            .FirstOrDefaultAsync();
+
+        int missionTotal = await _dbContext.missions
+            .AsNoTracking()
+            .CountAsync(mission => mission.MasteryXp > 0);
+        var missionCompletions = await _dbContext.mission_completions
+            .AsNoTracking()
+            .Where(completion => completion.PlayerId == player.id && completion.Mission.MasteryXp > 0)
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                Normal = group.Count(completion => completion.CompletionCount > 0),
+                SteelPath = group.Count(completion => completion.CompletionCount > 0 && completion.SPComplete)
+            })
+            .FirstOrDefaultAsync();
+
+        int totalItems = categories.Sum(category => category.Total);
+        int masteredItems = categories.Sum(category => category.Mastered);
+        int startedItems = categories.Sum(category => category.Started);
+
+        return new DashboardSummaryDto
+        {
+            MasteryRank = player.mastery_rank,
+            TotalMasteryXp = player.TotalMasteryXp,
+            LatestImport = await GetLatestImportReceiptAsync(player),
+            MasteryXpGained7Days = gains?.SevenDays ?? 0,
+            MasteryXpGained30Days = gains?.ThirtyDays ?? 0,
+            Items = new DashboardItemCountsDto
+            {
+                Total = totalItems,
+                Mastered = masteredItems,
+                Started = startedItems,
+                Unowned = totalItems - masteredItems - startedItems - craftReady,
+                CraftReady = craftReady
+            },
+            Categories = [.. categories.Select(category => new DashboardCategoryCompletionDto
+            {
+                Category = category.Category,
+                Mastered = category.Mastered,
+                Total = category.Total
+            })],
+            Missions = new DashboardMissionTotalsDto
+            {
+                NormalCompleted = missionCompletions?.Normal ?? 0,
+                NormalTotal = missionTotal,
+                SteelPathCompleted = missionCompletions?.SteelPath ?? 0,
+                SteelPathTotal = missionTotal
+            },
+            Intrinsics = new DashboardIntrinsicTotalsDto
+            {
+                Railjack = player.railjack_skills,
+                RailjackTotal = 50,
+                Duviri = player.duviri_skills,
+                DuviriTotal = 40
+            }
+        };
+    }
+
     public async Task<List<DashboardProgressEntryDTO>> GetLatestProgressEntriesAsync(Player player)
     {
         List<MasteryProgressEntry> latestEntries = await _dbContext.mastery_progress_entries
@@ -515,6 +715,7 @@ public class MasteryService : IMasteryService
                 entry.PreviousTotalMasteryXp > 0 &&
                 entry.CurrentTotalMasteryXp > entry.PreviousTotalMasteryXp)
             .OrderByDescending(entry => entry.CreatedAt)
+            .ThenByDescending(entry => entry.Id)
             .Take(10)
             .Include(entry => entry.LeveledItems)
                 .ThenInclude(item => item.Item)

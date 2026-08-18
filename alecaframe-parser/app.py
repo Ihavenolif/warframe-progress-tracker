@@ -4,7 +4,6 @@ import sys
 import mimetypes
 import time
 import urllib.error
-import urllib.parse
 import urllib.request
 import uuid
 
@@ -31,6 +30,17 @@ def resource_path(relative_path):
     base_path = getattr(sys, "_MEIPASS", os.path.abspath("."))
 
     return os.path.join(base_path, relative_path)
+
+
+def read_app_version():
+    try:
+        with open(resource_path("version.txt"), encoding="utf-8") as version_file:
+            return version_file.read().strip() or "development"
+    except OSError:
+        return "development"
+
+
+APP_VERSION = read_app_version()
 
 
 def app_dir():
@@ -119,8 +129,13 @@ def login():
 
     try:
         base_url = normalize_base_url()
-        query = urllib.parse.urlencode({"username": username, "password": password})
-        response = request_json(f"{base_url}/api/auth/login?{query}", method="POST") or {}
+        credentials = json.dumps({"username": username, "password": password}).encode("utf-8")
+        response = request_json(
+            f"{base_url}/api/auth/login",
+            method="POST",
+            headers={"Content-Type": "application/json"},
+            data=credentials,
+        ) or {}
         token = response.get("token") if response else None
         if not token:
             raise RuntimeError("Login response did not contain an auth token.")
@@ -152,15 +167,30 @@ def parse_file(send_after_export=None):
         set_status("JSON parse error.")
         return None
 
-    try:
-        parsed["XPInfo"]
-        res_json = res
-    except KeyError:
-        try:
-            res_json = parsed["InventoryJson"]
-        except KeyError:
-            set_status("Invalid JSON file.")
-            return None
+    if not isinstance(parsed, dict):
+        set_status("Invalid JSON file.")
+        return None
+
+    if "XPInfo" in parsed:
+        inventory = parsed
+    elif "InventoryJson" in parsed:
+        inventory = parsed["InventoryJson"]
+        if isinstance(inventory, str):
+            try:
+                inventory = json.loads(inventory)
+            except json.JSONDecodeError:
+                set_status("Invalid JSON file.")
+                return None
+    else:
+        set_status("Invalid JSON file.")
+        return None
+
+    if not isinstance(inventory, dict):
+        set_status("Invalid JSON file.")
+        return None
+
+    inventory["SourceVersion"] = APP_VERSION
+    res_json = json.dumps(inventory)
 
     if not isinstance(res_json, str):
         res_json = json.dumps(res_json)
@@ -209,34 +239,45 @@ def ensure_logged_in():
 
 
 def send_json(json_content):
+    global auth_token
+
     token = ensure_logged_in()
     if not token:
         return False
 
-    try:
-        base_url = normalize_base_url()
-        body, content_type = build_multipart_form_data("jsonFile", "out.json", json_content)
-        request = urllib.request.Request(
-            f"{base_url}/api/mastery/update",
-            data=body,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Content-Type": content_type,
-                "Content-Length": str(len(body)),
-            },
-            method="POST",
-        )
-        with urllib.request.urlopen(request, timeout=60) as response:
-            response.read()
-        set_status(f"Data sent successfully at {time.strftime('%H:%M:%S')}.")
-        return True
-    except urllib.error.HTTPError as error:
-        message = error.read().decode("utf-8", errors="replace")
-        set_status(f"Send failed: server returned {error.code}: {message or error.reason}")
-    except urllib.error.URLError as error:
-        set_status(f"Send failed: connection failed: {error.reason}")
-    except Exception as error:
-        set_status(f"Send failed: {error}")
+    for attempt in range(2):
+        try:
+            base_url = normalize_base_url()
+            body, content_type = build_multipart_form_data("jsonFile", "out.json", json_content)
+            request = urllib.request.Request(
+                f"{base_url}/api/mastery/update",
+                data=body,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": content_type,
+                    "Content-Length": str(len(body)),
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(request, timeout=60) as response:
+                response.read()
+            set_status(f"Data sent successfully at {time.strftime('%H:%M:%S')}.")
+            return True
+        except urllib.error.HTTPError as error:
+            if attempt == 0 and error.code in (401, 403):
+                auth_token = None
+                login()
+                token = auth_token
+                if not token:
+                    return False
+                continue
+            message = error.read().decode("utf-8", errors="replace")
+            set_status(f"Send failed: server returned {error.code}: {message or error.reason}")
+        except urllib.error.URLError as error:
+            set_status(f"Send failed: connection failed: {error.reason}")
+        except Exception as error:
+            set_status(f"Send failed: {error}")
+        return False
     return False
 
 

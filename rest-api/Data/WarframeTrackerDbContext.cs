@@ -48,6 +48,8 @@ public partial class WarframeTrackerDbContext : DbContext
 
     public virtual DbSet<MasteryProgressMission> mastery_progress_missions { get; set; }
 
+    public virtual DbSet<MasteryImportReceipt> mastery_import_receipts { get; set; }
+
     public virtual DbSet<Relic> relics { get; set; }
 
     public virtual DbSet<RelicVariant> relic_variants { get; set; }
@@ -171,6 +173,34 @@ public partial class WarframeTrackerDbContext : DbContext
                 .HasForeignKey(e => e.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("mastery_progress_entry_player_id_fkey");
+
+            entity.HasMany(e => e.MasteryImportReceipts)
+                .WithOne(e => e.Player)
+                .HasForeignKey(e => e.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("mastery_import_receipt_player_id_fkey");
+        });
+
+        modelBuilder.Entity<MasteryImportReceipt>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("mastery_import_receipt_pkey");
+
+            entity.ToTable("mastery_import_receipt");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PlayerId).HasColumnName("player_id");
+            entity.Property(e => e.ImportedAt)
+                .HasColumnName("imported_at")
+                .HasColumnType("timestamp with time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.ResultingMasteryRank).HasColumnName("resulting_mastery_rank");
+            entity.Property(e => e.ResultingTotalMasteryXp).HasColumnName("resulting_total_mastery_xp");
+            entity.Property(e => e.Changed).HasColumnName("changed");
+            entity.Property(e => e.SourceVersion).HasMaxLength(64).HasColumnName("source_version");
+            entity.Property(e => e.ProcessedCount).HasColumnName("processed_count");
+            entity.Property(e => e.SkippedCount).HasColumnName("skipped_count");
+            entity.HasIndex(e => new { e.PlayerId, e.ImportedAt })
+                .HasDatabaseName("mastery_import_receipt_player_imported_at_idx");
         });
 
         modelBuilder.Entity<MasteryProgressEntry>(entity =>

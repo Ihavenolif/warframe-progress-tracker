@@ -38,14 +38,14 @@ public class AuthController : ControllerBase
     [SwaggerResponse(401, "Username and password combination not found.", typeof(string))]
     [SwaggerResponse(400, "Bad request", typeof(string))]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
-        if (!await userService.VerifyUser(username, password))
+        if (!await userService.VerifyUser(request.Username, request.Password))
         {
             return Unauthorized("Username and password combination not found.");
         }
 
-        Registered_user user = (await userService.GetUserByUsernameAsync(username))!;
+        Registered_user user = (await userService.GetUserByUsernameAsync(request.Username))!;
 
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = await _tokenService.GenerateRefreshToken(user, Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");

@@ -1,19 +1,13 @@
 <template>
     <NavbarElement></NavbarElement>
-    <div class="three-column-layout">
-        <div class="three-column-layout__side">
-        </div>
-        <main class="three-column-layout__main">
-            <h1> {{ header }} </h1>
-        </main>
-        <div class="three-column-layout__side">
-
-        </div>
-    </div>
+    <ThreeColumnLayout>
+        <h1> {{ header }} </h1>
+    </ThreeColumnLayout>
 </template>
 
 <script>
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
+import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
 import { authFetch } from '@/util/util';
 
 export default {
@@ -35,7 +29,8 @@ export default {
         }
     },
     components: {
-        NavbarElement
+        NavbarElement,
+        ThreeColumnLayout
     },
     data() {
         return {

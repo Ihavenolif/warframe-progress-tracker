@@ -1,29 +1,21 @@
 <template>
     <NavbarElement></NavbarElement>
 
-    <div class="three-column-layout">
-        <div class="three-column-layout__side">
-        </div>
-        <main class="three-column-layout__main">
-            <LoginForm></LoginForm>
-
-        </main>
-        <div class="three-column-layout__side">
-
-        </div>
-    </div>
-
-    
+    <ThreeColumnLayout>
+        <LoginForm></LoginForm>
+    </ThreeColumnLayout>
 </template>
 
 <script>
 import LoginForm from '@/components/Forms/LoginForm.vue';
 import NavbarElement from '@/components/Navbar/NavbarElement.vue';
+import ThreeColumnLayout from '@/components/ThreeColumnLayout.vue';
 
 export default {
     components: {
         NavbarElement,
-        LoginForm
+        LoginForm,
+        ThreeColumnLayout
     },
     name: "LoginPage"
 };

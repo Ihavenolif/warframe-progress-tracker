@@ -1,6 +1,4 @@
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using rest_api.DTO;
 using rest_api.DTO.MasteryUpdate;
@@ -17,23 +15,26 @@ public class MasteryController : ControllerBase
     private readonly IMasteryService masteryService;
     private readonly IPlayerService playerService;
     private readonly IUserService userService;
-    private readonly IItemService itemService;
 
-    public MasteryController(IMasteryService masteryService, IPlayerService playerService, IUserService userService, IItemService itemService)
+    public MasteryController(IMasteryService masteryService, IPlayerService playerService, IUserService userService)
     {
         this.masteryService = masteryService;
         this.playerService = playerService;
         this.userService = userService;
-        this.itemService = itemService;
     }
 
     [HttpGet("{username}")]
-    // TODO: Add verification
     public async Task<ActionResult<IEnumerable<MasteryItemDTO>>> GetMasteryInfoByPlayer([FromRoute] string username)
     {
-        // TODO: Authorization and validation
-        var player = await playerService.FindPlayerByUsernameAsync(username);
+        Registered_user? user = await userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        var player = await playerService.FindAccessiblePlayerByUsernameAsync(
+            username,
+            user.player?.id,
+            User.IsInRole("ADMIN"));
         if (player == null) return NotFound("Player not found");
+
         var masteryData = await masteryService.GetMasteryInfoByPlayerAsync(player);
         return Ok(masteryData);
     }
@@ -68,6 +69,18 @@ public class MasteryController : ControllerBase
         return Ok(await masteryService.GetLatestProgressEntriesAsync(player));
     }
 
+    [HttpGet("dashboard/summary")]
+    public async Task<ActionResult<DashboardSummaryDto>> GetDashboardSummary()
+    {
+        Registered_user? user = await userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        return Ok(await masteryService.GetDashboardSummaryAsync(player));
+    }
+
     [HttpGet("dashboard/daily")]
     public async Task<ActionResult<List<DashboardProgressDayDTO>>> GetDailyDashboardProgress([FromQuery] int days = 7)
     {
@@ -80,6 +93,19 @@ public class MasteryController : ControllerBase
         if (player == null) return NotFound("Player not found");
 
         return Ok(await masteryService.GetDailyProgressAsync(player, days));
+    }
+
+    [HttpGet("imports/latest")]
+    public async Task<ActionResult<MasteryImportReceiptDto>> GetLatestImportReceipt()
+    {
+        Registered_user? user = await this.userService.GetUserByUsernameAsync(User.Identity!.Name!);
+        if (user == null) return Unauthorized();
+
+        Player? player = user.player;
+        if (player == null) return NotFound("Player not found");
+
+        MasteryImportReceiptDto? receipt = await masteryService.GetLatestImportReceiptAsync(player);
+        return receipt == null ? NoContent() : Ok(receipt);
     }
 
     [HttpPost("update")]
@@ -101,7 +127,8 @@ public class MasteryController : ControllerBase
 
         try
         {
-            await masteryService.UpdatePlayerMasteryAsync(player, jsonData);
+            MasteryImportReceiptDto receipt = await masteryService.UpdatePlayerMasteryAsync(player, jsonData);
+            return Ok(receipt);
         }
         catch (ArgumentException ex)
         {
@@ -111,12 +138,11 @@ public class MasteryController : ControllerBase
         {
             return BadRequest("Invalid JSON format");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Log the exception (not shown here for brevity)
             return StatusCode(500, "An error occurred while processing the request");
         }
 
-        return Ok();
     }
 }

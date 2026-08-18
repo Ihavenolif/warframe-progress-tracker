@@ -33,6 +33,8 @@ public partial class Player
 
     public virtual ICollection<MasteryProgressEntry> MasteryProgressEntries { get; set; } = new List<MasteryProgressEntry>();
 
+    public virtual ICollection<MasteryImportReceipt> MasteryImportReceipts { get; set; } = new List<MasteryImportReceipt>();
+
     public virtual ICollection<Registered_user> registered_users { get; set; } = new List<Registered_user>();
 
     public virtual ICollection<Clan> clansLeading { get; set; } = new List<Clan>();
